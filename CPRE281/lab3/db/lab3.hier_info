@@ -1,0 +1,10 @@
+|lab3
+pin_name1 <= inst5.DB_MAX_OUTPUT_PORT_TYPE
+Goat => inst3.IN0
+Goat => inst1.IN0
+Wolf => inst.IN1
+Wolf => inst4.IN0
+Cabbage => inst.IN2
+Cabbage => inst2.IN0
+
+

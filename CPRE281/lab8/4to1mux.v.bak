@@ -1,0 +1,6 @@
+module 4to1mux (w0,w1,w2,w3,s,f);
+input w0,w1,w2,w3;
+input s[1:0];
+output f;
+
+assign f = s[1]?(s[0]?w3:w2):(s[0]?w1:w0);

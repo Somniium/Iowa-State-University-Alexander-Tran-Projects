@@ -1,0 +1,116 @@
+m255
+K4
+z2
+!s12c _opt1
+Z0 !s99 nomlopt
+!s12c _opt
+R0
+!s11f vlog 2024.2 2024.05, May 20 2024
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z1 dC:/questasim64_2024.2/examples
+T_opt
+!s110 1741116766
+VG_g<h`IHfP?BaABP6NQei2
+04 8 4 work pCircuit fast 0
+=1-4cd71792ec57-67c7555d-3e7-15ec
+R0
+Z2 !s12f OEM100
+Z3 !s12b OEM100
+Z4 !s124 OEM100
+Z5 !s135 nogc
+Z6 o-quiet -auto_acc_if_foreign -work work
+Z7 tCvgOpt 0
+n@_opt
+Z8 OL;O;2024.2;79
+R1
+T_opt1
+!s110 1741118813
+VB]KU^O[lJVQ>WV^k5BSVO2
+04 10 4 work mProjFinal fast 0
+=1-4cd71792ec57-67c75d5c-2c2-dcc
+R0
+R2
+R3
+R4
+R5
+R6
+R7
+n@_opt1
+R8
+vmProjb
+2U:/CPRE281/mProj/mProjb.v
+Z9 !s110 1741118792
+!i10b 1
+!s100 7j:]Y;b]K3Wh=G]oSnQ^X1
+IQR<O]U9X]MNgCk:6gUJD42
+Z10 dU:/CPRE281/mProj
+w1741117546
+8U:/CPRE281/mProj/mProjb.v
+FU:/CPRE281/mProj/mProjb.v
+!i122 4
+Z11 L0 1 7
+Z12 VDg1SIo80bB@j0V0VzS_@n1
+Z13 OL;L;2024.2;79
+r1
+!s85 0
+31
+!s108 1741118792.000000
+!s107 U:/CPRE281/mProj/mProjb.v|
+!s90 -reportprogress|300|-work|work|-vopt|-stats=none|U:/CPRE281/mProj/mProjb.v|
+!i113 0
+Z14 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R7
+nm@projb
+vmProjFinal
+2U:/CPRE281/mProj/mProjFinal.v
+R9
+!i10b 1
+!s100 VWz?e<nIHDMj`O?lG3A0H0
+IcZST`<3j:_f_lfJ5N@Dgo1
+R10
+w1741118609
+8U:/CPRE281/mProj/mProjFinal.v
+FU:/CPRE281/mProj/mProjFinal.v
+!i122 3
+L0 20 44
+R12
+R13
+r1
+!s85 0
+31
+Z15 !s108 1741118791.000000
+!s107 U:/CPRE281/mProj/mProjFinal.v|
+!s90 -reportprogress|300|-work|work|-vopt|-stats=none|U:/CPRE281/mProj/mProjFinal.v|
+!i113 0
+R14
+R7
+nm@proj@final
+vpCircuit
+2U:/CPRE281/mProj/pCircuit.v
+!s110 1741118791
+!i10b 1
+!s100 c`9>GRiMM38;N2iKza=cO1
+I7LgHnGjAPdGDcI>5=>[l80
+R10
+w1741116706
+8U:/CPRE281/mProj/pCircuit.v
+FU:/CPRE281/mProj/pCircuit.v
+!i122 2
+R11
+R12
+R13
+r1
+!s85 0
+31
+R15
+!s107 U:/CPRE281/mProj/pCircuit.v|
+!s90 -reportprogress|300|-work|work|-vopt|-stats=none|U:/CPRE281/mProj/pCircuit.v|
+!i113 0
+R14
+R7
+np@circuit

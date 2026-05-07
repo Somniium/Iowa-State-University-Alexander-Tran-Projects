@@ -1,0 +1,182 @@
+m255
+K4
+z2
+!s12c _opt1
+Z0 !s99 nomlopt
+!s12c _opt
+R0
+!s11f vlog 2024.2 2024.05, May 20 2024
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z1 dC:/questasim64_2024.2/examples
+T_opt
+!s110 1740074603
+VBDoAgK4oXP8>HAEPNSPmo1
+04 9 4 work lab4step1 fast 0
+=1-7486e228a124-67b76e6a-239-92c
+R0
+Z2 !s12f OEM100
+Z3 !s12b OEM100
+Z4 !s124 OEM100
+Z5 !s135 nogc
+Z6 o-quiet -auto_acc_if_foreign -work work
+Z7 tCvgOpt 0
+n@_opt
+Z8 OL;O;2024.2;79
+R1
+T_opt1
+!s110 1740077706
+VIZ0WQ:42MiLKknX78cT>;3
+04 9 4 work lab4step2 fast 0
+=1-4cd717937a3d-67b77a89-2bc-130c
+R0
+R2
+R3
+R4
+R5
+R6
+R7
+n@_opt1
+R8
+vlab4step1
+Z9 2U:/CPRE281/lab4/lab4step1.v
+Z10 !s110 1740077506
+!i10b 1
+!s100 @clZ83eA1HCFh@Nj@kn6P1
+IDdGPUL3=EaGz9=MAacYLG2
+Z11 dU:/CPRE281/lab4
+w1740074556
+Z12 8U:/CPRE281/lab4/lab4step1.v
+Z13 FU:/CPRE281/lab4/lab4step1.v
+!i122 12
+L0 1 28
+Z14 VDg1SIo80bB@j0V0VzS_@n1
+Z15 OL;L;2024.2;79
+r1
+!s85 0
+31
+!s108 1740077504.000000
+Z16 !s107 U:/CPRE281/lab4/lab4step1.v|
+Z17 !s90 -reportprogress|300|-work|work|-vopt|-stats=none|U:/CPRE281/lab4/lab4step1.v|
+!i113 0
+Z18 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R7
+vlab4step2
+2U:/CPRE281/lab4/lab4step2.v
+R10
+!i10b 1
+!s100 aabQ_IjZFJ>dkDB5c[9Kg3
+I[<daY@?U>5d3ZUHF7Sh3k1
+R11
+w1740077119
+8U:/CPRE281/lab4/lab4step2.v
+FU:/CPRE281/lab4/lab4step2.v
+!i122 13
+L0 20 44
+R14
+R15
+r1
+!s85 0
+31
+Z19 !s108 1740077506.000000
+!s107 U:/CPRE281/lab4/lab4step2.v|
+!s90 -reportprogress|300|-work|work|-vopt|-stats=none|U:/CPRE281/lab4/lab4step2.v|
+!i113 0
+R18
+R7
+vmultiplexer
+2U:/CPRE281/lab4/multiplexer.v
+R10
+!i10b 1
+!s100 Z=oh8U0afjC2:_X0W^<iC2
+I_L61BWzYCgTco=1jbcmIJ2
+R11
+w1740077401
+8U:/CPRE281/lab4/multiplexer.v
+FU:/CPRE281/lab4/multiplexer.v
+!i122 14
+Z20 L0 25 18
+R14
+R15
+r1
+!s85 0
+31
+R19
+!s107 U:/CPRE281/lab4/multiplexer.v|
+!s90 -reportprogress|300|-work|work|-vopt|-stats=none|U:/CPRE281/lab4/multiplexer.v|
+!i113 0
+R18
+R7
+vnormal
+2U:/CPRE281/lab4/normal.v
+R10
+!i10b 1
+!s100 A2XfWY`7;9hfQ4V9abPF53
+IUX<AQWM=@f8V<IV2f50m;3
+R11
+w1740077497
+8U:/CPRE281/lab4/normal.v
+FU:/CPRE281/lab4/normal.v
+!i122 15
+R20
+R14
+R15
+r1
+!s85 0
+31
+R19
+!s107 U:/CPRE281/lab4/normal.v|
+!s90 -reportprogress|300|-work|work|-vopt|-stats=none|U:/CPRE281/lab4/normal.v|
+!i113 0
+R18
+R7
+vpowersaving
+2U:/CPRE281/lab4/powersaving.v
+R10
+!i10b 1
+!s100 4fFDNnB::bba0;bK=;0AE3
+I@H;NQ?YGTVK>V]4jXS>_Z0
+R11
+w1740077459
+8U:/CPRE281/lab4/powersaving.v
+FU:/CPRE281/lab4/powersaving.v
+!i122 16
+L0 25 19
+R14
+R15
+r1
+!s85 0
+31
+R19
+!s107 U:/CPRE281/lab4/powersaving.v|
+!s90 -reportprogress|300|-work|work|-vopt|-stats=none|U:/CPRE281/lab4/powersaving.v|
+!i113 0
+R18
+R7
+vtruth_table_verilog_example
+R9
+!s110 1740074177
+!i10b 1
+!s100 0YQP>dj29[?0zOZdIb;:L1
+IFg`d]=[P3jbdEO>RLihSo1
+R11
+w1740074144
+R12
+R13
+!i122 1
+L0 1 20
+R14
+R15
+r1
+!s85 0
+31
+!s108 1740074175.000000
+R16
+R17
+!i113 0
+R18
+R7

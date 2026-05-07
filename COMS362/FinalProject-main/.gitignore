@@ -1,0 +1,17 @@
+*iml
+*xml
+# Ignore IntelliJ project files
+.idea/
+*.iml
+
+# Ignore compiled Java files
+out/
+*.class
+
+# Ignore production folder
+out/production/
+out/production/FinalProject/
+
+# Ignore system files
+.DS_Store
+Thumbs.db

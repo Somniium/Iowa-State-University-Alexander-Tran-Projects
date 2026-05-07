@@ -1,0 +1,87 @@
+# Compile of lab3step1.v was successful.
+# Compile of Block2.v was successful.
+# 2 compiles, 0 failed with no errors.
+vsim -gui work.Block2
+# vsim -gui work.Block2 
+# Start time: 15:51:16 on Feb 11,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.Block2(fast)
+add wave -position insertpoint sim:/Block2/*
+noforce sim:/Block2/pin_name1
+force -freeze sim:/Block2/Cabbage 1'h0 0
+force -freeze sim:/Block2/Goat 1'h0 0
+force -freeze sim:/Block2/Wolf 1'h0 0
+`=run 100
+# invalid command name "`=run"
+-run 100
+# invalid command name "-run"
+run 100
+force -freeze sim:/Block2/Cabbage 1'h0 0
+force -freeze sim:/Block2/Goat 1'h0 0
+force -freeze sim:/Block2/Wolf 1'h1 0
+run 100
+force -freeze sim:/Block2/Cabbage 1'h0 0
+force -freeze sim:/Block2/Goat 1'h1 0
+force -freeze sim:/Block2/Wolf 1'h0 0
+run 100
+force -freeze sim:/Block2/Cabbage 1'h0 0
+force -freeze sim:/Block2/Goat 1'h1 0
+force -freeze sim:/Block2/Wolf 1'h1 0
+run 100
+force -freeze sim:/Block2/Cabbage 1'h1 0
+force -freeze sim:/Block2/Goat 1'h0 0
+force -freeze sim:/Block2/Wolf 1'h 0
+force -freeze sim:/Block2/Cabbage 1'h1 0
+force -freeze sim:/Block2/Goat 1'h0 0
+force -freeze sim:/Block2/Wolf 1'h0 0
+run 100
+force -freeze sim:/Block2/Cabbage 1'h1 0
+force -freeze sim:/Block2/Goat 1'h0 0
+force -freeze sim:/Block2/Wolf 1'h1 0
+run 100
+force -freeze sim:/Block2/Cabbage 1'h1 0
+force -freeze sim:/Block2/Goat 1'h1 0
+force -freeze sim:/Block2/Wolf 1'h0 0
+# Paste insertion failed: run: ** UI-Msg (Warning): (vish-4014) No objects found matching 'run'.
+# Paste insertion failed: 100: ** UI-Msg (Warning): (vish-4014) No objects found matching '100'.
+run 100
+force -freeze sim:/Block2/Cabbage 1'h1 0
+force -freeze sim:/Block2/Goat 1'h1 0
+force -freeze sim:/Block2/Wolf 1'h1 0
+run 100
+clear
+# invalid command name "clear"
+do basic-alarm.do
+# Cannot open macro file: basic-alarm.do
+do basic-alarm.do
+# Cannot open macro file: basic-alarm.do
+do basic-alarm.do
+# Cannot open macro file: basic-alarm.do
+do basic-alarm.do
+# Cannot open macro file: basic-alarm.do
+# Paste insertion failed: do: ** UI-Msg (Warning): (vish-4014) No objects found matching 'do'.
+# Paste insertion failed: basic-alarm.do: ** UI-Msg (Warning): (vish-4014) No objects found matching 'basic-alarm.do'.
+# Paste insertion failed: do: ** UI-Msg (Warning): (vish-4014) No objects found matching 'do'.
+# Paste insertion failed: basic-alarm.do: ** UI-Msg (Warning): (vish-4014) No objects found matching 'basic-alarm.do'.
+# Paste insertion failed: do: ** UI-Msg (Warning): (vish-4014) No objects found matching 'do'.
+# Paste insertion failed: basic-alarm.do: ** UI-Msg (Warning): (vish-4014) No objects found matching 'basic-alarm.do'.
+# Paste insertion failed: do: ** UI-Msg (Warning): (vish-4014) No objects found matching 'do'.
+# Paste insertion failed: basic-alarm.do: ** UI-Msg (Warning): (vish-4014) No objects found matching 'basic-alarm.do'.
+# Paste insertion failed: do: ** UI-Msg (Warning): (vish-4014) No objects found matching 'do'.
+# Paste insertion failed: basic-alarm.do: ** UI-Msg (Warning): (vish-4014) No objects found matching 'basic-alarm.do'.
+# Compile of lab3step1.v was successful.
+# Compile of Block2.v was successful.
+# 2 compiles, 0 failed with no errors.
+vsim -gui work.lab3step1
+# End time: 16:03:47 on Feb 11,2025, Elapsed time: 0:12:31
+# Errors: 0, Warnings: 6
+# vsim -gui work.lab3step1 
+# Start time: 16:03:47 on Feb 11,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab3step1(fast)
+do basic-alarm.do
+# Cannot open macro file: basic-alarm.do
+do basic-alarm.do
+# Cannot open macro file: basic-alarm.do
+# End time: 16:04:50 on Feb 11,2025, Elapsed time: 0:01:03
+# Errors: 0, Warnings: 3

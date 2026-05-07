@@ -1,0 +1,96 @@
+|lab10step3a
+Q0 <= A[0].DB_MAX_OUTPUT_PORT_TYPE
+CLRN => JKFF2:inst.CLRN
+CLRN => JKFF2:inst1.CLRN
+CLRN => JKFF2:inst2.CLRN
+CLRN => JKFF2:inst3.CLRN
+Clock => JKFF2:inst.CLK
+Q1 <= A[1].DB_MAX_OUTPUT_PORT_TYPE
+Q2 <= lab5step0:inst4.C
+Q3 <= lab5step0:inst4.D
+Q4 <= lab5step0:inst4.E
+Q5 <= lab5step0:inst4.F
+Q6 <= lab5step0:inst4.G
+
+
+|lab10step3a|lab5step0:inst4
+x0 => A.IN1
+x0 => A.IN1
+x0 => A.IN1
+x0 => B.IN1
+x0 => B.IN1
+x0 => D.IN1
+x0 => E.IN1
+x0 => E.IN1
+x0 => A.IN1
+x0 => B.IN1
+x0 => B.IN1
+x0 => B.IN1
+x0 => C.IN1
+x0 => D.IN1
+x0 => G.IN1
+x1 => A.IN1
+x1 => B.IN1
+x1 => B.IN1
+x1 => C.IN1
+x1 => A.IN1
+x1 => A.IN1
+x1 => A.IN1
+x1 => E.IN1
+x2 => A.IN0
+x2 => A.IN0
+x2 => A.IN0
+x2 => A.IN0
+x3 => A.IN1
+x3 => A.IN1
+x3 => A.IN1
+x3 => A.IN1
+A <= A.DB_MAX_OUTPUT_PORT_TYPE
+B <= B.DB_MAX_OUTPUT_PORT_TYPE
+C <= C.DB_MAX_OUTPUT_PORT_TYPE
+D <= D.DB_MAX_OUTPUT_PORT_TYPE
+E <= E.DB_MAX_OUTPUT_PORT_TYPE
+F <= F.DB_MAX_OUTPUT_PORT_TYPE
+G <= G.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|lab10step3a|JKFF2:inst
+QN <= 9.DB_MAX_OUTPUT_PORT_TYPE
+PRN => 2.PRESET
+CLRN => 2.ACLR
+K => 2.IN0
+J => 2.IN1
+CLK => 2.CLK
+Q <= 2.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|lab10step3a|JKFF2:inst1
+QN <= 9.DB_MAX_OUTPUT_PORT_TYPE
+PRN => 2.PRESET
+CLRN => 2.ACLR
+K => 2.IN0
+J => 2.IN1
+CLK => 2.CLK
+Q <= 2.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|lab10step3a|JKFF2:inst2
+QN <= 9.DB_MAX_OUTPUT_PORT_TYPE
+PRN => 2.PRESET
+CLRN => 2.ACLR
+K => 2.IN0
+J => 2.IN1
+CLK => 2.CLK
+Q <= 2.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|lab10step3a|JKFF2:inst3
+QN <= 9.DB_MAX_OUTPUT_PORT_TYPE
+PRN => 2.PRESET
+CLRN => 2.ACLR
+K => 2.IN0
+J => 2.IN1
+CLK => 2.CLK
+Q <= 2.DB_MAX_OUTPUT_PORT_TYPE
+
+

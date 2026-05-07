@@ -1,0 +1,22 @@
+U:/CPRE281/lab7/lab74bit.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab7/lab74bit.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module lab74bit
+
+Top level modules:
+	lab74bit
+
+} {} {}} U:/CPRE281/lab7/FA.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab7/FA.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module lab7
+
+Top level modules:
+	lab7
+
+} {} {}} U:/CPRE281/lab7/lab7addersub.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab7/lab7addersub.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module lab7addersub
+
+Top level modules:
+	lab7addersub
+
+} {} {}}

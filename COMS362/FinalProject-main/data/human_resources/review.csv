@@ -1,0 +1,15 @@
+reviewId,revieweeId,reviewerId,comment,date
+3001,1001,1005,"Shows strong growth as a junior engineer. Needs to improve documentation habits.",2024-03-12
+3002,1002,1005,"Excellent HR performance and strong communication with all departments.",2024-04-05
+3003,1003,1005,"Very organized product planning. Could improve sprint goal clarity.",2024-02-18
+3004,1004,1005,"Attention to detail is solid. Should expand test automation coverage.",2024-05-09
+3005,1005,1002,"Leads engineering effectively and mentors junior staff well.",2024-01-30
+3006,1006,1003,"Delivers high-quality analysis. Needs to present insights more confidently.",2024-06-15
+3007,1007,1003,"Strong UX concepts and creativity. Improve collaboration with frontend devs.",2024-03-28
+3008,1008,1003,"Consistent marketing output. Could improve data-driven campaign analysis.",2024-07-02
+3009,1009,1005,"Reliable technician but needs to sharpen customer-facing communication.",2024-04-20
+3010,1010,1005,"Solid DevOps performance. Improve cloud cost optimization practices.",2024-02-11
+11,1001,1002,sucks,2025-12-11T21:31:46.640519200
+12,1005,1006,bad,2025-12-12
+13,1004,1005,Was very good,2025-12-12
+14,1004,1006,DId very good,2025-12-12

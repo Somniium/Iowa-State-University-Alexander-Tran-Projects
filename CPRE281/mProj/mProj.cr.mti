@@ -1,0 +1,25 @@
+U:/CPRE281/mProj/pCircuit.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/mProj/pCircuit.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module pCircuit
+
+Top level modules:
+	pCircuit
+
+} {} {}} U:/CPRE281/mProj/bCircuit.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/mProj/bCircuit.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+
+} {} {}} U:/CPRE281/mProj/mProjb.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/mProj/mProjb.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module mProjb
+
+Top level modules:
+	mProjb
+
+} {} {}} U:/CPRE281/mProj/mProjFinal.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/mProj/mProjFinal.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module mProjFinal
+
+Top level modules:
+	mProjFinal
+
+} {} {}}

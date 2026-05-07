@@ -1,0 +1,167 @@
+# Compile of lab9step1.v was successful.
+vsim -gui work.lab9step1
+# vsim -gui work.lab9step1 
+# Start time: 13:48:12 on Apr 08,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab9step1(fast)
+add wave -position insertpoint  \
+sim:/lab9step1/R \
+sim:/lab9step1/S \
+sim:/lab9step1/Q \
+sim:/lab9step1/Qn
+do lab9step1.do.txt
+quit -sim
+# End time: 13:56:38 on Apr 08,2025, Elapsed time: 0:08:26
+# Errors: 0, Warnings: 5
+# Compile of lab9step1b.v was successful.
+vsim -gui work.lab9step1b
+# vsim -gui work.lab9step1b 
+# Start time: 14:05:22 on Apr 08,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab9step1b(fast)
+DO lab9step1.do.txt
+# invalid command name "DO"
+do lab9step1.do.txt
+add wave -position insertpoint  \
+sim:/lab9step1b/S \
+sim:/lab9step1b/R \
+sim:/lab9step1b/Q \
+sim:/lab9step1b/Qn
+do lab9step1.do.txt
+quit -sim
+# End time: 14:11:16 on Apr 08,2025, Elapsed time: 0:05:54
+# Errors: 0, Warnings: 3
+vsim -gui work.lab9step1
+# vsim -gui work.lab9step1 
+# Start time: 14:11:43 on Apr 08,2025
+# ** Note: (vsim-8009) Loading existing optimized design _opt
+# Loading work.lab9step1(fast)
+add wave -position insertpoint  \
+sim:/lab9step1/R \
+sim:/lab9step1/S \
+sim:/lab9step1/Q \
+sim:/lab9step1/Qn
+do lab9step1
+# Cannot open macro file: lab9step1
+do lab9step1.do.txt
+quit -sim
+# End time: 14:14:24 on Apr 08,2025, Elapsed time: 0:02:41
+# Errors: 0, Warnings: 1
+# Load canceled
+# Compile of lab9step1.v was successful.
+# Compile of lab9step1b.v was successful.
+# 2 compiles, 0 failed with no errors.
+vsim -gui work.lab9step1b
+# vsim -gui work.lab9step1b 
+# Start time: 14:14:59 on Apr 08,2025
+# ** Note: (vsim-3813) Design is being optimized due to module recompilation...
+# Loading work.lab9step1b(fast)
+add wave -position insertpoint  \
+sim:/lab9step1b/S \
+sim:/lab9step1b/R \
+sim:/lab9step1b/Q \
+sim:/lab9step1b/Qn
+do lab9step1.do.txt
+quit -sim
+# End time: 14:15:58 on Apr 08,2025, Elapsed time: 0:00:59
+# Errors: 0, Warnings: 2
+# Compile of lab9step2.v was successful.
+vsim -gui work.lab9step2
+# vsim -gui work.lab9step2 
+# Start time: 14:23:30 on Apr 08,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab9step2(fast)
+add wave -position insertpoint  \
+sim:/lab9step2/D \
+sim:/lab9step2/Clk \
+sim:/lab9step2/Q \
+sim:/lab9step2/Qn
+do lab9step2and3.do.txt
+# ** UI-Msg (Error) (suppressible): (vsim-4008) Object 'CLK' not found.
+# Error in macro ./lab9step2and3.do.txt line 1
+# ** UI-Msg (Error) (suppressible): (vsim-4008) Object 'CLK' not found.
+# 
+#     while executing
+# "force -freeze CLK 0 0"
+do lab9step2and3.do.txt
+quit -sim
+# End time: 14:54:32 on Apr 08,2025, Elapsed time: 0:31:02
+# Errors: 0, Warnings: 3
+# Compile of lab9step1.v was successful.
+# Compile of lab9step1b.v was successful.
+# Compile of lab9step2.v was successful.
+# Compile of lab9step3.v was successful.
+# Compile of lab9step3b.v was successful.
+# 5 compiles, 0 failed with no errors.
+vsim -gui work.lab9step3
+# vsim -gui work.lab9step3 
+# Start time: 14:55:17 on Apr 08,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Warning: U:/CPRE281/lab9/lab9step3/lab9step3.v(40): (vopt-2685) [TFMPC] - Too few port connections for 'b2v_inst'.  Expected 4, found 3.
+# ** Warning: U:/CPRE281/lab9/lab9step3/lab9step3.v(40): (vopt-2718) [TFMPC] - Missing connection for port 'Qn'.
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=0, Warnings=2.
+# Loading work.lab9step3(fast)
+add wave -position insertpoint  \
+sim:/lab9step3/D \
+sim:/lab9step3/Clk \
+sim:/lab9step3/Q \
+sim:/lab9step3/Qn
+do lab9step2and3.do.txt
+quit -sim
+# End time: 14:58:30 on Apr 08,2025, Elapsed time: 0:03:13
+# Errors: 0, Warnings: 5
+vsim -gui work.lab9step3b
+# vsim -gui work.lab9step3b 
+# Start time: 14:58:37 on Apr 08,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab9step3b(fast)
+add wave -position insertpoint  \
+sim:/lab9step3b/D \
+sim:/lab9step3b/Clk \
+sim:/lab9step3b/Qn \
+sim:/lab9step3b/Q
+do lab9step2and3.do.txt
+quit -sim
+# End time: 15:01:48 on Apr 08,2025, Elapsed time: 0:03:11
+# Errors: 0, Warnings: 1
+vsim -gui work.lab9step2
+# vsim -gui work.lab9step2 
+# Start time: 15:02:17 on Apr 08,2025
+# ** Note: (vsim-8009) Loading existing optimized design _opt2
+# Loading work.lab9step2(fast)
+add wave -position insertpoint  \
+sim:/lab9step2/D \
+sim:/lab9step2/Clk \
+sim:/lab9step2/Q \
+sim:/lab9step2/Qn
+do lab9step2and3.do.txt
+quit -sim
+# End time: 15:04:54 on Apr 08,2025, Elapsed time: 0:02:37
+# Errors: 0, Warnings: 1
+vsim -gui work.lab9step3
+# vsim -gui work.lab9step3 
+# Start time: 15:05:03 on Apr 08,2025
+# ** Note: (vsim-8009) Loading existing optimized design _opt
+# Loading work.lab9step3(fast)
+add wave -position insertpoint  \
+sim:/lab9step3/D \
+sim:/lab9step3/Clk \
+sim:/lab9step3/Q \
+sim:/lab9step3/Qn
+do lab9step2and3.do.txt
+quit -sim
+# End time: 15:09:33 on Apr 08,2025, Elapsed time: 0:04:30
+# Errors: 0, Warnings: 1
+vsim -gui work.lab9step3b
+# vsim -gui work.lab9step3b 
+# Start time: 15:09:39 on Apr 08,2025
+# ** Note: (vsim-8009) Loading existing optimized design _opt1
+# Loading work.lab9step3b(fast)
+add wave -position insertpoint  \
+sim:/lab9step3b/D \
+sim:/lab9step3b/Clk \
+sim:/lab9step3b/Qn \
+sim:/lab9step3b/Q
+do lab9step2and3.do.txt
+# End time: 15:12:08 on Apr 08,2025, Elapsed time: 0:02:29
+# Errors: 0, Warnings: 1

@@ -1,0 +1,15 @@
+U:/CPRE281/lab3/lab3step1/lab3step1.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab3/lab3step1/lab3step1.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module lab3step1
+
+Top level modules:
+	lab3step1
+
+} {} {}} U:/CPRE281/lab3/lab3step0/Block2.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab3/lab3step0/Block2.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module Block2
+
+Top level modules:
+	Block2
+
+} {} {}}

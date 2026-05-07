@@ -1,0 +1,34 @@
+m255
+K4
+z2
+!s11f vlog 2024.2 2024.05, May 20 2024
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+dC:/questasim64_2024.2/examples
+vlab8step2
+2U:/CPRE281/lab8/lab8step2/lab8step2.v
+!s110 1743536052
+!i10b 1
+!s100 Fk0DkMEP`n7O5FeFQD<zh0
+I6o9McbIQTKB5BlYJoPeMc1
+dU:/CPRE281/lab8
+w1743535968
+8U:/CPRE281/lab8/lab8step2/lab8step2.v
+FU:/CPRE281/lab8/lab8step2/lab8step2.v
+!i122 0
+L0 20 59
+VDg1SIo80bB@j0V0VzS_@n1
+OL;L;2024.2;79
+r1
+!s85 0
+31
+!s108 1743536050.000000
+!s107 U:/CPRE281/lab8/lab8step2/lab8step2.v|
+!s90 -reportprogress|300|-work|work|-vopt|-stats=none|U:/CPRE281/lab8/lab8step2/lab8step2.v|
+!i113 0
+o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+tCvgOpt 0

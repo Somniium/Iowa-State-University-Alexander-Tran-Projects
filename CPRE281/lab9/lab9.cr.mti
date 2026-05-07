@@ -1,0 +1,36 @@
+U:/CPRE281/lab9/lab9step3/lab9step3b.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab9/lab9step3/lab9step3b.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module lab9step3b
+
+Top level modules:
+	lab9step3b
+
+} {} {}} U:/CPRE281/lab9/lab9step2/lab9step2.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab9/lab9step2/lab9step2.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module lab9step2
+
+Top level modules:
+	lab9step2
+
+} {} {}} U:/CPRE281/lab9/lab9step1/lab9step1b.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab9/lab9step1/lab9step1b.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module lab9step1b
+
+Top level modules:
+	lab9step1b
+
+} {} {}} U:/CPRE281/lab9/lab9step3/lab9step3.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab9/lab9step3/lab9step3.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module lab9step3
+
+Top level modules:
+	lab9step3
+
+} {} {}} U:/CPRE281/lab9/lab9step1/lab9step1.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab9/lab9step1/lab9step1.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module lab9step1
+
+Top level modules:
+	lab9step1
+
+} {} {}}

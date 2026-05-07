@@ -1,0 +1,142 @@
+m255
+K4
+z2
+Z0 !s12c _opt2
+Z1 !s99 nomlopt
+Z2 !s12c _opt
+R1
+R0
+R1
+R2
+R1
+R0
+R1
+R2
+R1
+!s12c _opt1
+R1
+R2
+R1
+R2
+R1
+!s11f vlog 2024.2 2024.05, May 20 2024
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z3 dC:/questasim64_2024.2/examples
+T_opt
+!s110 1744750491
+VVP_YaYfNZ9J2OL8QLh0NA0
+Z4 04 11 4 work lab10step2a fast 0
+=1-4cd71792ec57-67fec79a-2aa-18fc
+R1
+Z5 !s12f OEM100
+Z6 !s12b OEM100
+Z7 !s124 OEM100
+Z8 !s135 nogc
+Z9 o-quiet -auto_acc_if_foreign -work work
+Z10 tCvgOpt 0
+n@_opt
+Z11 OL;O;2024.2;79
+R3
+T_opt1
+!s110 1744747090
+VK51R=]FJaoL4oL`<cc]eh2
+R4
+=1-4cd71792ec57-67feba52-a7-1df4
+R1
+R5
+R6
+R7
+R8
+R9
+R10
+n@_opt1
+R11
+R3
+T_opt2
+!s110 1744750555
+VzRHzSkod:LAh[KO7H;5Bz2
+04 11 4 work lab10step2b fast 0
+=1-4cd71792ec57-67fec7da-33b-2620
+R1
+R5
+R6
+R7
+R8
+R9
+R10
+n@_opt2
+R11
+vlab10step1
+2U:/CPRE281/lab10/lab10step1/lab10step1.v
+Z12 !s110 1744749097
+!i10b 1
+!s100 ^_CW]67o79^io==;TBhWc3
+I8gQFTXk]cWl@H2E`>JL873
+Z13 dU:/CPRE281/lab10
+w1744748100
+8U:/CPRE281/lab10/lab10step1/lab10step1.v
+FU:/CPRE281/lab10/lab10step1/lab10step1.v
+!i122 10
+L0 20 107
+Z14 VDg1SIo80bB@j0V0VzS_@n1
+Z15 OL;L;2024.2;79
+r1
+!s85 0
+31
+!s108 1744749095.000000
+!s107 U:/CPRE281/lab10/lab10step1/lab10step1.v|
+!s90 -reportprogress|300|-work|work|-vopt|-stats=none|U:/CPRE281/lab10/lab10step1/lab10step1.v|
+!i113 0
+Z16 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R10
+vlab10step2a
+2U:/CPRE281/lab10/lab10step2a/lab10step2a.v
+R12
+!i10b 1
+!s100 O7X?K_omY0[Yi`B7gR;m43
+ITbYV5C8QhC@2`kMXAc0>b0
+R13
+w1744748483
+8U:/CPRE281/lab10/lab10step2a/lab10step2a.v
+FU:/CPRE281/lab10/lab10step2a/lab10step2a.v
+!i122 11
+Z17 L0 20 133
+R14
+R15
+r1
+!s85 0
+31
+Z18 !s108 1744749097.000000
+!s107 U:/CPRE281/lab10/lab10step2a/lab10step2a.v|
+!s90 -reportprogress|300|-work|work|-vopt|-stats=none|U:/CPRE281/lab10/lab10step2a/lab10step2a.v|
+!i113 0
+R16
+R10
+vlab10step2b
+2U:/CPRE281/lab10/lab10step2b/lab10step2b.v
+R12
+!i10b 1
+!s100 ?ScB0AKb]NdlJg25HD`LP0
+I]WJ2Wz[NVo]@ZL2oX5MXE3
+R13
+w1744749060
+8U:/CPRE281/lab10/lab10step2b/lab10step2b.v
+FU:/CPRE281/lab10/lab10step2b/lab10step2b.v
+!i122 12
+R17
+R14
+R15
+r1
+!s85 0
+31
+R18
+!s107 U:/CPRE281/lab10/lab10step2b/lab10step2b.v|
+!s90 -reportprogress|300|-work|work|-vopt|-stats=none|U:/CPRE281/lab10/lab10step2b/lab10step2b.v|
+!i113 0
+R16
+R10

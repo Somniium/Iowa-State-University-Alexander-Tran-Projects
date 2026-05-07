@@ -1,0 +1,212 @@
+# Compile of pCircuit.v was successful.
+vsim -gui work.pCircuit
+# vsim -gui work.pCircuit 
+# Start time: 13:32:43 on Mar 04,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.pCircuit(fast)
+add wave -position insertpoint  \
+sim:/pCircuit/W \
+sim:/pCircuit/X \
+sim:/pCircuit/Y \
+sim:/pCircuit/Z \
+sim:/pCircuit/P
+noforce sim:/pCircuit/P
+force -freeze sim:/pCircuit/W 1'h0 0
+force -freeze sim:/pCircuit/X 1'h0 0
+force -freeze sim:/pCircuit/Y 1'h0 0
+force -freeze sim:/pCircuit/Z 1'h0 0
+run 100
+force -freeze sim:/pCircuit/Z 1'h1 0
+run 100
+force -freeze sim:/pCircuit/Y 1'h1 0
+force -freeze sim:/pCircuit/Z 1'h0 0
+run 100
+force -freeze sim:/pCircuit/Z 1'h1 0
+run 100
+force -freeze sim:/pCircuit/X 1'h1 0
+force -freeze sim:/pCircuit/Z 1'h0 0
+force -freeze sim:/pCircuit/Z 1'h0 0
+force -freeze sim:/pCircuit/Y 1'h0 0
+run 100
+force -freeze sim:/pCircuit/W 1'h0 0
+force -freeze sim:/pCircuit/X 1'h1 0
+force -freeze sim:/pCircuit/Y 1'h0 0
+force -freeze sim:/pCircuit/Z 1'h1 0
+run 100
+force -freeze sim:/pCircuit/W 1'h0 0
+force -freeze sim:/pCircuit/X 1'h1 0
+force -freeze sim:/pCircuit/Y 1'h1 0
+force -freeze sim:/pCircuit/Z 1'h0 0
+run 100
+force -freeze sim:/pCircuit/W 1'h0 0
+force -freeze sim:/pCircuit/X 1'h1 0
+force -freeze sim:/pCircuit/Y 1'h1 0
+force -freeze sim:/pCircuit/Z 1'h1 0
+run 100
+force -freeze sim:/pCircuit/W 1'h1 0
+force -freeze sim:/pCircuit/X 1'h0 0
+force -freeze sim:/pCircuit/Y 1'h0 0
+force -freeze sim:/pCircuit/Z 1'h0 0
+run 100
+force -freeze sim:/pCircuit/W 1'h1 0
+force -freeze sim:/pCircuit/X 1'h0 0
+force -freeze sim:/pCircuit/Y 1'h0 0
+force -freeze sim:/pCircuit/Z 1'h1 0
+run 100
+force -freeze sim:/pCircuit/W 1'h1 0
+force -freeze sim:/pCircuit/X 1'h0 0
+force -freeze sim:/pCircuit/Y 1'h1 0
+force -freeze sim:/pCircuit/Z 1'h0 0
+run 100
+force -freeze sim:/pCircuit/W 1'h1 0
+force -freeze sim:/pCircuit/X 1'h0 0
+force -freeze sim:/pCircuit/Y 1'h1 0
+force -freeze sim:/pCircuit/Z 1'h1 0
+run 100
+force -freeze sim:/pCircuit/W 1'h1 0
+force -freeze sim:/pCircuit/X 1'h1 0
+force -freeze sim:/pCircuit/Y 1'h0 0
+force -freeze sim:/pCircuit/Z 1'h0 0
+run 100
+force -freeze sim:/pCircuit/W 1'h1 0
+force -freeze sim:/pCircuit/X 1'h1 0
+force -freeze sim:/pCircuit/Y 1'h0 0
+force -freeze sim:/pCircuit/Z 1'h1 0
+run 100
+force -freeze sim:/pCircuit/W 1'h1 0
+force -freeze sim:/pCircuit/X 1'h1 0
+force -freeze sim:/pCircuit/Y 1'h1 0
+force -freeze sim:/pCircuit/Z 1'h0 0
+run 100
+force -freeze sim:/pCircuit/W 1'h1 0
+force -freeze sim:/pCircuit/X 1'h1 0
+force -freeze sim:/pCircuit/Y 1'h1 0
+force -freeze sim:/pCircuit/Z 1'h1 0
+run 100
+quit simulation
+# unknown switch: simulation
+quit -sim
+# End time: 14:00:52 on Mar 04,2025, Elapsed time: 0:28:09
+# Errors: 0, Warnings: 7
+# Compile of mProjFinal.v was successful.
+vsim -gui work.mProjFinal
+# vsim -gui work.mProjFinal 
+# Start time: 14:04:36 on Mar 04,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Error: U:/CPRE281/mProj/mProjFinal.v(45): Module 'mProjb' is not defined.
+#  For instance 'b2v_inst' at path 'mProjFinal'
+# Optimization failed
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=1, Warnings=0.
+# Error loading design
+# End time: 14:04:39 on Mar 04,2025, Elapsed time: 0:00:03
+# Errors: 1, Warnings: 3
+vsim -gui work.mProjFinal
+# vsim -gui work.mProjFinal 
+# Start time: 14:04:58 on Mar 04,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Error: U:/CPRE281/mProj/mProjFinal.v(45): Module 'mProjb' is not defined.
+#  For instance 'b2v_inst' at path 'mProjFinal'
+# Optimization failed
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=1, Warnings=0.
+# Error loading design
+# End time: 14:04:59 on Mar 04,2025, Elapsed time: 0:00:01
+# Errors: 1, Warnings: 1
+# Compile of pCircuit.v was successful.
+# Compile of bCircuit.v was successful.
+# Compile of mProjFinal.v was successful.
+# Compile of mProjb.v was successful.
+# 4 compiles, 0 failed with no errors.
+vsim -gui work.mProjFinal
+# vsim -gui work.mProjFinal 
+# Start time: 14:06:52 on Mar 04,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.mProjFinal(fast)
+add wave -position insertpoint  \
+sim:/mProjFinal/W \
+sim:/mProjFinal/X \
+sim:/mProjFinal/Y \
+sim:/mProjFinal/Z \
+sim:/mProjFinal/P
+noforce sim:/mProjFinal/P
+force -freeze sim:/mProjFinal/W 1'h0 0
+force -freeze sim:/mProjFinal/X 1'h0 0
+force -freeze sim:/mProjFinal/Y 1'h0 0
+force -freeze sim:/mProjFinal/Z 1'h0 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h0 0
+force -freeze sim:/mProjFinal/X 1'h0 0
+force -freeze sim:/mProjFinal/Y 1'h0 0
+force -freeze sim:/mProjFinal/Z 1'h1 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h0 0
+force -freeze sim:/mProjFinal/X 1'h0 0
+force -freeze sim:/mProjFinal/Y 1'h1 0
+force -freeze sim:/mProjFinal/Z 1'h0 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h0 0
+force -freeze sim:/mProjFinal/X 1'h0 0
+force -freeze sim:/mProjFinal/Y 1'h1 0
+force -freeze sim:/mProjFinal/Z 1'h1 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h0 0
+force -freeze sim:/mProjFinal/X 1'h1 0
+force -freeze sim:/mProjFinal/Y 1'h0 0
+force -freeze sim:/mProjFinal/Z 1'h0 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h0 0
+force -freeze sim:/mProjFinal/X 1'h1 0
+force -freeze sim:/mProjFinal/Y 1'h0 0
+force -freeze sim:/mProjFinal/Z 1'h1 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h0 0
+force -freeze sim:/mProjFinal/X 1'h1 0
+force -freeze sim:/mProjFinal/Y 1'h1 0
+force -freeze sim:/mProjFinal/Z 1'h0 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h0 0
+force -freeze sim:/mProjFinal/X 1'h1 0
+force -freeze sim:/mProjFinal/Y 1'h1 0
+force -freeze sim:/mProjFinal/Z 1'h1 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h1 0
+force -freeze sim:/mProjFinal/X 1'h0 0
+force -freeze sim:/mProjFinal/Y 1'h0 0
+force -freeze sim:/mProjFinal/Z 1'h0 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h1 0
+force -freeze sim:/mProjFinal/X 1'h0 0
+force -freeze sim:/mProjFinal/Y 1'h0 0
+force -freeze sim:/mProjFinal/Z 1'h1 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h1 0
+force -freeze sim:/mProjFinal/X 1'h0 0
+force -freeze sim:/mProjFinal/Y 1'h1 0
+force -freeze sim:/mProjFinal/Z 1'h0 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h1 0
+force -freeze sim:/mProjFinal/X 1'h0 0
+force -freeze sim:/mProjFinal/Y 1'h1 0
+force -freeze sim:/mProjFinal/Z 1'h1 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h1 0
+force -freeze sim:/mProjFinal/X 1'h1 0
+force -freeze sim:/mProjFinal/Y 1'h0 0
+force -freeze sim:/mProjFinal/Z 1'h0 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h1 0
+force -freeze sim:/mProjFinal/X 1'h1 0
+force -freeze sim:/mProjFinal/Y 1'h0 0
+force -freeze sim:/mProjFinal/Z 1'h1 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h1 0
+force -freeze sim:/mProjFinal/X 1'h1 0
+force -freeze sim:/mProjFinal/Y 1'h1 0
+force -freeze sim:/mProjFinal/Z 1'h0 0
+run 100
+force -freeze sim:/mProjFinal/W 1'h1 0
+force -freeze sim:/mProjFinal/X 1'h1 0
+force -freeze sim:/mProjFinal/Y 1'h1 0
+force -freeze sim:/mProjFinal/Z 1'h1 0
+run 100
+# End time: 14:16:19 on Mar 04,2025, Elapsed time: 0:09:27
+# Errors: 0, Warnings: 3

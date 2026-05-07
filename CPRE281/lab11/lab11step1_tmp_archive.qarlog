@@ -1,0 +1,24 @@
+Quartus Prime Archive log --	U:/classes/cpre281/lab11/lab11step1/lab11step1_tmp_archive.qarlog
+
+Archive:	U:/classes/cpre281/lab11/lab11step1/lab11step1_tmp_archive.qar
+Date:		Mon Dec 02 20:31:25 2019
+Quartus Prime		18.1.0 Build 625 09/12/2018 SJ Standard Edition
+
+	=========== Files Selected: ===========
+U:/classes/cpre281/lab11/lab11step1/clock_divider_1024.bdf
+U:/classes/cpre281/lab11/lab11step1/clock_generator.bdf
+U:/classes/cpre281/lab11/lab11step1/lab11step1.bdf
+U:/classes/cpre281/lab11/lab11step1/lab11step1.qpf
+U:/classes/cpre281/lab11/lab11step1/lab11step1.qsf
+U:/classes/cpre281/lab11/lab11step1/seven_seg_decoder.v
+c:/intelfpga/18.1/quartus/bin64/assignment_defaults.qdf
+	======= Total: 7 files to archive =======
+
+	================ Status: ===============
+All files archived successfully.
+
+
+******* Archived project restoration attempt on Mon Dec 02 20:31:27 2019
+Source archive file:	U:/classes/cpre281/lab11/lab11step1/lab11step1_tmp_archive.qar
+Archive was extracted into	U:/classes/cpre281/lab11/lab11step2/
+		 - successfully.

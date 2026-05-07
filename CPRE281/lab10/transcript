@@ -1,0 +1,139 @@
+# Compile of lab10step1.v was successful.
+vsim -gui work.lab10step1
+# vsim -gui work.lab10step1 
+# Start time: 15:15:47 on Apr 15,2025
+# ** Note: (vsim-3813) Design is being optimized due to module recompilation...
+# Loading work.lab10step1(fast)
+add wave -position insertpoint  \
+sim:/lab10step1/IN \
+sim:/lab10step1/CLK \
+sim:/lab10step1/Q3 \
+sim:/lab10step1/Q2 \
+sim:/lab10step1/Q1 \
+sim:/lab10step1/Q0
+# ** Warning: (vsim-WLF-5000) WLF file currently in use: vsim.wlf
+#           File in use by: Trana25  Hostname: CO2042-18  ProcessID: 7668
+#           Attempting to use alternate WLF file "./wlftavgwxe".
+# ** Warning: (vsim-WLF-5001) Could not open WLF file: vsim.wlf
+#           Using alternate file: ./wlftavgwxe
+do lab10step1.do.txt
+quit -sim
+# End time: 15:22:21 on Apr 15,2025, Elapsed time: 0:06:34
+# Errors: 0, Warnings: 5
+# Compile of lab10step2a.v was successful.
+vsim -gui work.lab10step2a
+# vsim -gui work.lab10step2a 
+# Start time: 15:23:59 on Apr 15,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab10step2a(fast)
+add wave -position insertpoint  \
+sim:/lab10step2a/Enable \
+sim:/lab10step2a/Clock \
+sim:/lab10step2a/CLRN \
+sim:/lab10step2a/Z \
+sim:/lab10step2a/Q0 \
+sim:/lab10step2a/Q1 \
+sim:/lab10step2a/Q2 \
+sim:/lab10step2a/Q3
+# ** Warning: (vsim-WLF-5000) WLF file currently in use: vsim.wlf
+#           File in use by: Trana25  Hostname: CO2042-18  ProcessID: 7668
+#           Attempting to use alternate WLF file "./wlftdq7194".
+# ** Warning: (vsim-WLF-5001) Could not open WLF file: vsim.wlf
+#           Using alternate file: ./wlftdq7194
+do lab10counter.do.txt
+quit -sim
+# End time: 15:31:11 on Apr 15,2025, Elapsed time: 0:07:12
+# Errors: 0, Warnings: 6
+# Compile of lab10step1.v was successful.
+# Compile of lab10step2a.v was successful.
+# Compile of lab10step2b.v was successful.
+# 3 compiles, 0 failed with no errors.
+vsim -gui work.lab10step2b
+# vsim -gui work.lab10step2b 
+# Start time: 15:31:55 on Apr 15,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab10step2b(fast)
+add wave -position insertpoint  \
+sim:/lab10step2b/CLRN \
+sim:/lab10step2b/Enable \
+sim:/lab10step2b/Clock \
+sim:/lab10step2b/Q0 \
+sim:/lab10step2b/Q1 \
+sim:/lab10step2b/Q2 \
+sim:/lab10step2b/Q3 \
+sim:/lab10step2b/Q
+# ** Warning: (vsim-WLF-5000) WLF file currently in use: vsim.wlf
+#           File in use by: Trana25  Hostname: CO2042-18  ProcessID: 7668
+#           Attempting to use alternate WLF file "./wlftk0mfqm".
+# ** Warning: (vsim-WLF-5001) Could not open WLF file: vsim.wlf
+#           Using alternate file: ./wlftk0mfqm
+do lab10counter.do.txt
+quit -sim
+# End time: 15:49:02 on Apr 15,2025, Elapsed time: 0:17:07
+# Errors: 0, Warnings: 6
+vsim -gui work.lab10step1
+# vsim -gui work.lab10step1 
+# Start time: 15:51:04 on Apr 15,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab10step1(fast)
+add wave -position insertpoint  \
+sim:/lab10step1/IN \
+sim:/lab10step1/CLK \
+sim:/lab10step1/Q3 \
+sim:/lab10step1/Q2 \
+sim:/lab10step1/Q1 \
+sim:/lab10step1/Q0
+# ** Warning: (vsim-WLF-5000) WLF file currently in use: vsim.wlf
+#           File in use by: Trana25  Hostname: CO2042-18  ProcessID: 7668
+#           Attempting to use alternate WLF file "./wlftr1tysr".
+# ** Warning: (vsim-WLF-5001) Could not open WLF file: vsim.wlf
+#           Using alternate file: ./wlftr1tysr
+do lab10step1.do.txt
+quit -sim
+# End time: 15:54:40 on Apr 15,2025, Elapsed time: 0:03:36
+# Errors: 0, Warnings: 3
+vsim -gui work.lab10step2a
+# vsim -gui work.lab10step2a 
+# Start time: 15:54:48 on Apr 15,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab10step2a(fast)
+add wave -position insertpoint  \
+sim:/lab10step2a/Enable \
+sim:/lab10step2a/Clock \
+sim:/lab10step2a/CLRN \
+sim:/lab10step2a/Z \
+sim:/lab10step2a/Q0 \
+sim:/lab10step2a/Q1 \
+sim:/lab10step2a/Q2 \
+sim:/lab10step2a/Q3
+# ** Warning: (vsim-WLF-5000) WLF file currently in use: vsim.wlf
+#           File in use by: Trana25  Hostname: CO2042-18  ProcessID: 7668
+#           Attempting to use alternate WLF file "./wlftvvi34m".
+# ** Warning: (vsim-WLF-5001) Could not open WLF file: vsim.wlf
+#           Using alternate file: ./wlftvvi34m
+do lab10counter.do.txt
+quit -sim
+# End time: 15:55:45 on Apr 15,2025, Elapsed time: 0:00:57
+# Errors: 0, Warnings: 3
+vsim -gui work.lab10step2b
+# vsim -gui work.lab10step2b 
+# Start time: 15:55:52 on Apr 15,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab10step2b(fast)
+add wave -position insertpoint  \
+sim:/lab10step2b/CLRN \
+sim:/lab10step2b/Enable \
+sim:/lab10step2b/Clock \
+sim:/lab10step2b/Q0 \
+sim:/lab10step2b/Q1 \
+sim:/lab10step2b/Q2 \
+sim:/lab10step2b/Q3 \
+sim:/lab10step2b/Q
+# ** Warning: (vsim-WLF-5000) WLF file currently in use: vsim.wlf
+#           File in use by: Trana25  Hostname: CO2042-18  ProcessID: 7668
+#           Attempting to use alternate WLF file "./wlftym6xvj".
+# ** Warning: (vsim-WLF-5001) Could not open WLF file: vsim.wlf
+#           Using alternate file: ./wlftym6xvj
+do lab10counter.do.txt
+# End time: 16:11:29 on Apr 15,2025, Elapsed time: 0:15:37
+# Errors: 0, Warnings: 5

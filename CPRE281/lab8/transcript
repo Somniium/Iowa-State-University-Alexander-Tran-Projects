@@ -1,0 +1,185 @@
+# Compile of lab8step2.v was successful.
+vsim -gui work.lab8step2
+# vsim -gui work.lab8step2 
+# Start time: 14:36:16 on Apr 01,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Error: U:/CPRE281/lab8/lab8step2/lab8step2.v(42): Module 'mux4to1' is not defined.
+#  For instance 'b2v_inst' at path 'lab8step2'
+# ** Error: U:/CPRE281/lab8/lab8step2/lab8step2.v(51): Module 'mux4to1' is not defined.
+#  For instance 'b2v_inst1' at path 'lab8step2'
+# ** Error: U:/CPRE281/lab8/lab8step2/lab8step2.v(60): Module 'mux4to1' is not defined.
+#  For instance 'b2v_inst2' at path 'lab8step2'
+# ** Error: U:/CPRE281/lab8/lab8step2/lab8step2.v(69): Module 'mux4to1' is not defined.
+#  For instance 'b2v_inst3' at path 'lab8step2'
+# Optimization failed
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=4, Warnings=0.
+# Error loading design
+# End time: 14:36:17 on Apr 01,2025, Elapsed time: 0:00:01
+# Errors: 4, Warnings: 5
+# Load canceled
+# Compile of lab8step2.v was successful.
+vsim -gui work.lab8step2
+# vsim -gui work.lab8step2 
+# Start time: 14:37:33 on Apr 01,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Error: U:/CPRE281/lab8/lab8step2/lab8step2.v(42): Module 'mux4to1' is not defined.
+#  For instance 'b2v_inst' at path 'lab8step2'
+# ** Error: U:/CPRE281/lab8/lab8step2/lab8step2.v(51): Module 'mux4to1' is not defined.
+#  For instance 'b2v_inst1' at path 'lab8step2'
+# ** Error: U:/CPRE281/lab8/lab8step2/lab8step2.v(60): Module 'mux4to1' is not defined.
+#  For instance 'b2v_inst2' at path 'lab8step2'
+# ** Error: U:/CPRE281/lab8/lab8step2/lab8step2.v(69): Module 'mux4to1' is not defined.
+#  For instance 'b2v_inst3' at path 'lab8step2'
+# Optimization failed
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=4, Warnings=0.
+# Error loading design
+# End time: 14:37:36 on Apr 01,2025, Elapsed time: 0:00:03
+# Errors: 4, Warnings: 2
+# Compile of lab8step2.v was successful.
+# Compile of lab8step2.v was successful.
+vsim -gui work.lab8step2
+# vsim -gui work.lab8step2 
+# Start time: 14:40:35 on Apr 01,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Error: U:/CPRE281/lab8/lab8step2/lab8step2.v(42): Module 'mux4to1' is not defined.
+#  For instance 'b2v_inst' at path 'lab8step2'
+# ** Error: U:/CPRE281/lab8/lab8step2/lab8step2.v(51): Module 'mux4to1' is not defined.
+#  For instance 'b2v_inst1' at path 'lab8step2'
+# ** Error: U:/CPRE281/lab8/lab8step2/lab8step2.v(60): Module 'mux4to1' is not defined.
+#  For instance 'b2v_inst2' at path 'lab8step2'
+# ** Error: U:/CPRE281/lab8/lab8step2/lab8step2.v(69): Module 'mux4to1' is not defined.
+#  For instance 'b2v_inst3' at path 'lab8step2'
+# Optimization failed
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=4, Warnings=0.
+# Error loading design
+# End time: 14:40:38 on Apr 01,2025, Elapsed time: 0:00:03
+# Errors: 4, Warnings: 3
+# reading C:/questasim64_2024.2/win64/../modelsim.ini
+# Loading project lab8step2
+# Compile of 4to1mux.v was successful.
+# Compile of lab8step2.v was successful.
+# Compile of mux4to1.v was successful.
+# 3 compiles, 0 failed with no errors.
+vsim -gui work.lab8step2
+# vsim -gui work.lab8step2 
+# Start time: 14:44:40 on Apr 01,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(42): (vopt-2685) [TFMPC] - Too few port connections for 'b2v_inst'.  Expected 6, found 5.
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(42): (vopt-2718) [TFMPC] - Missing connection for port 'f'.
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(51): (vopt-2685) [TFMPC] - Too few port connections for 'b2v_inst1'.  Expected 6, found 5.
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(51): (vopt-2718) [TFMPC] - Missing connection for port 'f'.
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(60): (vopt-2685) [TFMPC] - Too few port connections for 'b2v_inst2'.  Expected 6, found 5.
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(60): (vopt-2718) [TFMPC] - Missing connection for port 'f'.
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(69): (vopt-2685) [TFMPC] - Too few port connections for 'b2v_inst3'.  Expected 6, found 5.
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(69): (vopt-2718) [TFMPC] - Missing connection for port 'f'.
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=0, Warnings=8.
+# Loading work.lab8step2(fast)
+do shifter.do.txt
+# ** UI-Msg (Error) (suppressible): (vsim-4008) Object 'S[1]' not found.
+# Error in macro ./shifter.do.txt line 1
+# ** UI-Msg (Error) (suppressible): (vsim-4008) Object 'S[1]' not found.
+# 
+#     while executing
+# "force S[1] 0 0, 1 100 -repeat 200"
+add wave -position insertpoint  \
+sim:/lab8step2/w0 \
+sim:/lab8step2/w1 \
+sim:/lab8step2/w2 \
+sim:/lab8step2/w3 \
+sim:/lab8step2/s \
+sim:/lab8step2/f
+do shifter.do.txt
+# ** UI-Msg (Error) (suppressible): (vsim-4008) Object 'S[1]' not found.
+# Error in macro ./shifter.do.txt line 1
+# ** UI-Msg (Error) (suppressible): (vsim-4008) Object 'S[1]' not found.
+# 
+#     while executing
+# "force S[1] 0 0, 1 100 -repeat 200"
+do shifter.do.txt
+# ** UI-Msg (Error) (suppressible): (vsim-4008) Object 'X3' not found.
+# Error in macro ./shifter.do.txt line 4
+# ** UI-Msg (Error) (suppressible): (vsim-4008) Object 'X3' not found.
+# 
+#     while executing
+# "force X3  1 0, 1 200, 1 400, 1 600, 1 800"
+quit -sim
+# End time: 14:57:23 on Apr 01,2025, Elapsed time: 0:12:43
+# Errors: 0, Warnings: 15
+# Compile of lab8step2.v was successful.
+vsim -gui work.lab8step2
+# vsim -gui work.lab8step2 
+# Start time: 14:57:49 on Apr 01,2025
+# ** Note: (vsim-3813) Design is being optimized due to module recompilation...
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(48): (vopt-2685) [TFMPC] - Too few port connections for 'b2v_inst'.  Expected 6, found 5.
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(48): (vopt-2718) [TFMPC] - Missing connection for port 'f'.
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(57): (vopt-2685) [TFMPC] - Too few port connections for 'b2v_inst1'.  Expected 6, found 5.
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(57): (vopt-2718) [TFMPC] - Missing connection for port 'f'.
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(66): (vopt-2685) [TFMPC] - Too few port connections for 'b2v_inst2'.  Expected 6, found 5.
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(66): (vopt-2718) [TFMPC] - Missing connection for port 'f'.
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(75): (vopt-2685) [TFMPC] - Too few port connections for 'b2v_inst3'.  Expected 6, found 5.
+# ** Warning: U:/CPRE281/lab8/lab8step2/lab8step2.v(75): (vopt-2718) [TFMPC] - Missing connection for port 'f'.
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=0, Warnings=8.
+# Loading work.lab8step2(fast)
+add wave -position insertpoint  \
+sim:/lab8step2/X3 \
+sim:/lab8step2/X2 \
+sim:/lab8step2/X1 \
+sim:/lab8step2/X0 \
+sim:/lab8step2/Xc1 \
+sim:/lab8step2/Xc2 \
+sim:/lab8step2/Xc3 \
+sim:/lab8step2/s \
+sim:/lab8step2/f
+do shifter.do.txt
+# Causality operation skipped due to absence of debug database file
+quit -sim
+# End time: 15:02:01 on Apr 01,2025, Elapsed time: 0:04:12
+# Errors: 0, Warnings: 10
+# Compile of 4to1mux.v was successful.
+# Compile of lab8step2.v was successful.
+# Compile of mux4to1.v was successful.
+# 3 compiles, 0 failed with no errors.
+vsim -gui work.lab8step2
+# vsim -gui work.lab8step2 
+# Start time: 15:02:31 on Apr 01,2025
+# ** Note: (vsim-8009) Loading existing optimized design _opt
+# Loading work.lab8step2(fast)
+add wave -position insertpoint  \
+sim:/lab8step2/X3 \
+sim:/lab8step2/X2 \
+sim:/lab8step2/X1 \
+sim:/lab8step2/X0 \
+sim:/lab8step2/Xc1 \
+sim:/lab8step2/Xc2 \
+sim:/lab8step2/Xc3 \
+sim:/lab8step2/s \
+sim:/lab8step2/f
+DO shifter.do.txt
+# invalid command name "DO"
+do shifter.do.txt
+quit -sim
+# End time: 15:04:50 on Apr 01,2025, Elapsed time: 0:02:19
+# Errors: 0, Warnings: 2
+# Compile of 4to1mux.v was successful.
+# Compile of lab8step2.v was successful.
+# Compile of mux4to1.v was successful.
+# 3 compiles, 0 failed with no errors.
+# Compile of lab8step2.v was successful.
+vsim -gui work.lab8step2
+# vsim -gui work.lab8step2 
+# Start time: 15:05:31 on Apr 01,2025
+# ** Note: (vsim-3813) Design is being optimized due to module recompilation...
+# Loading work.lab8step2(fast)
+add wave -position insertpoint  \
+sim:/lab8step2/X3 \
+sim:/lab8step2/X2 \
+sim:/lab8step2/X1 \
+sim:/lab8step2/X0 \
+sim:/lab8step2/Xc1 \
+sim:/lab8step2/Xc2 \
+sim:/lab8step2/Xc3 \
+sim:/lab8step2/s \
+sim:/lab8step2/f
+do shifter.do.txt
+# End time: 15:08:47 on Apr 01,2025, Elapsed time: 0:03:16
+# Errors: 0, Warnings: 5

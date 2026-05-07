@@ -1,0 +1,22 @@
+U:/CPRE281/lab10/lab10step2b/lab10step2b.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab10/lab10step2b/lab10step2b.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module lab10step2b
+
+Top level modules:
+	lab10step2b
+
+} {} {}} U:/CPRE281/lab10/lab10step2a/lab10step2a.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab10/lab10step2a/lab10step2a.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module lab10step2a
+
+Top level modules:
+	lab10step2a
+
+} {} {}} U:/CPRE281/lab10/lab10step1/lab10step1.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab10/lab10step1/lab10step1.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module lab10step1
+
+Top level modules:
+	lab10step1
+
+} {} {}}

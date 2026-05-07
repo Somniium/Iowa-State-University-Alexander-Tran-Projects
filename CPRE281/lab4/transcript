@@ -1,0 +1,53 @@
+# Compile of lab4step1.v was successful.
+# Compile of lab4step2.v was successful.
+# Compile of multiplexer.v failed with 1 errors.
+# Compile of normal.v failed with 1 errors.
+# Compile of powersaving.v was successful.
+# 5 compiles, 2 failed with 2 errors.
+# Compile of lab4step1.v was successful.
+# Compile of lab4step2.v was successful.
+# Compile of multiplexer.v failed with 1 errors.
+# Compile of normal.v failed with 1 errors.
+# Compile of powersaving.v failed with 1 errors.
+# 5 compiles, 3 failed with 3 errors.
+# Compile of lab4step1.v was successful.
+# Compile of lab4step2.v was successful.
+# Compile of multiplexer.v was successful.
+# Compile of normal.v failed with 1 errors.
+# Compile of powersaving.v was successful.
+# 5 compiles, 1 failed with 1 error.
+# Compile of lab4step1.v was successful.
+# Compile of lab4step2.v was successful.
+# Compile of multiplexer.v was successful.
+# Compile of normal.v was successful.
+# Compile of powersaving.v was successful.
+# 5 compiles, 0 failed with no errors.
+vsim -gui work.lab4step1
+# vsim -gui work.lab4step1 
+# Start time: 12:52:26 on Feb 20,2025
+# ** Note: (vsim-8009) Loading existing optimized design _opt
+# Loading work.lab4step1(fast)
+add wave -position insertpoint  \
+sim:/lab4step1/F \
+sim:/lab4step1/C \
+sim:/lab4step1/G \
+sim:/lab4step1/W \
+sim:/lab4step1/A
+do lab4step1.do.txt
+quit -sim
+# End time: 12:54:45 on Feb 20,2025, Elapsed time: 0:02:19
+# Errors: 0, Warnings: 8
+vsim -gui work.lab4step2
+# vsim -gui work.lab4step2 
+# Start time: 12:55:01 on Feb 20,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab4step2(fast)
+add wave -position insertpoint  \
+sim:/lab4step2/H \
+sim:/lab4step2/T \
+sim:/lab4step2/M \
+sim:/lab4step2/P \
+sim:/lab4step2/AC
+do lab4step2.do.txt
+# End time: 13:00:51 on Feb 20,2025, Elapsed time: 0:05:50
+# Errors: 0, Warnings: 1

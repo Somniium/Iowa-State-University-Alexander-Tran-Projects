@@ -1,0 +1,41 @@
+|lab5step0
+x0 => A.IN1
+x0 => A.IN1
+x0 => A.IN1
+x0 => B.IN1
+x0 => B.IN1
+x0 => D.IN1
+x0 => E.IN1
+x0 => E.IN1
+x0 => A.IN1
+x0 => B.IN1
+x0 => B.IN1
+x0 => B.IN1
+x0 => C.IN1
+x0 => D.IN1
+x0 => G.IN1
+x1 => A.IN1
+x1 => B.IN1
+x1 => B.IN1
+x1 => C.IN1
+x1 => A.IN1
+x1 => A.IN1
+x1 => A.IN1
+x1 => E.IN1
+x2 => A.IN0
+x2 => A.IN0
+x2 => A.IN0
+x2 => A.IN0
+x3 => A.IN1
+x3 => A.IN1
+x3 => A.IN1
+x3 => A.IN1
+A << A.DB_MAX_OUTPUT_PORT_TYPE
+B << B.DB_MAX_OUTPUT_PORT_TYPE
+C << C.DB_MAX_OUTPUT_PORT_TYPE
+D << D.DB_MAX_OUTPUT_PORT_TYPE
+E << E.DB_MAX_OUTPUT_PORT_TYPE
+F << F.DB_MAX_OUTPUT_PORT_TYPE
+G << G.DB_MAX_OUTPUT_PORT_TYPE
+
+

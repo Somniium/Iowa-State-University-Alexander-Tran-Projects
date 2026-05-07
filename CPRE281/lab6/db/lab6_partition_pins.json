@@ -1,0 +1,153 @@
+{
+	"partitions" : [
+		{
+			"name" : "Top",
+			"pins" : [
+				{
+					"name" : "hex7A",
+					"strict" : false
+				},
+				{
+					"name" : "hex7B",
+					"strict" : false
+				},
+				{
+					"name" : "hex7C",
+					"strict" : false
+				},
+				{
+					"name" : "hex7D",
+					"strict" : false
+				},
+				{
+					"name" : "hex7E",
+					"strict" : false
+				},
+				{
+					"name" : "hex7F",
+					"strict" : false
+				},
+				{
+					"name" : "hex7G",
+					"strict" : false
+				},
+				{
+					"name" : "hex6A",
+					"strict" : false
+				},
+				{
+					"name" : "hex6B",
+					"strict" : false
+				},
+				{
+					"name" : "hex6C",
+					"strict" : false
+				},
+				{
+					"name" : "hex6D",
+					"strict" : false
+				},
+				{
+					"name" : "hex6E",
+					"strict" : false
+				},
+				{
+					"name" : "hex6F",
+					"strict" : false
+				},
+				{
+					"name" : "hex6G",
+					"strict" : false
+				},
+				{
+					"name" : "hex5A",
+					"strict" : false
+				},
+				{
+					"name" : "hex5C",
+					"strict" : false
+				},
+				{
+					"name" : "hex5D",
+					"strict" : false
+				},
+				{
+					"name" : "hex5G",
+					"strict" : false
+				},
+				{
+					"name" : "hex5F",
+					"strict" : false
+				},
+				{
+					"name" : "hex5E",
+					"strict" : false
+				},
+				{
+					"name" : "hex4A",
+					"strict" : false
+				},
+				{
+					"name" : "hex4B",
+					"strict" : false
+				},
+				{
+					"name" : "hex4C",
+					"strict" : false
+				},
+				{
+					"name" : "hex4D",
+					"strict" : false
+				},
+				{
+					"name" : "hex4E",
+					"strict" : false
+				},
+				{
+					"name" : "hex4F",
+					"strict" : false
+				},
+				{
+					"name" : "hex4G",
+					"strict" : false
+				},
+				{
+					"name" : "SW14",
+					"strict" : false
+				},
+				{
+					"name" : "SW17",
+					"strict" : false
+				},
+				{
+					"name" : "SW16",
+					"strict" : false
+				},
+				{
+					"name" : "SW15",
+					"strict" : false
+				},
+				{
+					"name" : "SW10",
+					"strict" : false
+				},
+				{
+					"name" : "SW13",
+					"strict" : false
+				},
+				{
+					"name" : "SW12",
+					"strict" : false
+				},
+				{
+					"name" : "SW11",
+					"strict" : false
+				},
+				{
+					"name" : "Ci",
+					"strict" : false
+				}
+			]
+		}
+	]
+}

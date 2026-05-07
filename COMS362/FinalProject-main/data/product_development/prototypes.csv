@@ -1,0 +1,9 @@
+id,concept,materials,approved,lastActor,lastNote
+0bf3d5cd-0dff-4569-bee7-6436e13140da,yes,y,true,Alex,looks good
+e74f2f5f-04e8-4abd-bd34-9224da01aab5,2,no,true,Alex,
+da70ec90-9178-443f-ac5b-54191d0631a1,apple pen,apple,true,Alexander,great job
+6f0cd156-0524-4976-aa19-b39d4951b363,shirt,wool,true,Alex,good
+53ba769b-8f14-43eb-ae66-b095144d5ca0,shirt 2,wool,true,Alex,good
+fcfc15b3-0fa0-4797-9f1a-12cd4fe9c9e5,shirt 3,silk,true,Alex,good
+ce075916-701a-47b7-af5d-e88ab9fffaff,apple pen,wool,false,,
+974a5f97-99d2-4e43-9345-8d9ac61bebb5,Alex,silk,false,,

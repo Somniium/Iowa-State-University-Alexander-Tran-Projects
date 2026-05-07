@@ -1,0 +1,61 @@
+# Compile of lab3step1.v was successful.
+# Compile of lab3step2.v was successful.
+# Compile of lab3step4.v was successful.
+# Compile of lab3step3.v was successful.
+# 4 compiles, 0 failed with no errors.
+# Load canceled
+# Compile of lab3step1.v was successful.
+# Compile of lab3step2.v was successful.
+# Compile of lab3step4.v was successful.
+# Compile of lab3step3.v was successful.
+# 4 compiles, 0 failed with no errors.
+# Load canceled
+# Compile of lab3step1.v was successful.
+# Compile of lab3step2.v was successful.
+# Compile of lab3step4.v was successful.
+# Compile of lab3step3.v was successful.
+# 4 compiles, 0 failed with no errors.
+vsim -gui work.lab3step1
+# vsim -gui work.lab3step1 
+# Start time: 15:33:17 on Feb 19,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab3step1(fast)
+add wave -position insertpoint  \
+sim:/lab3step1/C \
+sim:/lab3step1/G \
+sim:/lab3step1/W \
+sim:/lab3step1/F
+do basic-alarm.do.txt
+quit -sim
+# End time: 15:34:28 on Feb 19,2025, Elapsed time: 0:01:11
+# Errors: 0, Warnings: 15
+vsim -gui work.lab3step2
+# vsim -gui work.lab3step2 
+# Start time: 15:34:42 on Feb 19,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab3step2(fast)
+add wave -position insertpoint  \
+sim:/lab3step2/C \
+sim:/lab3step2/G \
+sim:/lab3step2/W \
+sim:/lab3step2/F
+basic-alarm.do.txt
+# couldn't execute ".\basic-alarm.do.txt": no such file or directory
+do basic-alarm.do.txt
+quit -sim
+# End time: 15:37:23 on Feb 19,2025, Elapsed time: 0:02:41
+# Errors: 0, Warnings: 1
+vsim -gui work.lab3step3
+# vsim -gui work.lab3step3 
+# Start time: 15:37:29 on Feb 19,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab3step3(fast)
+add wave -position insertpoint  \
+sim:/lab3step3/F \
+sim:/lab3step3/C \
+sim:/lab3step3/G \
+sim:/lab3step3/W \
+sim:/lab3step3/A
+do alarm-with-farmer.do.txt
+# End time: 15:49:43 on Feb 19,2025, Elapsed time: 0:12:14
+# Errors: 0, Warnings: 1

@@ -1,0 +1,167 @@
+# Compile of FA.v was successful.
+# Compile of lab7addersub.v was successful.
+# Compile of lab74bit.v was successful.
+# 3 compiles, 0 failed with no errors.
+vsim -gui work.lab7addersub
+# vsim -gui work.lab7addersub 
+# Start time: 14:40:39 on Mar 25,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# Loading work.lab7addersub(fast)
+add wave -position insertpoint  \
+sim:/lab7addersub/X3 \
+sim:/lab7addersub/Y3 \
+sim:/lab7addersub/X2 \
+sim:/lab7addersub/Y2 \
+sim:/lab7addersub/X1 \
+sim:/lab7addersub/Y1 \
+sim:/lab7addersub/X \
+sim:/lab7addersub/Y \
+sim:/lab7addersub/Control \
+sim:/lab7addersub/Overflow \
+sim:/lab7addersub/Cout \
+sim:/lab7addersub/S3 \
+sim:/lab7addersub/S2 \
+sim:/lab7addersub/S1 \
+sim:/lab7addersub/S0
+do lab7
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/X0'.
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/Y0'.
+# Error in macro ./lab7 line 16
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/X0'.
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/Y0'.
+#     while executing
+# "add wave -position insertpoint  \
+# sim:/X3 \
+# sim:/X2 \
+# sim:/X1 \
+# sim:/X0 \
+# sim:/Y3 \
+# sim:/Y2 \
+# sim:/Y1 \
+# sim:/Y0 \
+# sim:/Control \
+# sim:/S3 \
+# sim:/S2 \
+# s..."
+do lab7.do
+# Cannot open macro file: lab7.do
+do lab7.do.txt
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/X0'.
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/Y0'.
+# Error in macro ./lab7.do.txt line 16
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/X0'.
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/Y0'.
+#     while executing
+# "add wave -position insertpoint  \
+# sim:/X3 \
+# sim:/X2 \
+# sim:/X1 \
+# sim:/X0 \
+# sim:/Y3 \
+# sim:/Y2 \
+# sim:/Y1 \
+# sim:/Y0 \
+# sim:/Control \
+# sim:/S3 \
+# sim:/S2 \
+# s..."
+#  Trace back: SaveAs: Duplicate cross-reference for U:/CPRE281/lab7/lab7
+#    >3:eval:1: ::.main_pane.source2.interior.cs.body.srcobj Action .main_pane.source2 saveas
+#    <2:eval:1: ::namespace inscope ::vsimwidgets::Srcobj {.main_pane.source2.interior.cs.body.srcobj Action} .main_pane.source2 saveas
+#    >1:proc:207: ::.vcop Action saveas
+quit -sim
+# End time: 14:42:59 on Mar 25,2025, Elapsed time: 0:02:20
+# Errors: 0, Warnings: 5
+# Load canceled
+vsim -gui work.lab7addersub
+# vsim -gui work.lab7addersub 
+# Start time: 14:47:20 on Mar 25,2025
+# ** Note: (vsim-8009) Loading existing optimized design _opt
+# Loading work.lab7addersub(fast)
+add wave -position insertpoint  \
+sim:/lab7addersub/X3 \
+sim:/lab7addersub/Y3 \
+sim:/lab7addersub/X2 \
+sim:/lab7addersub/Y2 \
+sim:/lab7addersub/X1 \
+sim:/lab7addersub/Y1 \
+sim:/lab7addersub/X \
+sim:/lab7addersub/Y \
+sim:/lab7addersub/Control \
+sim:/lab7addersub/Overflow \
+sim:/lab7addersub/Cout \
+sim:/lab7addersub/S3 \
+sim:/lab7addersub/S2 \
+sim:/lab7addersub/S1 \
+sim:/lab7addersub/S0
+do LAB7TEST.do
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/X0'.
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/Y0'.
+# Error in macro ./LAB7TEST.do line 16
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/X0'.
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/Y0'.
+#     while executing
+# "add wave -position insertpoint  \
+# sim:/X3 \
+# sim:/X2 \
+# sim:/X1 \
+# sim:/X0 \
+# sim:/Y3 \
+# sim:/Y2 \
+# sim:/Y1 \
+# sim:/Y0 \
+# sim:/Control \
+# sim:/S3 \
+# sim:/S2 \
+# s..."
+LAB7TEST.do
+# couldn't execute ".\LAB7TEST.do": no such file or directory
+do LAB7TEST.do
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/X0'.
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/Y0'.
+# Error in macro ./LAB7TEST.do line 16
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/X0'.
+# ** UI-Msg (Warning): (vish-4014) No objects found matching '/Y0'.
+#     while executing
+# "add wave -position insertpoint  \
+# sim:/X3 \
+# sim:/X2 \
+# sim:/X1 \
+# sim:/X0 \
+# sim:/Y3 \
+# sim:/Y2 \
+# sim:/Y1 \
+# sim:/Y0 \
+# sim:/Control \
+# sim:/S3 \
+# sim:/S2 \
+# s..."
+do LAB7TEST.do
+# ** UI-Msg (Error) (suppressible): (vsim-4008) Object 'X0' not found.
+# Error in macro ./LAB7TEST.do line 4
+# ** UI-Msg (Error) (suppressible): (vsim-4008) Object 'X0' not found.
+# 
+#     while executing
+# "force -freeze X0 1 0"
+add wave -position insertpoint  \
+sim:/lab7addersub/X \
+sim:/lab7addersub/Y
+add wave -position insertpoint  \
+sim:/lab7addersub/X3 \
+sim:/lab7addersub/Y3 \
+sim:/lab7addersub/X2 \
+sim:/lab7addersub/Y2 \
+sim:/lab7addersub/X1 \
+sim:/lab7addersub/Y1 \
+sim:/lab7addersub/X \
+sim:/lab7addersub/Y \
+sim:/lab7addersub/Control \
+sim:/lab7addersub/Overflow \
+sim:/lab7addersub/Cout \
+sim:/lab7addersub/S3 \
+sim:/lab7addersub/S2 \
+sim:/lab7addersub/S1 \
+sim:/lab7addersub/S0
+do LAB7TEST.do
+# End time: 15:05:24 on Mar 25,2025, Elapsed time: 0:18:04
+# Errors: 0, Warnings: 4

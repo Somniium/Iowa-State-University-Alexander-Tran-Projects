@@ -1,0 +1,7 @@
+module mProjb (W,X,Y,Z,B);
+input W,X,Y,Z;
+output B;
+
+assign B = (W&Y&Z)|(~W&~X&Y&~Z)|(X&~Y&Z);
+
+endmodule

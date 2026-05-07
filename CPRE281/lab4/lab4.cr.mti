@@ -1,0 +1,36 @@
+U:/CPRE281/lab4/lab4step1.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab4/lab4step1.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module lab4step1
+
+Top level modules:
+	lab4step1
+
+} {} {}} U:/CPRE281/lab4/powersaving.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab4/powersaving.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module powersaving
+
+Top level modules:
+	powersaving
+
+} {} {}} U:/CPRE281/lab4/normal.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab4/normal.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module normal
+
+Top level modules:
+	normal
+
+} {} {}} U:/CPRE281/lab4/lab4step2.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab4/lab4step2.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module lab4step2
+
+Top level modules:
+	lab4step2
+
+} {} {}} U:/CPRE281/lab4/multiplexer.v {1 {vlog -work work -vopt -stats=none U:/CPRE281/lab4/multiplexer.v
+QuestaSim-64 vlog 2024.2 Compiler 2024.05 May 20 2024
+-- Compiling module multiplexer
+
+Top level modules:
+	multiplexer
+
+} {} {}}
