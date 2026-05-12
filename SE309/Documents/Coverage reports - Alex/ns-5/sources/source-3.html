@@ -1,0 +1,283 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > HardcoverService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Books</a>
+</div>
+
+<h1>Coverage Summary for Class: HardcoverService (onetoone.Books)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">HardcoverService</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    83.3%
+  </span>
+  <span class="absValue">
+    (5/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    39.2%
+  </span>
+  <span class="absValue">
+    (29/74)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    75.7%
+  </span>
+  <span class="absValue">
+    (56/74)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Books;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.http.*;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.web.client.RestTemplate;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;/**
+&nbsp; * Talks to the Hardcover GraphQL API for book data.
+&nbsp; *
+&nbsp; * Credentials are in application.properties:
+&nbsp; *
+&nbsp; * Hardcover docs: https://hardcover.app/account/api
+&nbsp; *
+&nbsp; * Portion of code was provided by Hardcover.
+&nbsp; */
+&nbsp;@Service
+<b class="fc">&nbsp;public class HardcoverService {</b>
+&nbsp;
+&nbsp;    @Value(&quot;${hardcover.api.url}&quot;)
+&nbsp;    private String apiUrl;
+&nbsp;
+&nbsp;    @Value(&quot;${hardcover.api.token}&quot;)
+&nbsp;    private String apiToken;
+&nbsp;
+<b class="fc">&nbsp;    private final RestTemplate restTemplate = new RestTemplate();</b>
+<b class="fc">&nbsp;    private final ObjectMapper mapper = new ObjectMapper();</b>
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Search Hardcover for books by title.
+&nbsp;     * Results are NOT saved to DB — used for browsing before a user picks one.
+&nbsp;     */
+&nbsp;    public List&lt;Book&gt; searchBooks(String query, int maxResults) {
+<b class="fc">&nbsp;        int limit = Math.min(Math.max(maxResults, 1), 40);</b>
+&nbsp;
+<b class="fc">&nbsp;        ObjectNode variables = mapper.createObjectNode();</b>
+<b class="fc">&nbsp;        variables.put(&quot;q&quot;, query.trim());</b>
+<b class="fc">&nbsp;        variables.put(&quot;limit&quot;, limit);</b>
+&nbsp;
+<b class="fc">&nbsp;        ObjectNode request = mapper.createObjectNode();</b>
+<b class="fc">&nbsp;        request.put(&quot;query&quot;, &quot;query SearchBooks($q: String!, $limit: Int!) { search(query: $q, query_type: \&quot;Book\&quot;, per_page: $limit, page: 1) { results } }&quot;);</b>
+<b class="fc">&nbsp;        request.set(&quot;variables&quot;, variables);</b>
+&nbsp;
+&nbsp;        try {
+<b class="fc">&nbsp;            JsonNode root = post(request.toString());</b>
+<b class="fc">&nbsp;            JsonNode searchResults = root.path(&quot;data&quot;).path(&quot;search&quot;).path(&quot;results&quot;);</b>
+<b class="fc">&nbsp;            JsonNode books = searchResults.path(&quot;hits&quot;);</b>
+<b class="pc">&nbsp;            if (!books.isArray()) {</b>
+<b class="nc">&nbsp;                books = searchResults;</b>
+&nbsp;            }
+<b class="fc">&nbsp;            List&lt;Book&gt; results = new ArrayList&lt;&gt;();</b>
+<b class="pc">&nbsp;            if (books.isArray()) {</b>
+<b class="fc">&nbsp;                for (JsonNode node : books) {</b>
+<b class="pc">&nbsp;                    JsonNode bookNode = node.has(&quot;document&quot;) ? node.path(&quot;document&quot;) : node;</b>
+<b class="fc">&nbsp;                    Book b = parseBookNode(bookNode);</b>
+<b class="pc">&nbsp;                    if (b != null) results.add(b);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="fc">&nbsp;            return results;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Hardcover search failed: &quot; + e.getMessage(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Fetch full details for a single book by its Hardcover numeric ID.
+&nbsp;     */
+&nbsp;    public Book getBookById(String hardcoverId) {
+<b class="nc">&nbsp;        String graphql = &quot;&quot;&quot;</b>
+&nbsp;            {
+&nbsp;              &quot;query&quot;: &quot;query GetBook($id: Int!) { books_by_pk(id: $id) { id title contributions { author { name } } release_year description image { url } book_series { series { name } } } }&quot;,
+&nbsp;              &quot;variables&quot;: { &quot;id&quot;: %s }
+&nbsp;            }
+<b class="nc">&nbsp;            &quot;&quot;&quot;.formatted(hardcoverId);</b>
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            JsonNode root = post(graphql);</b>
+<b class="nc">&nbsp;            JsonNode node = root.path(&quot;data&quot;).path(&quot;books_by_pk&quot;);</b>
+<b class="nc">&nbsp;            if (node.isMissingNode() || node.isNull())</b>
+<b class="nc">&nbsp;                throw new RuntimeException(&quot;Book not found for id=&quot; + hardcoverId);</b>
+<b class="nc">&nbsp;            return parseBookNode(node);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Hardcover fetch failed for id=&quot; + hardcoverId + &quot;: &quot; + e.getMessage(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    // ---- helpers ----
+&nbsp;
+&nbsp;    private JsonNode post(String graphqlJson) throws Exception {
+<b class="fc">&nbsp;        HttpHeaders headers = new HttpHeaders();</b>
+<b class="fc">&nbsp;        headers.setContentType(MediaType.APPLICATION_JSON);</b>
+<b class="fc">&nbsp;        headers.set(&quot;Authorization&quot;, apiToken);</b>
+&nbsp;
+<b class="fc">&nbsp;        HttpEntity&lt;String&gt; entity = new HttpEntity&lt;&gt;(graphqlJson, headers);</b>
+<b class="fc">&nbsp;        ResponseEntity&lt;String&gt; response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, String.class);</b>
+<b class="fc">&nbsp;        JsonNode root = mapper.readTree(response.getBody());</b>
+<b class="fc">&nbsp;        JsonNode errors = root.get(&quot;errors&quot;);</b>
+<b class="pc">&nbsp;        if (errors != null &amp;&amp; errors.isArray() &amp;&amp; errors.size() &gt; 0) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(errors.get(0).path(&quot;message&quot;).asText(&quot;GraphQL error&quot;));</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return root;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Book parseBookNode(JsonNode node) {
+<b class="pc">&nbsp;        if (node == null || node.isNull()) return null;</b>
+&nbsp;
+<b class="fc">&nbsp;        Book b = new Book();</b>
+&nbsp;
+&nbsp;        // Hardcover uses numeric IDs — store as string in volumeId field for consistency
+<b class="fc">&nbsp;        JsonNode idNode = node.get(&quot;id&quot;);</b>
+<b class="pc">&nbsp;        if (idNode != null &amp;&amp; !idNode.isNull()) b.setVolumeId(idNode.asText());</b>
+&nbsp;
+<b class="fc">&nbsp;        b.setTitle(textOrNull(node.get(&quot;title&quot;)));</b>
+&nbsp;
+&nbsp;        // release_year is an int
+<b class="fc">&nbsp;        JsonNode year = node.get(&quot;release_year&quot;);</b>
+<b class="pc">&nbsp;        if (year != null &amp;&amp; !year.isNull()) b.setPublishedDate(year.asText());</b>
+&nbsp;
+&nbsp;        // description
+<b class="fc">&nbsp;        String desc = textOrNull(node.get(&quot;description&quot;));</b>
+<b class="pc">&nbsp;        if (desc != null &amp;&amp; desc.length() &gt; 2000) desc = desc.substring(0, 1997) + &quot;...&quot;;</b>
+<b class="fc">&nbsp;        b.setDescription(desc);</b>
+&nbsp;
+&nbsp;        // image.url
+<b class="fc">&nbsp;        JsonNode image = node.get(&quot;image&quot;);</b>
+<b class="pc">&nbsp;        if (image != null &amp;&amp; !image.isNull()) b.setThumbnailUrl(textOrNull(image.get(&quot;url&quot;)));</b>
+&nbsp;
+&nbsp;        // contributions[].author.name
+<b class="fc">&nbsp;        JsonNode contributions = node.get(&quot;contributions&quot;);</b>
+<b class="pc">&nbsp;        if (contributions != null &amp;&amp; contributions.isArray() &amp;&amp; contributions.size() &gt; 0) {</b>
+<b class="nc">&nbsp;            List&lt;String&gt; authors = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            for (JsonNode c : contributions) {</b>
+<b class="nc">&nbsp;                JsonNode author = c.get(&quot;author&quot;);</b>
+<b class="nc">&nbsp;                if (author != null) {</b>
+<b class="nc">&nbsp;                    String name = textOrNull(author.get(&quot;name&quot;));</b>
+<b class="nc">&nbsp;                    if (name != null) authors.add(name);</b>
+&nbsp;                }
+&nbsp;            }
+<b class="nc">&nbsp;            if (!authors.isEmpty()) b.setAuthors(String.join(&quot;, &quot;, authors));</b>
+&nbsp;        }
+<b class="pc">&nbsp;        if (b.getAuthors() == null) {</b>
+<b class="fc">&nbsp;            JsonNode authorNames = node.get(&quot;author_names&quot;);</b>
+<b class="pc">&nbsp;            if (authorNames != null &amp;&amp; authorNames.isArray()) {</b>
+<b class="fc">&nbsp;                List&lt;String&gt; authors = new ArrayList&lt;&gt;();</b>
+<b class="fc">&nbsp;                for (JsonNode authorName : authorNames) {</b>
+<b class="fc">&nbsp;                    String name = textOrNull(authorName);</b>
+<b class="pc">&nbsp;                    if (name != null) authors.add(name);</b>
+&nbsp;                }
+<b class="pc">&nbsp;                if (!authors.isEmpty()) b.setAuthors(String.join(&quot;, &quot;, authors));</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return b;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String textOrNull(JsonNode node) {
+<b class="pc">&nbsp;        if (node == null || node.isNull()) return null;</b>
+<b class="fc">&nbsp;        String s = node.asText();</b>
+<b class="pc">&nbsp;        return (s == null || s.isBlank()) ? null : s;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-06 03:05</div>
+</div>
+</body>
+</html>

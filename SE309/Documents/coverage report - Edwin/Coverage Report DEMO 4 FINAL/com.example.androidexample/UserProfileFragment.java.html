@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserProfileFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">UserProfileFragment.java</span></div><h1>UserProfileFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
+import androidx.fragment.app.Fragment;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+<span class="fc" id="L21">public class UserProfileFragment extends Fragment {</span>
+
+    private TextView welcomeHeader;
+    private TextView profileNameText;
+    private TextView profileEmailText;
+    private TextView profileSeparatorText;
+    private TextView profileIdText;
+
+    private Button editProfileBtn;
+    private CardView reviewsCard, settingsCard, logoutCard, friendsCard, followingCard, professorCard, adminCard;
+    private TextView reviewsText, settingsText, logoutText, booksText, albumsText, professorText, adminText;
+
+    private int userId;
+
+    //default value -1 signifies user is NOT a professor or admin, respectively
+<span class="fc" id="L36">    private int professorId = -1;</span>
+<span class="fc" id="L37">    private int adminId = -1;</span>
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+<span class="fc" id="L42">        View view = inflater.inflate(R.layout.fragment_user_profile, container, false);</span>
+
+        //Get all necessary IDs, -1 if not of that type
+<span class="fc" id="L45">        userId = getActivity().getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+<span class="fc" id="L46">        fetchProfessorIdByUserID(userId);</span>
+<span class="fc" id="L47">        fetchAdminIdByUserID(userId);</span>
+
+<span class="fc" id="L49">        welcomeHeader = view.findViewById(R.id.welcome_header);</span>
+<span class="fc" id="L50">        profileNameText = view.findViewById(R.id.profile_name);</span>
+<span class="fc" id="L51">        profileEmailText = view.findViewById(R.id.profile_email);</span>
+<span class="fc" id="L52">        profileSeparatorText = view.findViewById(R.id.profile_separator);</span>
+<span class="fc" id="L53">        profileIdText = view.findViewById(R.id.profile_id);</span>
+
+<span class="fc" id="L55">        editProfileBtn = view.findViewById(R.id.btn_edit_profile);</span>
+<span class="fc" id="L56">        reviewsCard = view.findViewById(R.id.card_reviews);</span>
+<span class="fc" id="L57">        reviewsText = view.findViewById(R.id.text_reviews);</span>
+<span class="fc" id="L58">        settingsCard = view.findViewById(R.id.card_settings);</span>
+<span class="fc" id="L59">        settingsText = view.findViewById(R.id.text_settings);</span>
+<span class="fc" id="L60">        logoutCard = view.findViewById(R.id.card_logout);</span>
+<span class="fc" id="L61">        logoutText = view.findViewById(R.id.text_logout);</span>
+<span class="fc" id="L62">        friendsCard = view.findViewById(R.id.card_books);</span>
+<span class="fc" id="L63">        booksText = view.findViewById(R.id.text_books);</span>
+<span class="fc" id="L64">        followingCard = view.findViewById(R.id.card_albums);</span>
+<span class="fc" id="L65">        albumsText = view.findViewById(R.id.text_albums);</span>
+
+        //Declare special panel cards for higher permission users
+<span class="fc" id="L68">        professorCard = view.findViewById(R.id.card_professor_panel);</span>
+<span class="fc" id="L69">        professorText = view.findViewById(R.id.text_professor_panel);</span>
+<span class="fc" id="L70">        adminCard = view.findViewById(R.id.card_admin_panel);</span>
+<span class="fc" id="L71">        adminText = view.findViewById(R.id.text_admin_panel);</span>
+
+<span class="fc" id="L73">        welcomeHeader.setText(&quot;Loading...&quot;);</span>
+<span class="fc" id="L74">        profileNameText.setText(&quot;Loading...&quot;);</span>
+<span class="fc" id="L75">        profileEmailText.setText(&quot;Loading...&quot;);</span>
+<span class="fc" id="L76">        profileSeparatorText.setText(&quot;  •  &quot;);</span>
+<span class="fc" id="L77">        profileIdText.setText(&quot;Loading...&quot;);</span>
+
+<span class="fc" id="L79">        editProfileBtn.setText(&quot;View Profile&quot;);</span>
+<span class="fc" id="L80">        reviewsText.setText(&quot;⭐  My Reviews&quot;);</span>
+<span class="fc" id="L81">        settingsText.setText(&quot;⚙ Account Settings&quot;);</span>
+<span class="fc" id="L82">        logoutText.setText(&quot;➜]  Log Out&quot;);</span>
+<span class="fc" id="L83">        booksText.setText(&quot;Friends&quot;);</span>
+<span class="fc" id="L84">        albumsText.setText(&quot;Following&quot;);</span>
+<span class="fc" id="L85">        professorText.setText(&quot;Professor Panel&quot;);</span>
+<span class="fc" id="L86">        adminText.setText(&quot;Administrator Panel&quot;);</span>
+
+<span class="fc" id="L88">        editProfileBtn.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (userId != -1) {</span>
+<span class="nc" id="L90">                ((MainFeedActivity) requireActivity()).loadFragment(ViewProfileFragment.newInstance(userId));</span>
+            }
+<span class="nc" id="L92">        });</span>
+
+<span class="fc" id="L94">        reviewsCard.setOnClickListener(v -&gt; {</span>
+            // TODO: show user reviews
+<span class="nc" id="L96">        });</span>
+
+<span class="fc" id="L98">        professorCard.setOnClickListener(v -&gt; {</span>
+<span class="pc bpc" id="L99" title="3 of 4 branches missed.">            if (userId != -1 || professorId != -1) {</span>
+<span class="fc" id="L100">                Intent intent = new Intent(getContext(), ProfessorPanelActivity.class);</span>
+<span class="fc" id="L101">                intent.putExtra(&quot;USER_ID&quot;, userId);</span>
+<span class="fc" id="L102">                intent.putExtra(&quot;PROFESSOR_ID&quot;, professorId);</span>
+<span class="fc" id="L103">                startActivity(intent);</span>
+<span class="fc" id="L104">            } else {</span>
+<span class="nc" id="L105">                Toast.makeText(getContext(), &quot;Error: Cannot open panel, User or Professor ID missing.&quot;, Toast.LENGTH_SHORT).show();</span>
+            }
+<span class="fc" id="L107">        });</span>
+
+<span class="fc" id="L109">        adminCard.setOnClickListener(v -&gt; {</span>
+<span class="pc bpc" id="L110" title="3 of 4 branches missed.">            if (userId != -1 || adminId != -1) {</span>
+<span class="fc" id="L111">                Intent intent = new Intent(getContext(), AdminPanelActivity.class);</span>
+<span class="fc" id="L112">                intent.putExtra(&quot;USER_ID&quot;, userId);</span>
+<span class="fc" id="L113">                intent.putExtra(&quot;ADMIN_ID&quot;, adminId);</span>
+<span class="fc" id="L114">                startActivity(intent);</span>
+<span class="fc" id="L115">            } else {</span>
+<span class="nc" id="L116">                Toast.makeText(getContext(), &quot;Error: Cannot open panel, User or Professor ID missing.&quot;, Toast.LENGTH_SHORT).show();</span>
+            }
+<span class="fc" id="L118">        });</span>
+
+<span class="fc" id="L120">        settingsCard.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">            if (userId != -1) {</span>
+<span class="nc" id="L122">                Intent intent = new Intent(getContext(), SettingsActivity.class);</span>
+<span class="nc" id="L123">                intent.putExtra(&quot;USER_ID&quot;, userId);</span>
+<span class="nc" id="L124">                startActivity(intent);</span>
+<span class="nc" id="L125">            } else {</span>
+<span class="nc" id="L126">                Toast.makeText(getContext(), &quot;Error: Cannot open settings, User ID missing.&quot;, Toast.LENGTH_SHORT).show();</span>
+            }
+<span class="nc" id="L128">        });</span>
+
+<span class="fc" id="L130">        logoutCard.setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L131">            Toast.makeText(getContext(), &quot;Logging out...&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L132">            getActivity().stopService(new Intent(getContext(), NotificationWebSocket.class));</span>
+<span class="fc" id="L133">            Intent intent = new Intent(getContext(), MainActivity.class);</span>
+<span class="fc" id="L134">            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);</span>
+<span class="fc" id="L135">            startActivity(intent);</span>
+<span class="fc" id="L136">            getActivity().finish();</span>
+<span class="fc" id="L137">        });</span>
+
+<span class="fc" id="L139">        friendsCard.setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L140">            ((MainFeedActivity) getActivity()).loadFragment(new FriendsFragment());</span>
+<span class="fc" id="L141">        });</span>
+
+<span class="fc" id="L143">        followingCard.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L144">            ((MainFeedActivity) getActivity()).loadFragment(new FollowingFragment());</span>
+<span class="nc" id="L145">        });</span>
+
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">        if (userId != -1) {</span>
+<span class="fc" id="L148">            fetchUserProfile(userId);</span>
+        } else {
+<span class="nc" id="L150">            Toast.makeText(getContext(), &quot;Error: User ID missing&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L151">            welcomeHeader.setText(&quot;Error loading profile&quot;);</span>
+        }
+
+<span class="fc" id="L154">        return view;</span>
+    }
+
+    private void fetchUserProfile(int userId) {
+<span class="fc" id="L158">        ApiClient.get(getContext(), &quot;/users/id/&quot; + userId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="fc" id="L162">                    String name = response.getString(&quot;name&quot;);</span>
+<span class="fc" id="L163">                    String email = response.getString(&quot;emailId&quot;);</span>
+<span class="fc" id="L164">                    int id = response.getInt(&quot;id&quot;);</span>
+
+<span class="fc" id="L166">                    welcomeHeader.setText(name + &quot;'s Profile&quot;);</span>
+<span class="fc" id="L167">                    profileNameText.setText(name);</span>
+<span class="fc" id="L168">                    profileEmailText.setText(email);</span>
+<span class="fc" id="L169">                    profileIdText.setText(&quot;ID: &quot; + id);</span>
+
+<span class="fc" id="L171">                    Log.d(&quot;ProfileFragment&quot;, &quot;Profile loaded: &quot; + name);</span>
+<span class="nc" id="L172">                } catch (JSONException e) {</span>
+<span class="nc" id="L173">                    e.printStackTrace();</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">                    if (getContext() != null) {</span>
+<span class="nc" id="L175">                        Toast.makeText(getContext(), &quot;Error parsing profile data&quot;, Toast.LENGTH_SHORT).show();</span>
+                    }
+<span class="fc" id="L177">                }</span>
+<span class="fc" id="L178">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L182">                Log.e(&quot;ProfileFragment&quot;, &quot;Profile load failed: &quot; + message);</span>
+<span class="nc" id="L183">                welcomeHeader.setText(&quot;Profile Unavailable&quot;);</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">                if (getContext() != null) {</span>
+<span class="nc" id="L185">                    Toast.makeText(getContext(), &quot;Error: &quot; + message, Toast.LENGTH_SHORT).show();</span>
+                }
+<span class="nc" id="L187">            }</span>
+        });
+
+
+<span class="fc" id="L191">    }</span>
+    private void fetchProfessorIdByUserID(int userID) {
+<span class="fc" id="L193">        ApiClient.get(UserProfileFragment.this.getContext(), &quot;/professor/user/&quot; + userID, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                    try {
+<span class="fc" id="L197">                        professorId = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L198">                    } catch (JSONException e) {</span>
+<span class="nc" id="L199">                        throw new RuntimeException(e);</span>
+<span class="fc" id="L200">                    }</span>
+<span class="fc" id="L201">                Log.d(&quot;Professor Check&quot;, &quot;Is a professor, ID: &quot; + professorId);</span>
+
+<span class="pc bpc" id="L203" title="1 of 2 branches missed.">                if (professorId != -1) {</span>
+<span class="fc" id="L204">                    professorCard.setVisibility(View.VISIBLE);</span>
+                } else {
+<span class="nc" id="L206">                    professorCard.setVisibility(View.GONE);</span>
+                }
+<span class="fc" id="L208">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="fc" id="L212">                Log.d(&quot;Professor Check&quot;, &quot;Not a professor&quot;);</span>
+<span class="fc" id="L213">            }</span>
+        });
+<span class="fc" id="L215">    }</span>
+
+    private void fetchAdminIdByUserID(int userID) {
+<span class="fc" id="L218">        ApiClient.get(UserProfileFragment.this.getContext(), &quot;/admin/user/&quot; + userID, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="fc" id="L222">                    adminId = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L223">                } catch (JSONException e) {</span>
+<span class="nc" id="L224">                    throw new RuntimeException(e);</span>
+<span class="fc" id="L225">                }</span>
+<span class="fc" id="L226">                Log.d(&quot;Professor Check&quot;, &quot;Is an admin, ID: &quot; + adminId);</span>
+
+<span class="pc bpc" id="L228" title="1 of 2 branches missed.">                if (adminId != -1) {</span>
+<span class="fc" id="L229">                    adminCard.setVisibility(View.VISIBLE);</span>
+                } else {
+<span class="nc" id="L231">                    adminCard.setVisibility(View.GONE);</span>
+                }
+<span class="fc" id="L233">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="fc" id="L237">                Log.d(&quot;Admin Check&quot;, &quot;Not an admin&quot;);</span>
+<span class="fc" id="L238">            }</span>
+        });
+<span class="fc" id="L240">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

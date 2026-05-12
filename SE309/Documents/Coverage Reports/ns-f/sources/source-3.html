@@ -1,0 +1,324 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TMDbService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Movies</a>
+</div>
+
+<h1>Coverage Summary for Class: TMDbService (onetoone.Movies)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TMDbService</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    9.1%
+  </span>
+  <span class="absValue">
+    (1/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/72)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    3.5%
+  </span>
+  <span class="absValue">
+    (3/85)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Movies;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.web.client.RestTemplate;
+&nbsp;import org.springframework.web.util.UriComponentsBuilder;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;/**
+&nbsp; * Talks to The Movie Database (TMDB) API.
+&nbsp; *
+&nbsp; * Docs: https://developer.themoviedb.org/docs
+&nbsp; *
+&nbsp; * This service handles both Movies (type=&quot;movie&quot;) and TV Shows (type=&quot;tv&quot;).
+&nbsp; */
+&nbsp;@Service
+<b class="fc">&nbsp;public class TMDbService {</b>
+&nbsp;
+&nbsp;    private static final String BASE_URL  = &quot;https://api.themoviedb.org/3&quot;;
+&nbsp;    private static final String IMG_BASE  = &quot;https://image.tmdb.org/t/p/w500&quot;;
+&nbsp;
+&nbsp;    @Value(&quot;${tmdb.api.key}&quot;)
+&nbsp;    private String apiKey;
+&nbsp;
+<b class="fc">&nbsp;    private final RestTemplate restTemplate = new RestTemplate();</b>
+<b class="fc">&nbsp;    private final ObjectMapper mapper = new ObjectMapper();</b>
+&nbsp;
+&nbsp;    // ---------------------------------------------------------------- SEARCH
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Search for movies.
+&nbsp;     * Maps to: GET /search/movie?query=...
+&nbsp;     */
+&nbsp;    public List&lt;Movie&gt; searchMovies(String query, int maxResults) {
+<b class="nc">&nbsp;        return search(query, &quot;movie&quot;, maxResults);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Search for TV shows.
+&nbsp;     * Maps to: GET /search/tv?query=...
+&nbsp;     */
+&nbsp;    public List&lt;Movie&gt; searchShows(String query, int maxResults) {
+<b class="nc">&nbsp;        return search(query, &quot;tv&quot;, maxResults);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private List&lt;Movie&gt; search(String query, String type, int maxResults) {
+&nbsp;        try {
+<b class="nc">&nbsp;            String url = UriComponentsBuilder</b>
+<b class="nc">&nbsp;                    .fromHttpUrl(BASE_URL + &quot;/search/&quot; + type)</b>
+<b class="nc">&nbsp;                    .queryParam(&quot;api_key&quot;, apiKey)</b>
+<b class="nc">&nbsp;                    .queryParam(&quot;query&quot;, query)</b>
+<b class="nc">&nbsp;                    .queryParam(&quot;page&quot;, 1)</b>
+<b class="nc">&nbsp;                    .toUriString();</b>
+&nbsp;
+<b class="nc">&nbsp;            String json = restTemplate.getForObject(url, String.class);</b>
+<b class="nc">&nbsp;            JsonNode root = mapper.readTree(json);</b>
+<b class="nc">&nbsp;            JsonNode results = root.get(&quot;results&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            List&lt;Movie&gt; movies = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            if (results == null || !results.isArray()) return movies;</b>
+&nbsp;
+<b class="nc">&nbsp;            int limit = Math.min(maxResults, results.size());</b>
+<b class="nc">&nbsp;            for (int i = 0; i &lt; limit; i++) {</b>
+<b class="nc">&nbsp;                Movie m = parseSearchResult(results.get(i), type);</b>
+<b class="nc">&nbsp;                if (m != null) movies.add(m);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return movies;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;TMDB search failed (&quot; + type + &quot;): &quot; + e.getMessage(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    // ---------------------------------------------------------------- DETAIL
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Fetch full movie details by TMDB numeric ID.
+&nbsp;     * Maps to: GET /movie/{id}?append_to_response=credits
+&nbsp;     */
+&nbsp;    public Movie getMovieById(String tmdbNumericId) {
+<b class="nc">&nbsp;        return getDetail(tmdbNumericId, &quot;movie&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Fetch full TV show details by TMDB numeric ID.
+&nbsp;     * Maps to: GET /tv/{id}?append_to_response=credits
+&nbsp;     */
+&nbsp;    public Movie getShowById(String tmdbNumericId) {
+<b class="nc">&nbsp;        return getDetail(tmdbNumericId, &quot;tv&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Movie getDetail(String numericId, String type) {
+&nbsp;        try {
+<b class="nc">&nbsp;            String url = UriComponentsBuilder</b>
+<b class="nc">&nbsp;                    .fromHttpUrl(BASE_URL + &quot;/&quot; + type + &quot;/&quot; + numericId)</b>
+<b class="nc">&nbsp;                    .queryParam(&quot;api_key&quot;, apiKey)</b>
+<b class="nc">&nbsp;                    .queryParam(&quot;append_to_response&quot;, &quot;credits&quot;)</b>
+<b class="nc">&nbsp;                    .toUriString();</b>
+&nbsp;
+<b class="nc">&nbsp;            String json = restTemplate.getForObject(url, String.class);</b>
+<b class="nc">&nbsp;            JsonNode root = mapper.readTree(json);</b>
+&nbsp;
+<b class="nc">&nbsp;            Movie m = new Movie();</b>
+<b class="nc">&nbsp;            m.setTmdbId(type + &quot;-&quot; + numericId);</b>
+<b class="nc">&nbsp;            m.setMediaType(type.equals(&quot;movie&quot;) ? &quot;MOVIE&quot; : &quot;SHOW&quot;);</b>
+&nbsp;
+&nbsp;            // Title: movies use &quot;title&quot;, shows use &quot;name&quot;
+<b class="nc">&nbsp;            m.setTitle(type.equals(&quot;movie&quot;)</b>
+<b class="nc">&nbsp;                    ? textOrNull(root.get(&quot;title&quot;))</b>
+<b class="nc">&nbsp;                    : textOrNull(root.get(&quot;name&quot;)));</b>
+&nbsp;
+&nbsp;            // Release date: movies use &quot;release_date&quot;, shows use &quot;first_air_date&quot;
+<b class="nc">&nbsp;            m.setReleaseDate(type.equals(&quot;movie&quot;)</b>
+<b class="nc">&nbsp;                    ? textOrNull(root.get(&quot;release_date&quot;))</b>
+<b class="nc">&nbsp;                    : textOrNull(root.get(&quot;first_air_date&quot;)));</b>
+&nbsp;
+&nbsp;            // Overview
+<b class="nc">&nbsp;            String overview = textOrNull(root.get(&quot;overview&quot;));</b>
+<b class="nc">&nbsp;            if (overview != null &amp;&amp; overview.length() &gt; 2000) overview = overview.substring(0, 1997) + &quot;...&quot;;</b>
+<b class="nc">&nbsp;            m.setOverview(overview);</b>
+&nbsp;
+&nbsp;            // Poster
+<b class="nc">&nbsp;            String posterPath = textOrNull(root.get(&quot;poster_path&quot;));</b>
+<b class="nc">&nbsp;            if (posterPath != null) m.setPosterUrl(IMG_BASE + posterPath);</b>
+&nbsp;
+&nbsp;            // TMDB score
+<b class="nc">&nbsp;            JsonNode vote = root.get(&quot;vote_average&quot;);</b>
+<b class="nc">&nbsp;            if (vote != null &amp;&amp; !vote.isNull()) m.setTmdbScore(vote.asDouble());</b>
+&nbsp;
+&nbsp;            // Genre — first in the genres array
+<b class="nc">&nbsp;            m.setGenre(firstNameFromArray(root.get(&quot;genres&quot;)));</b>
+&nbsp;
+&nbsp;            // Director (movies) or creator (shows) from credits
+<b class="nc">&nbsp;            m.setDirector(extractDirectorOrCreator(root, type));</b>
+&nbsp;
+<b class="nc">&nbsp;            return m;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;TMDB detail fetch failed (type=&quot; + type + &quot;, id=&quot; + numericId + &quot;): &quot; + e.getMessage(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    // HELPERS
+&nbsp;
+&nbsp;    private Movie parseSearchResult(JsonNode node, String type) {
+<b class="nc">&nbsp;        if (node == null) return null;</b>
+&nbsp;
+<b class="nc">&nbsp;        String numericId = textOrNull(node.get(&quot;id&quot;));</b>
+<b class="nc">&nbsp;        String title = type.equals(&quot;movie&quot;)</b>
+<b class="nc">&nbsp;                ? textOrNull(node.get(&quot;title&quot;))</b>
+<b class="nc">&nbsp;                : textOrNull(node.get(&quot;name&quot;));</b>
+&nbsp;
+<b class="nc">&nbsp;        if (numericId == null || title == null) return null;</b>
+&nbsp;
+<b class="nc">&nbsp;        Movie m = new Movie();</b>
+<b class="nc">&nbsp;        m.setTmdbId(type + &quot;-&quot; + numericId);</b>
+<b class="nc">&nbsp;        m.setMediaType(type.equals(&quot;movie&quot;) ? &quot;MOVIE&quot; : &quot;SHOW&quot;);</b>
+<b class="nc">&nbsp;        m.setTitle(title);</b>
+&nbsp;
+<b class="nc">&nbsp;        m.setReleaseDate(type.equals(&quot;movie&quot;)</b>
+<b class="nc">&nbsp;                ? textOrNull(node.get(&quot;release_date&quot;))</b>
+<b class="nc">&nbsp;                : textOrNull(node.get(&quot;first_air_date&quot;)));</b>
+&nbsp;
+<b class="nc">&nbsp;        String posterPath = textOrNull(node.get(&quot;poster_path&quot;));</b>
+<b class="nc">&nbsp;        if (posterPath != null) m.setPosterUrl(IMG_BASE + posterPath);</b>
+&nbsp;
+<b class="nc">&nbsp;        JsonNode vote = node.get(&quot;vote_average&quot;);</b>
+<b class="nc">&nbsp;        if (vote != null &amp;&amp; !vote.isNull()) m.setTmdbScore(vote.asDouble());</b>
+&nbsp;
+&nbsp;        // genre_ids are just numbers in search; genre name requires a separate lookup — skip for search
+<b class="nc">&nbsp;        return m;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String extractDirectorOrCreator(JsonNode root, String type) {
+<b class="nc">&nbsp;        if (type.equals(&quot;movie&quot;)) {</b>
+&nbsp;            // credits.crew[] where job == &quot;Director&quot;
+<b class="nc">&nbsp;            JsonNode crew = root.path(&quot;credits&quot;).path(&quot;crew&quot;);</b>
+<b class="nc">&nbsp;            if (crew.isArray()) {</b>
+<b class="nc">&nbsp;                for (JsonNode member : crew) {</b>
+<b class="nc">&nbsp;                    if (&quot;Director&quot;.equals(textOrNull(member.get(&quot;job&quot;)))) {</b>
+<b class="nc">&nbsp;                        return textOrNull(member.get(&quot;name&quot;));</b>
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } else {
+&nbsp;            // created_by[0].name
+<b class="nc">&nbsp;            JsonNode creators = root.get(&quot;created_by&quot;);</b>
+<b class="nc">&nbsp;            if (creators != null &amp;&amp; creators.isArray() &amp;&amp; creators.size() &gt; 0) {</b>
+<b class="nc">&nbsp;                return textOrNull(creators.get(0).get(&quot;name&quot;));</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String firstNameFromArray(JsonNode array) {
+<b class="nc">&nbsp;        if (array == null || !array.isArray() || array.size() == 0) return null;</b>
+<b class="nc">&nbsp;        JsonNode first = array.get(0);</b>
+<b class="nc">&nbsp;        return first != null ? textOrNull(first.get(&quot;name&quot;)) : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String textOrNull(JsonNode node) {
+<b class="nc">&nbsp;        if (node == null || node.isNull()) return null;</b>
+<b class="nc">&nbsp;        String s = node.asText();</b>
+<b class="nc">&nbsp;        return (s == null || s.isBlank()) ? null : s;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-04-27 14:13</div>
+</div>
+</body>
+</html>

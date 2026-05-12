@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ManageGamesActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">ManageGamesActivity.java</span></div><h1>ManageGamesActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+<span class="nc" id="L31">public class ManageGamesActivity extends AppCompatActivity {</span>
+
+    // Declare button variables
+    private Button queryAddBtn, queryManageBtn, addBtn, updateBtn, deleteBtn, returnBtn;
+    private ImageButton addSearchBtn, searchBtn;
+
+    // Declare layout variables
+    private LinearLayout queryInterface, addInterface, manageInterface;
+
+    //Declare edit variables
+    private EditText searchEdt, addEdt, titleEdt, developerEdt, idEdt, genreEdt, releaseDateEdt;
+
+    //Declare textview variables
+    private TextView gameAddName, gameAddID;
+
+    private JSONObject gameData;
+<span class="nc" id="L47">    private int gameID = -1;</span>
+    private boolean isMaster;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L52">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L53">        setContentView(R.layout.activity_manage_games); // Set the UI layout for the activity</span>
+
+        //Initialize every component in queryInterface
+<span class="nc" id="L56">        queryInterface = findViewById(R.id.queryInterface);</span>
+<span class="nc" id="L57">        queryAddBtn = findViewById(R.id.queryAddBtn);</span>
+<span class="nc" id="L58">        queryManageBtn = findViewById(R.id.queryManageBtn);</span>
+
+        //Initialize every component in addInterface
+<span class="nc" id="L61">        addInterface = findViewById(R.id.addInterface);</span>
+<span class="nc" id="L62">        addEdt = findViewById(R.id.gameAddEdt);</span>
+<span class="nc" id="L63">        addSearchBtn = findViewById(R.id.addSearchBtn);</span>
+<span class="nc" id="L64">        gameAddName = findViewById(R.id.gameAddName);</span>
+<span class="nc" id="L65">        gameAddID = findViewById(R.id.gameAddID);</span>
+<span class="nc" id="L66">        addBtn = findViewById(R.id.addBtn);</span>
+
+        //Initialize every component in manageInterface
+<span class="nc" id="L69">        manageInterface = findViewById(R.id.manageInterface);</span>
+<span class="nc" id="L70">        searchEdt = findViewById(R.id.searchEdt);</span>
+<span class="nc" id="L71">        searchBtn = findViewById(R.id.searchBtn);</span>
+<span class="nc" id="L72">        titleEdt = findViewById(R.id.titleEdt);</span>
+<span class="nc" id="L73">        developerEdt = findViewById(R.id.developerEdt);</span>
+<span class="nc" id="L74">        idEdt = findViewById(R.id.idEdt);</span>
+<span class="nc" id="L75">        genreEdt = findViewById(R.id.genreEdt);</span>
+<span class="nc" id="L76">        releaseDateEdt = findViewById(R.id.releaseDateEdt);</span>
+<span class="nc" id="L77">        updateBtn = findViewById(R.id.updateBtn);</span>
+<span class="nc" id="L78">        deleteBtn = findViewById(R.id.deleteBtn);</span>
+<span class="nc" id="L79">        returnBtn = findViewById(R.id.returnBtn);</span>
+
+        //Click Listeners for queryInterface
+<span class="nc" id="L82">        queryAddBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L85">                queryInterface.setVisibility(View.GONE);</span>
+<span class="nc" id="L86">                addInterface.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L87">            }</span>
+        });
+
+<span class="nc" id="L90">        queryManageBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L93">                queryInterface.setVisibility(View.GONE);</span>
+<span class="nc" id="L94">                manageInterface.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L95">            }</span>
+        });
+
+
+        //Click listeners for addInterface
+<span class="nc" id="L100">        addSearchBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L103">                JsonArrayRequest jsonArrReq = new JsonArrayRequest(</span>
+                        Request.Method.GET, // HTTP method (GET request)
+<span class="nc" id="L105">                        &quot;http://coms-3090-017.class.las.iastate.edu:8080/search-games?q=&quot; + addEdt.getText().toString().replace(&quot; &quot;, &quot;%20&quot;), // API URL</span>
+                        null, // Request body (null for GET request)
+<span class="nc" id="L107">                        new Response.Listener&lt;JSONArray&gt;() {</span>
+                            @Override
+                            public void onResponse(JSONArray response) {
+                                try {
+<span class="nc" id="L111">                                    JSONObject selected = response.getJSONObject(0);</span>
+<span class="nc" id="L112">                                    gameID = selected.getInt(&quot;rawgId&quot;);</span>
+<span class="nc" id="L113">                                    gameAddName.setText(&quot;Title: &quot; + selected.getString(&quot;title&quot;));</span>
+<span class="nc" id="L114">                                    gameAddID.setText(&quot;RAWG ID: &quot; + gameID);</span>
+<span class="nc" id="L115">                                } catch (JSONException e) {</span>
+<span class="nc" id="L116">                                    throw new RuntimeException(e);</span>
+<span class="nc" id="L117">                                }</span>
+<span class="nc" id="L118">                            }</span>
+                        },
+<span class="nc" id="L120">                        new Response.ErrorListener() {</span>
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                // Log the error details
+<span class="nc" id="L124">                                Log.e(&quot;Volley Error&quot;, error.toString());</span>
+<span class="nc" id="L125">                                Toast.makeText(ManageGamesActivity.this, &quot;Could Not Find Game.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L126">                            }</span>
+<span class="nc" id="L127">                        }) {</span>
+                    @Override
+                    public Map&lt;String, String&gt; getHeaders() {
+                        // Headers for the request (if needed)
+<span class="nc" id="L131">                        Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                        // Example headers (uncomment if needed)
+                        // headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;);
+                        // headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L135">                        return headers;</span>
+                    }
+
+                    @Override
+                    protected Map&lt;String, String&gt; getParams() {
+                        // Parameters for the request (if needed)
+<span class="nc" id="L141">                        Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                        // Example parameters (uncomment if needed)
+                        // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                        // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L145">                        return params;</span>
+                    }
+                };
+
+                // Adding request to the Volley request queue
+<span class="nc" id="L150">                VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsonArrReq);</span>
+//                ApiClient.get(ManageGamesActivity.this, &quot;/search-games?q=&quot; + addEdt.getText().toString().replace(&quot; &quot;, &quot;%20&quot;), new Api_Interface() {
+//                    @Override
+//                    public void onSuccess(JSONObject response) {
+//                        try {
+//                            gameID = response.getInt(&quot;rawgId&quot;);
+//                            gameAddName.setText(&quot;Title: &quot; + response.getString(&quot;title&quot;));
+//                            gameAddID.setText(&quot;RAWG ID: &quot; + gameID);
+//                        } catch (JSONException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onError(String message) {
+//                        Log.e(&quot;Couldn't add&quot;, message);
+//                        Toast.makeText(ManageGamesActivity.this, &quot;Could Not Find Game.&quot;, Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+<span class="nc" id="L169">            }</span>
+        });
+
+<span class="nc" id="L172">        addBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L175">                ApiClient.post(ManageGamesActivity.this, &quot;/games/save?rawgId=&quot; + gameID, null, new Api_Interface() {</span>
+                    @Override
+                    public void onSuccess(JSONObject response) {
+<span class="nc" id="L178">                        Toast.makeText(ManageGamesActivity.this, &quot;Game added.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L179">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L183">                        Toast.makeText(ManageGamesActivity.this, &quot;Could not add game.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L184">                    }</span>
+                });
+<span class="nc" id="L186">            }</span>
+        });
+
+
+<span class="nc" id="L190">        searchBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+<span class="nc" id="L194">                ApiClient.get(ManageGamesActivity.this, &quot;/games/&quot; + Integer.parseInt(searchEdt.getText().toString()), new Api_Interface() {</span>
+                    @Override
+                    public void onSuccess(JSONObject response) {
+<span class="nc" id="L197">                        Log.d(&quot;test:&quot;, response.toString());</span>
+                        try {
+<span class="nc" id="L199">                            String gameDataString = response.toString();</span>
+<span class="nc" id="L200">                            gameData = new JSONObject(gameDataString);</span>
+<span class="nc" id="L201">                            gameID = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L202">                            titleEdt.setText(response.getString(&quot;title&quot;));</span>
+<span class="nc" id="L203">                            developerEdt.setText(response.getString(&quot;developer&quot;));</span>
+<span class="nc" id="L204">                            idEdt.setText(String.valueOf(response.getInt(&quot;rawgId&quot;)));</span>
+<span class="nc" id="L205">                            genreEdt.setText(response.getString(&quot;genre&quot;));</span>
+<span class="nc" id="L206">                            releaseDateEdt.setText(response.getString(&quot;releaseDate&quot;));</span>
+<span class="nc" id="L207">                        } catch (JSONException e) {</span>
+<span class="nc" id="L208">                            throw new RuntimeException(e);</span>
+<span class="nc" id="L209">                        }</span>
+<span class="nc" id="L210">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L214">                        Toast.makeText(ManageGamesActivity.this, &quot;Couldn't find game.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L215">                    }</span>
+                });
+<span class="nc" id="L217">            }</span>
+        });
+
+<span class="nc" id="L220">        deleteBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L223">                StringRequest stringRequest = new StringRequest(</span>
+                        Request.Method.DELETE, // HTTP method (GET request)
+<span class="nc" id="L225">                        &quot;http://coms-3090-017.class.las.iastate.edu:8080/games/&quot; + gameID, // API URL</span>
+<span class="nc" id="L226">                        new Response.Listener&lt;String&gt;() {</span>
+                            @Override
+                            public void onResponse(String response) {
+<span class="nc" id="L229">                                Log.d(&quot;It worked: &quot;, &quot;it worked&quot;);</span>
+<span class="nc" id="L230">                                Toast.makeText(ManageGamesActivity.this, &quot;Game (ID: &quot; + gameID + &quot;) deleted.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L231">                                Intent intent = new Intent(ManageGamesActivity.this, AdminPanelActivity.class);</span>
+<span class="nc" id="L232">                                startActivity(intent);</span>
+<span class="nc" id="L233">                            }</span>
+                        },
+<span class="nc" id="L235">                        new Response.ErrorListener() {</span>
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L238">                                Toast.makeText(ManageGamesActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L239">                            }</span>
+                        }
+<span class="nc" id="L241">                ) {</span>
+                    @Override
+                    public Map&lt;String, String&gt; getHeaders() {
+                        // Headers for the request (if needed)
+<span class="nc" id="L245">                        Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                        // Example headers (uncomment if needed)
+                        // headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;);
+                        // headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L249">                        return headers;</span>
+                    }
+
+                    @Override
+                    protected Map&lt;String, String&gt; getParams() {
+                        // Parameters for the request (if needed)
+<span class="nc" id="L255">                        Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                        // Example parameters (uncomment if needed)
+                        // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                        // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L259">                        return params;</span>
+                    }
+                };
+
+                // Adding request to the Volley request queue
+<span class="nc" id="L264">                VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);</span>
+
+//                ApiClient.delete(ManageGamesActivity.this, &quot;/games/&quot; + gameID, new Api_Interface() {
+//                    @Override
+//                    public void onSuccess(JSONObject response) {
+//                        Log.d(&quot;It worked: &quot;, &quot;it worked&quot;);
+//                        Toast.makeText(ManageGamesActivity.this, &quot;Game (ID: &quot; + gameID + &quot;) deleted.&quot;, Toast.LENGTH_SHORT).show();
+//                        Intent intent = new Intent(ManageGamesActivity.this, AdminPanelActivity.class);
+//                        startActivity(intent);
+//                    }
+//
+//                    @Override
+//                    public void onError(String message) {
+//                        Toast.makeText(ManageGamesActivity.this, message, Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+
+<span class="nc" id="L281">            }</span>
+        });
+
+<span class="nc" id="L284">        returnBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L287">                Intent intent = new Intent(ManageGamesActivity.this, AdminPanelActivity.class);</span>
+<span class="nc" id="L288">                startActivity(intent);</span>
+<span class="nc" id="L289">            }</span>
+        });
+
+<span class="nc" id="L292">        updateBtn.setOnClickListener(new View.OnClickListener() {</span>
+
+            @Override
+            public void onClick(View v) {
+                try {
+<span class="nc" id="L297">                    gameData.put(&quot;title&quot;, titleEdt.getText().toString());</span>
+<span class="nc" id="L298">                    gameData.put(&quot;developer&quot;, developerEdt.getText().toString());</span>
+<span class="nc" id="L299">                    gameData.put(&quot;rawgId&quot;, Integer.parseInt(idEdt.getText().toString()));</span>
+<span class="nc" id="L300">                    gameData.put(&quot;genre&quot;, genreEdt.getText().toString());</span>
+<span class="nc" id="L301">                    gameData.put(&quot;releaseDate&quot;, releaseDateEdt.getText().toString());</span>
+<span class="nc" id="L302">                } catch (JSONException e) {</span>
+<span class="nc" id="L303">                    e.printStackTrace();</span>
+<span class="nc" id="L304">                }</span>
+<span class="nc" id="L305">                String url = String.format(&quot;http://coms-3090-017.class.las.iastate.edu:8080/games/%d&quot;, gameID);</span>
+<span class="nc" id="L306">                JsonObjectRequest update = new JsonObjectRequest(Request.Method.PUT,</span>
+                        url,
+<span class="nc" id="L308">                        gameData,</span>
+                        response -&gt; {
+<span class="nc" id="L310">                            Toast.makeText(ManageGamesActivity.this, &quot;Game (ID: &quot; + gameID + &quot;) data updated.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L311">                            Intent intent = new Intent(ManageGamesActivity.this, AdminPanelActivity.class);</span>
+<span class="nc" id="L312">                            startActivity(intent);</span>
+<span class="nc" id="L313">                        },</span>
+
+                        error -&gt; {
+<span class="nc" id="L316">                            Toast.makeText(ManageGamesActivity.this, &quot;Could not edit game data.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L317">                        }</span>
+<span class="nc" id="L318">                ) {</span>
+                    @Override
+                    public Map&lt;String, String&gt; getHeaders() throws AuthFailureError {
+                        // Define headers if needed
+<span class="nc" id="L322">                        HashMap&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L323">                        return headers;</span>
+                    }
+
+                    @Override
+                    protected Map&lt;String, String&gt; getParams() {
+                        // Define parameters if needed
+<span class="nc" id="L329">                        Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                        // Example parameters (uncomment if needed)
+                        // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                        // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L333">                        return params;</span>
+                    }
+                };
+
+                // Adding request to the Volley request queue
+<span class="nc" id="L338">                VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(update);</span>
+<span class="nc" id="L339">            }</span>
+        });
+
+<span class="nc" id="L342">    }</span>
+
+    protected void addAdmin(int userID) {
+<span class="nc" id="L345">        ApiClient.post(ManageGamesActivity.this, &quot;/admin/&quot; + userID, null, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L348">                Toast.makeText(ManageGamesActivity.this, &quot;Admin created for User ID &quot; + userID + &quot;.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L349">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L353">                addAdmin(userID);</span>
+<span class="nc" id="L354">            }</span>
+        });
+<span class="nc" id="L356">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

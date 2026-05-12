@@ -1,0 +1,633 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ManageMediaActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">ManageMediaActivity.java</span></div><h1>ManageMediaActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @author Edwin Cepeda
+ */
+<span class="fc" id="L34">public class ManageMediaActivity extends AppCompatActivity {</span>
+
+    // Declare button variables
+    private Button queryAddBtn, queryManageBtn, addBtn, updateBtn, deleteBtn, returnBtn;
+    private ImageButton addSearchBtn, searchBtn;
+
+    // Declare layout variables
+    private LinearLayout queryInterface, addInterface, manageInterface;
+
+    //Declare edit variables
+    private EditText searchEdt, addEdt, titleEdt, authorEdt, idEdt, otherEdt, releaseDateEdt;
+
+    //Declare textview variables
+    private TextView searchAsShowBtn, mediaAddName, mediaAddID, mediaTypeText, titleText, authorText, idText, otherText, releaseDateText;
+
+    private JSONObject mediaData;
+<span class="fc" id="L50">    private int mediaID = -1;</span>
+<span class="fc" id="L51">    private int adminID = -1;</span>
+<span class="fc" id="L52">    private int userID = -1;</span>
+<span class="fc" id="L53">    private String mediaType = null;</span>
+
+    //Used solely to differentiate between searching for movies and shows
+<span class="fc" id="L56">    private boolean searchAsShow = false;</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L60">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L61">        setContentView(R.layout.activity_manage_media); // Set the UI layout for the activity</span>
+
+        //Initialize every component in queryInterface
+<span class="fc" id="L64">        queryInterface = findViewById(R.id.queryInterface);</span>
+<span class="fc" id="L65">        queryAddBtn = findViewById(R.id.queryAddBtn);</span>
+<span class="fc" id="L66">        queryManageBtn = findViewById(R.id.queryManageBtn);</span>
+
+        //Initialize every component in addInterface
+<span class="fc" id="L69">        addInterface = findViewById(R.id.addInterface);</span>
+<span class="fc" id="L70">        searchAsShowBtn = findViewById(R.id.searchAsShowBtn);</span>
+<span class="fc" id="L71">        addEdt = findViewById(R.id.AddEdt);</span>
+<span class="fc" id="L72">        addSearchBtn = findViewById(R.id.addSearchBtn);</span>
+<span class="fc" id="L73">        mediaAddName = findViewById(R.id.AddName);</span>
+<span class="fc" id="L74">        mediaAddID = findViewById(R.id.AddID);</span>
+<span class="fc" id="L75">        addBtn = findViewById(R.id.addBtn);</span>
+
+        //Initialize every component in manageInterface
+<span class="fc" id="L78">        manageInterface = findViewById(R.id.manageInterface);</span>
+<span class="fc" id="L79">        searchEdt = findViewById(R.id.searchEdt);</span>
+<span class="fc" id="L80">        searchBtn = findViewById(R.id.searchBtn);</span>
+<span class="fc" id="L81">        mediaTypeText = findViewById(R.id.media_type_text);</span>
+<span class="fc" id="L82">        titleText = findViewById(R.id.title_text);</span>
+<span class="fc" id="L83">        titleEdt = findViewById(R.id.titleEdt);</span>
+<span class="fc" id="L84">        authorText = findViewById(R.id.author_text);</span>
+<span class="fc" id="L85">        authorEdt = findViewById(R.id.authorEdt);</span>
+<span class="fc" id="L86">        idText = findViewById(R.id.id_text);</span>
+<span class="fc" id="L87">        idEdt = findViewById(R.id.idEdt);</span>
+<span class="fc" id="L88">        otherText = findViewById(R.id.other_text);</span>
+<span class="fc" id="L89">        otherEdt = findViewById(R.id.otherEdt);</span>
+<span class="fc" id="L90">        releaseDateText = findViewById(R.id.release_date_text);</span>
+<span class="fc" id="L91">        releaseDateEdt = findViewById(R.id.releaseDateEdt);</span>
+<span class="fc" id="L92">        updateBtn = findViewById(R.id.updateBtn);</span>
+<span class="fc" id="L93">        deleteBtn = findViewById(R.id.deleteBtn);</span>
+<span class="fc" id="L94">        returnBtn = findViewById(R.id.returnBtn);</span>
+<span class="fc" id="L95">        returnBtn.setVisibility(View.VISIBLE);</span>
+
+<span class="fc" id="L97">        Bundle extras = getIntent().getExtras();</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">        if (extras != null) {</span>
+<span class="fc" id="L99">            adminID = extras.getInt(&quot;ADMIN_ID&quot;, -1);</span>
+<span class="fc" id="L100">            userID = extras.getInt(&quot;USER_ID&quot;, -1);</span>
+<span class="fc" id="L101">            mediaType = extras.getString(&quot;MEDIA_TYPE&quot;, null);</span>
+        }
+
+<span class="fc" id="L104">        updateElements();</span>
+
+        //Click Listeners for queryInterface
+<span class="fc" id="L107">        queryAddBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L110">                queryInterface.setVisibility(View.GONE);</span>
+<span class="nc" id="L111">                addInterface.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L112">            }</span>
+        });
+
+<span class="fc" id="L115">        queryManageBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L118">                queryInterface.setVisibility(View.GONE);</span>
+<span class="fc" id="L119">                manageInterface.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L120">            }</span>
+        });
+
+
+        //Click listeners for addInterface
+<span class="fc" id="L125">        searchAsShowBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc bnc" id="L128" title="All 2 branches missed.">                if (!searchAsShow) {</span>
+<span class="nc" id="L129">                    searchAsShow = true;</span>
+<span class="nc" id="L130">                    searchAsShowBtn.setText(&quot;Searching for SHOWS\n(Click to toggle)&quot;);</span>
+<span class="nc" id="L131">                    return;</span>
+                } else {
+<span class="nc" id="L133">                    searchAsShow = false;</span>
+<span class="nc" id="L134">                    searchAsShowBtn.setText(&quot;Searching for MOVIES\n(Click to toggle)&quot;);</span>
+<span class="nc" id="L135">                    return;</span>
+                }
+            }
+        });
+
+<span class="fc" id="L140">        addSearchBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L143">                addSearch();</span>
+<span class="nc" id="L144">            }</span>
+        });
+
+<span class="fc" id="L147">        addBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L150">                saveMedia();</span>
+<span class="nc" id="L151">            }</span>
+        });
+
+
+<span class="fc" id="L155">        searchBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L158">                searchMediaInDB();</span>
+<span class="fc" id="L159">            }</span>
+        });
+
+<span class="fc" id="L162">        deleteBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L165">                deleteMediaInDB();</span>
+<span class="nc" id="L166">            }</span>
+        });
+
+<span class="fc" id="L169">        returnBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L172">                Intent intent = new Intent(ManageMediaActivity.this, AdminPanelActivity.class);</span>
+<span class="fc" id="L173">                intent.putExtra(&quot;ADMIN_ID&quot;, adminID);</span>
+<span class="fc" id="L174">                intent.putExtra(&quot;USER_ID&quot;, userID);</span>
+<span class="fc" id="L175">                startActivity(intent);</span>
+<span class="fc" id="L176">            }</span>
+        });
+
+<span class="fc" id="L179">        updateBtn.setOnClickListener(new View.OnClickListener() {</span>
+
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L183">                updateMediaInDB();</span>
+<span class="fc" id="L184">            }</span>
+        });
+
+<span class="fc" id="L187">    }</span>
+
+    private void updateElements() {
+<span class="pc bpc" id="L190" title="5 of 6 branches missed.">        switch (mediaType){</span>
+            case &quot;moviesOrShows&quot;:
+<span class="nc" id="L192">                searchAsShowBtn.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L193">                titleText.setText(&quot;Title: &quot;);</span>
+<span class="nc" id="L194">                titleEdt.setHint(&quot;Title here&quot;);</span>
+<span class="nc" id="L195">                authorText.setText(&quot;Director: &quot;);</span>
+<span class="nc" id="L196">                authorEdt.setHint(&quot;Director here&quot;);</span>
+<span class="nc" id="L197">                idText.setText(&quot;ID (TMDB): &quot;);</span>
+<span class="nc" id="L198">                idEdt.setHint(&quot;ID here&quot;);</span>
+<span class="nc" id="L199">                otherText.setText(&quot;Genre: &quot;);</span>
+<span class="nc" id="L200">                otherEdt.setHint(&quot;Genre here&quot;);</span>
+<span class="nc" id="L201">                releaseDateText.setText(&quot;Release Date: &quot;);</span>
+<span class="nc" id="L202">                releaseDateEdt.setHint(&quot;Release Date here&quot;);</span>
+<span class="nc" id="L203">                break;</span>
+            case &quot;games&quot;:
+<span class="nc" id="L205">                titleText.setText(&quot;Title: &quot;);</span>
+<span class="nc" id="L206">                titleEdt.setHint(&quot;Title here&quot;);</span>
+<span class="nc" id="L207">                authorText.setText(&quot;Developer: &quot;);</span>
+<span class="nc" id="L208">                authorEdt.setHint(&quot;Developer here&quot;);</span>
+<span class="nc" id="L209">                idText.setText(&quot;ID (RAWG): &quot;);</span>
+<span class="nc" id="L210">                idEdt.setHint(&quot;ID here&quot;);</span>
+<span class="nc" id="L211">                otherText.setText(&quot;Genre: &quot;);</span>
+<span class="nc" id="L212">                otherEdt.setHint(&quot;Genre here&quot;);</span>
+<span class="nc" id="L213">                releaseDateText.setText(&quot;Release Date: &quot;);</span>
+<span class="nc" id="L214">                releaseDateEdt.setHint(&quot;Release Date here&quot;);</span>
+<span class="nc" id="L215">                break;</span>
+            case &quot;books&quot;:
+<span class="fc" id="L217">                titleText.setText(&quot;Title: &quot;);</span>
+<span class="fc" id="L218">                titleEdt.setHint(&quot;Title here&quot;);</span>
+<span class="fc" id="L219">                authorText.setText(&quot;Author: &quot;);</span>
+<span class="fc" id="L220">                authorEdt.setHint(&quot;Author here&quot;);</span>
+<span class="fc" id="L221">                idText.setText(&quot;ID (Hardcover API): &quot;);</span>
+<span class="fc" id="L222">                idEdt.setHint(&quot;ID here&quot;);</span>
+<span class="fc" id="L223">                otherText.setVisibility(View.GONE);</span>
+<span class="fc" id="L224">                otherEdt.setVisibility(View.GONE);</span>
+<span class="fc" id="L225">                releaseDateText.setText(&quot;Year Published: &quot;);</span>
+<span class="fc" id="L226">                releaseDateEdt.setHint(&quot;Year Published here&quot;);</span>
+<span class="fc" id="L227">                break;</span>
+            case &quot;albums&quot;:
+<span class="nc" id="L229">                titleText.setText(&quot;Title: &quot;);</span>
+<span class="nc" id="L230">                titleEdt.setHint(&quot;Title here&quot;);</span>
+<span class="nc" id="L231">                authorText.setVisibility(View.GONE);</span>
+<span class="nc" id="L232">                authorEdt.setVisibility(View.GONE);</span>
+<span class="nc" id="L233">                idText.setText(&quot;ID (Spotify): &quot;);</span>
+<span class="nc" id="L234">                idEdt.setHint(&quot;ID here&quot;);</span>
+<span class="nc" id="L235">                otherText.setText(&quot;Genre: &quot;);</span>
+<span class="nc" id="L236">                otherEdt.setHint(&quot;Genre here&quot;);</span>
+<span class="nc" id="L237">                releaseDateText.setText(&quot;Release Date: &quot;);</span>
+<span class="nc" id="L238">                releaseDateEdt.setHint(&quot;Release Date here&quot;);</span>
+<span class="nc" id="L239">                break;</span>
+            case &quot;artists&quot;:
+<span class="nc" id="L241">                addEdt.setHint(&quot;Search artist by NAME&quot;);</span>
+<span class="nc" id="L242">                titleText.setVisibility(View.GONE);</span>
+<span class="nc" id="L243">                titleEdt.setVisibility(View.GONE);</span>
+<span class="nc" id="L244">                authorText.setText(&quot;Name: &quot;);</span>
+<span class="nc" id="L245">                authorEdt.setHint(&quot;Name here&quot;);</span>
+<span class="nc" id="L246">                idText.setText(&quot;ID (Spotify): &quot;);</span>
+<span class="nc" id="L247">                idEdt.setHint(&quot;ID here&quot;);</span>
+<span class="nc" id="L248">                otherText.setText(&quot;Genre: &quot;);</span>
+<span class="nc" id="L249">                otherEdt.setHint(&quot;Genre here&quot;);</span>
+<span class="nc" id="L250">                releaseDateText.setVisibility(View.GONE);</span>
+<span class="nc" id="L251">                releaseDateEdt.setVisibility(View.GONE);</span>
+<span class="nc" id="L252">                break;</span>
+            default:
+<span class="nc" id="L254">                Toast.makeText(ManageMediaActivity.this, &quot;ERROR: NO MEDIA TYPE&quot;, Toast.LENGTH_LONG).show();</span>
+        }
+
+
+<span class="fc" id="L258">    }</span>
+
+    private void addSearch() {
+<span class="nc" id="L261">        String searchEndpoint = &quot;&quot;;</span>
+<span class="nc bnc" id="L262" title="All 6 branches missed.">        switch (mediaType){</span>
+            case &quot;moviesOrShows&quot;:
+<span class="nc bnc" id="L264" title="All 2 branches missed.">                if (!searchAsShow) {</span>
+<span class="nc" id="L265">                    searchEndpoint = &quot;/search-movies?q=&quot; + addEdt.getText().toString();</span>
+                } else {
+<span class="nc" id="L267">                    searchEndpoint = &quot;/search-shows?q=&quot; + addEdt.getText().toString();</span>
+                }
+<span class="nc" id="L269">                break;</span>
+            case &quot;games&quot;:
+<span class="nc" id="L271">                searchEndpoint = &quot;/search-games?q=&quot; + addEdt.getText().toString();</span>
+<span class="nc" id="L272">                break;</span>
+            case &quot;books&quot;:
+<span class="nc" id="L274">                searchEndpoint = &quot;/search-books?q=&quot; + addEdt.getText().toString();</span>
+<span class="nc" id="L275">                break;</span>
+            case &quot;albums&quot;:
+<span class="nc" id="L277">                searchEndpoint = &quot;http://coms-3090-017.class.las.iastate.edu:8080/search-albums-and-save?album_name=&quot; + addEdt.getText().toString();</span>
+<span class="nc" id="L278">                break;</span>
+            case &quot;artists&quot;:
+<span class="nc" id="L280">                searchEndpoint = &quot;http://coms-3090-017.class.las.iastate.edu:8080/search-artist-and-save?artist_name=&quot; + addEdt.getText();</span>
+<span class="nc" id="L281">                break;</span>
+            default:
+<span class="nc" id="L283">                Toast.makeText(ManageMediaActivity.this, &quot;ERROR: NO MEDIA TYPE&quot;, Toast.LENGTH_LONG).show();</span>
+        }
+<span class="nc" id="L285">        Log.d(&quot;test endpoint&quot;, searchEndpoint);</span>
+
+        //Music related things automatically save.
+<span class="nc bnc" id="L288" title="All 4 branches missed.">        if (mediaType.equals(&quot;albums&quot;) || mediaType.equals(&quot;artists&quot;)) {</span>
+<span class="nc" id="L289">            StringRequest findAlbumOrArtist = new StringRequest(Request.Method.GET,</span>
+                    searchEndpoint,
+                    response -&gt; {
+<span class="nc" id="L292">                        queryInterface.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L293">                        addInterface.setVisibility(View.GONE);</span>
+<span class="nc" id="L294">                        Toast.makeText(ManageMediaActivity.this, &quot;Musical media auto-saved.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L295">                    },</span>
+
+                    error -&gt; {
+<span class="nc" id="L298">                        Toast.makeText(ManageMediaActivity.this, &quot;Could not find album or artist.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L299">                    }</span>
+            );
+
+            // Adding request to the Volley request queue
+<span class="nc" id="L303">            VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(findAlbumOrArtist);</span>
+<span class="nc" id="L304">            return;</span>
+        }
+
+<span class="nc" id="L307">        ApiClient.getArray(ManageMediaActivity.this, searchEndpoint, new Api_Array_Interface() {</span>
+
+            @Override
+            public void onSuccess(JSONArray response) {
+<span class="nc" id="L311">                JSONObject selected = null;</span>
+                try {
+<span class="nc" id="L313">                    selected = response.getJSONObject(0);</span>
+<span class="nc" id="L314">                    Log.d(&quot;Response test&quot;, response.toString());</span>
+<span class="nc bnc" id="L315" title="All 4 branches missed.">                    switch (mediaType){</span>
+                        case &quot;moviesOrShows&quot;:
+<span class="nc" id="L317">                            String rawMediaID = selected.getString(&quot;tmdbId&quot;);</span>
+<span class="nc" id="L318">                            String[] splitId = rawMediaID.split(&quot;-&quot;);</span>
+<span class="nc" id="L319">                            mediaID = Integer.parseInt(splitId[1]);</span>
+<span class="nc" id="L320">                            mediaAddName.setText(&quot;Title: &quot; + selected.getString(&quot;title&quot;));</span>
+<span class="nc" id="L321">                            mediaAddID.setText(&quot;External ID: &quot; + mediaID);</span>
+<span class="nc" id="L322">                            break;</span>
+                        case &quot;games&quot;:
+<span class="nc" id="L324">                            mediaID = selected.getInt(&quot;rawgId&quot;);</span>
+<span class="nc" id="L325">                            mediaAddName.setText(&quot;Title: &quot; + selected.getString(&quot;title&quot;));</span>
+<span class="nc" id="L326">                            mediaAddID.setText(&quot;External ID (RAWG): &quot; + mediaID);</span>
+<span class="nc" id="L327">                            break;</span>
+                        case &quot;books&quot;:
+<span class="nc" id="L329">                            mediaID = selected.getInt(&quot;volumeId&quot;);</span>
+<span class="nc" id="L330">                            mediaAddName.setText(&quot;Title: &quot; + selected.getString(&quot;title&quot;));</span>
+<span class="nc" id="L331">                            mediaAddID.setText(&quot;External ID (Hardcover API): &quot; + mediaID);</span>
+<span class="nc" id="L332">                            break;</span>
+                        default:
+<span class="nc" id="L334">                            Toast.makeText(ManageMediaActivity.this, &quot;ERROR: NO MEDIA TYPE&quot;, Toast.LENGTH_LONG).show();</span>
+                    }
+<span class="nc" id="L336">                } catch (JSONException e) {</span>
+<span class="nc" id="L337">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L338">                }</span>
+<span class="nc" id="L339">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L343">                Log.e(&quot;addSearch error&quot;, message);</span>
+<span class="nc" id="L344">            }</span>
+        });
+<span class="nc" id="L346">    }</span>
+
+
+    private void saveMedia() {
+<span class="nc bnc" id="L350" title="All 2 branches missed.">        if (mediaID == -1) {</span>
+<span class="nc" id="L351">            Toast.makeText(ManageMediaActivity.this, &quot;Search for something first.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L352">            return;</span>
+        }
+<span class="nc" id="L354">        String saveEndpoint = &quot;&quot;;</span>
+<span class="nc bnc" id="L355" title="All 4 branches missed.">        switch (mediaType){</span>
+            case &quot;moviesOrShows&quot;:
+<span class="nc bnc" id="L357" title="All 2 branches missed.">                if (!searchAsShow) {</span>
+<span class="nc" id="L358">                    saveEndpoint = &quot;/movies/save?tmdbId=&quot; + mediaID + &quot;&amp;type=movie&quot;;</span>
+                } else {
+<span class="nc" id="L360">                    saveEndpoint = &quot;/movies/save?tmdbId=&quot; + mediaID + &quot;&amp;type=tv&quot;;</span>
+                }
+<span class="nc" id="L362">                break;</span>
+            case &quot;games&quot;:
+<span class="nc" id="L364">                saveEndpoint = &quot;/games/save?rawgId=&quot; + mediaID;</span>
+<span class="nc" id="L365">                break;</span>
+            case &quot;books&quot;:
+<span class="nc" id="L367">                saveEndpoint = &quot;/books/save?hardcoverId=&quot; + mediaID;</span>
+<span class="nc" id="L368">                break;</span>
+            default:
+<span class="nc" id="L370">                Toast.makeText(ManageMediaActivity.this, &quot;ERROR: NO MEDIA TYPE&quot;, Toast.LENGTH_LONG).show();</span>
+        }
+
+        //Music related media auto-saves due to backend structure
+<span class="nc bnc" id="L374" title="All 4 branches missed.">        if (mediaType.equals(&quot;albums&quot;) || mediaType.equals(&quot;artists&quot;)) {</span>
+<span class="nc" id="L375">            Toast.makeText(ManageMediaActivity.this, &quot;Music related media auto-saves.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L376">            return;</span>
+        }
+
+<span class="nc" id="L379">        ApiClient.post(ManageMediaActivity.this, saveEndpoint, null, new Api_Interface() {</span>
+
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc bnc" id="L383" title="All 5 branches missed.">                switch (mediaType){</span>
+                    case &quot;moviesOrShows&quot;:
+<span class="nc" id="L385">                        Toast.makeText(ManageMediaActivity.this, &quot;Movie/Show added.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L386">                        break;</span>
+                    case &quot;games&quot;:
+<span class="nc" id="L388">                        Toast.makeText(ManageMediaActivity.this, &quot;Game added.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L389">                        break;</span>
+                    case &quot;books&quot;:
+<span class="nc" id="L391">                        Toast.makeText(ManageMediaActivity.this, &quot;Book added.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L392">                        break;</span>
+                    case &quot;artists&quot;:
+<span class="nc" id="L394">                        Toast.makeText(ManageMediaActivity.this, &quot;Artist added.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L395">                        break;</span>
+                    default:
+<span class="nc" id="L397">                        Toast.makeText(ManageMediaActivity.this, &quot;ERROR: NO MEDIA TYPE&quot;, Toast.LENGTH_LONG).show();</span>
+                }
+
+<span class="nc" id="L400">                addInterface.setVisibility(View.GONE);</span>
+<span class="nc" id="L401">                queryInterface.setVisibility(View.VISIBLE);</span>
+
+<span class="nc" id="L403">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L407">                Log.e(&quot;addSearch error&quot;, message);</span>
+<span class="nc" id="L408">            }</span>
+        });
+<span class="nc" id="L410">    }</span>
+
+    private void searchMediaInDB() {
+<span class="fc" id="L413">        String searchEndpoint = &quot;&quot;;</span>
+<span class="pc bpc" id="L414" title="5 of 6 branches missed.">        switch (mediaType){</span>
+            case &quot;moviesOrShows&quot;:
+<span class="nc" id="L416">                searchEndpoint = &quot;/movies/&quot; + searchEdt.getText().toString();</span>
+<span class="nc" id="L417">                break;</span>
+            case &quot;games&quot;:
+<span class="nc" id="L419">                searchEndpoint = &quot;/games/&quot; + searchEdt.getText().toString();</span>
+<span class="nc" id="L420">                break;</span>
+            case &quot;books&quot;:
+<span class="fc" id="L422">                searchEndpoint = &quot;/books/&quot; + searchEdt.getText().toString();</span>
+<span class="fc" id="L423">                break;</span>
+            case &quot;albums&quot;:
+<span class="nc" id="L425">                searchEndpoint = &quot;/album/&quot; + searchEdt.getText().toString();</span>
+<span class="nc" id="L426">                break;</span>
+            case &quot;artists&quot;:
+<span class="nc" id="L428">                searchEndpoint = &quot;/artist/get-artist/&quot; + searchEdt.getText().toString();</span>
+<span class="nc" id="L429">                break;</span>
+            default:
+<span class="nc" id="L431">                Toast.makeText(ManageMediaActivity.this, &quot;ERROR: NO MEDIA TYPE&quot;, Toast.LENGTH_LONG).show();</span>
+        }
+<span class="fc" id="L433">        Log.d(&quot;test endpoint&quot;, searchEndpoint);</span>
+
+<span class="fc" id="L435">        ApiClient.get(ManageMediaActivity.this, searchEndpoint, new Api_Interface() {</span>
+
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="fc" id="L439">                JSONObject selected = null;</span>
+                try {
+<span class="fc" id="L441">                    Log.d(&quot;Response test&quot;, response.toString());</span>
+<span class="fc" id="L442">                    String mediaDataString = response.toString();</span>
+<span class="fc" id="L443">                    mediaData = new JSONObject(mediaDataString);</span>
+<span class="pc bpc" id="L444" title="5 of 6 branches missed.">                    switch (mediaType){</span>
+                        case &quot;moviesOrShows&quot;:
+<span class="nc" id="L446">                            mediaID = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L447">                            String movieOrShow = response.getString(&quot;mediaType&quot;);</span>
+<span class="nc bnc" id="L448" title="All 2 branches missed.">                            if (movieOrShow.equals(&quot;SHOW&quot;)) {</span>
+<span class="nc" id="L449">                                mediaTypeText.setText(&quot;(SHOW)&quot;);</span>
+                            } else {
+<span class="nc" id="L451">                                mediaTypeText.setText(&quot;(MOVIE)&quot;);</span>
+                            }
+<span class="nc" id="L453">                            mediaTypeText.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L454">                            titleEdt.setText(response.getString(&quot;title&quot;));</span>
+<span class="nc" id="L455">                            authorEdt.setText(response.getString(&quot;director&quot;));</span>
+<span class="nc" id="L456">                            idEdt.setText(response.getString(&quot;tmdbId&quot;));</span>
+<span class="nc" id="L457">                            otherEdt.setText(response.getString(&quot;genre&quot;));</span>
+<span class="nc" id="L458">                            releaseDateEdt.setText(response.getString(&quot;releaseDate&quot;));</span>
+<span class="nc" id="L459">                            break;</span>
+                        case &quot;games&quot;:
+                            try {
+<span class="nc" id="L462">                                mediaID = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L463">                                titleEdt.setText(response.getString(&quot;title&quot;));</span>
+<span class="nc" id="L464">                                authorEdt.setText(response.getString(&quot;developer&quot;));</span>
+<span class="nc" id="L465">                                idEdt.setText(String.valueOf(response.getInt(&quot;rawgId&quot;)));</span>
+<span class="nc" id="L466">                                otherEdt.setText(response.getString(&quot;genre&quot;));</span>
+<span class="nc" id="L467">                                releaseDateEdt.setText(response.getString(&quot;releaseDate&quot;));</span>
+<span class="nc" id="L468">                            } catch (JSONException e) {</span>
+<span class="nc" id="L469">                                throw new RuntimeException(e);</span>
+<span class="nc" id="L470">                            }</span>
+                            break;
+                        case &quot;books&quot;:
+                            try {
+<span class="fc" id="L474">                                mediaID = response.getInt(&quot;id&quot;);</span>
+<span class="fc" id="L475">                                titleEdt.setText(response.getString(&quot;title&quot;));</span>
+<span class="fc" id="L476">                                authorEdt.setText(response.getString(&quot;authors&quot;));</span>
+<span class="fc" id="L477">                                idEdt.setText(response.getString(&quot;volumeId&quot;));</span>
+<span class="fc" id="L478">                                releaseDateEdt.setText(response.getString(&quot;publishedDate&quot;));</span>
+<span class="nc" id="L479">                            } catch (JSONException e) {</span>
+<span class="nc" id="L480">                                throw new RuntimeException(e);</span>
+<span class="fc" id="L481">                            }</span>
+                            break;
+                        case &quot;albums&quot;:
+<span class="nc" id="L484">                            mediaID = response.getInt(&quot;albumId&quot;);</span>
+<span class="nc" id="L485">                            titleEdt.setText(response.getString(&quot;name&quot;));</span>
+<span class="nc" id="L486">                            idEdt.setText(response.getString(&quot;spotifyId&quot;));</span>
+<span class="nc" id="L487">                            otherEdt.setText(response.getString(&quot;genre&quot;));</span>
+<span class="nc" id="L488">                            releaseDateEdt.setText(response.getString(&quot;releaseDate&quot;));</span>
+<span class="nc" id="L489">                            break;</span>
+                        case &quot;artists&quot;:
+<span class="nc" id="L491">                            mediaID = response.getInt(&quot;artistId&quot;);</span>
+<span class="nc" id="L492">                            authorEdt.setText(response.getString(&quot;name&quot;));</span>
+<span class="nc" id="L493">                            idEdt.setText(response.getString(&quot;spotifyId&quot;));</span>
+<span class="nc" id="L494">                            otherEdt.setText(response.getString(&quot;genre&quot;));</span>
+<span class="nc" id="L495">                            break;</span>
+                        default:
+<span class="nc" id="L497">                            Toast.makeText(ManageMediaActivity.this, &quot;ERROR: NO MEDIA TYPE&quot;, Toast.LENGTH_LONG).show();</span>
+                    }
+<span class="nc" id="L499">                } catch (JSONException e) {</span>
+<span class="nc" id="L500">                    throw new RuntimeException(e);</span>
+<span class="fc" id="L501">                }</span>
+<span class="fc" id="L502">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L506">                Log.e(&quot;addSearch error&quot;, message);</span>
+<span class="nc" id="L507">            }</span>
+        });
+<span class="fc" id="L509">    }</span>
+
+    private void updateMediaInDB() {
+<span class="fc" id="L512">        String updateEndpoint = &quot;&quot;;</span>
+<span class="pc bpc" id="L513" title="5 of 6 branches missed.">        switch (mediaType){</span>
+            case &quot;moviesOrShows&quot;:
+<span class="nc" id="L515">                updateEndpoint = &quot;http://coms-3090-017.class.las.iastate.edu:8080/movies/&quot; + mediaID;</span>
+                try {
+<span class="nc" id="L517">                    mediaData.put(&quot;title&quot;, titleEdt.getText().toString());</span>
+<span class="nc" id="L518">                    mediaData.put(&quot;director&quot;, authorEdt.getText().toString());</span>
+<span class="nc" id="L519">                    mediaData.put(&quot;tmdbId&quot;, idEdt.getText().toString());</span>
+<span class="nc" id="L520">                    mediaData.put(&quot;genre&quot;, otherEdt.getText().toString());</span>
+<span class="nc" id="L521">                    mediaData.put(&quot;releaseDate&quot;, releaseDateEdt.getText().toString());</span>
+<span class="nc" id="L522">                } catch (JSONException e) {</span>
+<span class="nc" id="L523">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L524">                }</span>
+                break;
+            case &quot;games&quot;:
+<span class="nc" id="L527">                updateEndpoint = &quot;http://coms-3090-017.class.las.iastate.edu:8080/games/&quot; + mediaID;</span>
+                try {
+<span class="nc" id="L529">                    mediaData.put(&quot;title&quot;, titleEdt.getText().toString());</span>
+<span class="nc" id="L530">                    mediaData.put(&quot;developer&quot;, authorEdt.getText().toString());</span>
+<span class="nc" id="L531">                    mediaData.put(&quot;rawgId&quot;, Integer.parseInt(idEdt.getText().toString()));</span>
+<span class="nc" id="L532">                    mediaData.put(&quot;genre&quot;, otherEdt.getText().toString());</span>
+<span class="nc" id="L533">                    mediaData.put(&quot;releaseDate&quot;, releaseDateEdt.getText().toString());</span>
+<span class="nc" id="L534">                } catch (JSONException e) {</span>
+<span class="nc" id="L535">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L536">                }</span>
+                break;
+            case &quot;books&quot;:
+<span class="fc" id="L539">                updateEndpoint = &quot;http://coms-3090-017.class.las.iastate.edu:8080/books/&quot; + mediaID;</span>
+                try {
+<span class="fc" id="L541">                    mediaData.put(&quot;title&quot;, titleEdt.getText().toString());</span>
+<span class="fc" id="L542">                    mediaData.put(&quot;authors&quot;, authorEdt.getText().toString());</span>
+<span class="fc" id="L543">                    mediaData.put(&quot;volumeId&quot;, idEdt.getText().toString());</span>
+<span class="fc" id="L544">                    mediaData.put(&quot;publishedDate&quot;, releaseDateEdt.getText().toString());</span>
+<span class="nc" id="L545">                } catch (JSONException e) {</span>
+<span class="nc" id="L546">                    throw new RuntimeException(e);</span>
+<span class="fc" id="L547">                }</span>
+                break;
+            case &quot;albums&quot;:
+<span class="nc" id="L550">                updateEndpoint = &quot;http://coms-3090-017.class.las.iastate.edu:8080/album/&quot; + mediaID;</span>
+                try {
+<span class="nc" id="L552">                    mediaData.put(&quot;name&quot;, titleEdt.getText().toString());</span>
+<span class="nc" id="L553">                    mediaData.put(&quot;spotifyId&quot;, idEdt.getText().toString());</span>
+<span class="nc" id="L554">                    mediaData.put(&quot;genre&quot;, otherEdt.getText().toString());</span>
+<span class="nc" id="L555">                    mediaData.put(&quot;releaseDate&quot;, releaseDateEdt.getText().toString());</span>
+<span class="nc" id="L556">                } catch (JSONException e) {</span>
+<span class="nc" id="L557">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L558">                }</span>
+                break;
+            case &quot;artists&quot;:
+<span class="nc" id="L561">                updateEndpoint = &quot;http://coms-3090-017.class.las.iastate.edu:8080/artist/update/&quot; + mediaID;</span>
+                try {
+<span class="nc" id="L563">                    mediaData.put(&quot;name&quot;, authorEdt.getText().toString());</span>
+<span class="nc" id="L564">                    mediaData.put(&quot;spotifyId&quot;, idEdt.getText().toString());</span>
+<span class="nc" id="L565">                    mediaData.put(&quot;genre&quot;, otherEdt.getText().toString());</span>
+<span class="nc" id="L566">                } catch (JSONException e) {</span>
+<span class="nc" id="L567">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L568">                }</span>
+                break;
+            default:
+<span class="nc" id="L571">                Toast.makeText(ManageMediaActivity.this, &quot;ERROR: NO MEDIA TYPE&quot;, Toast.LENGTH_LONG).show();</span>
+        }
+
+<span class="fc" id="L574">        Log.d(&quot;Test updated mediaData&quot;, mediaData.toString());</span>
+<span class="fc" id="L575">        JsonObjectRequest update = new JsonObjectRequest(Request.Method.PUT,</span>
+                updateEndpoint,
+                mediaData,
+                response -&gt; {
+<span class="fc" id="L579">                    Toast.makeText(ManageMediaActivity.this, &quot;Media (ID: &quot; + mediaID + &quot;) data updated.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L580">                },</span>
+
+                error -&gt; {
+<span class="nc" id="L583">                    Toast.makeText(ManageMediaActivity.this, &quot;Could not edit media data.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L584">                }</span>
+        );
+
+        // Adding request to the Volley request queue
+<span class="fc" id="L588">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(update);</span>
+<span class="fc" id="L589">    }</span>
+
+    private void deleteMediaInDB() {
+<span class="nc" id="L592">        String deleteEndpoint = &quot;&quot;;</span>
+<span class="nc bnc" id="L593" title="All 6 branches missed.">        switch (mediaType){</span>
+            case &quot;moviesOrShows&quot;:
+<span class="nc" id="L595">                deleteEndpoint = &quot;/movies/&quot; + mediaID;</span>
+<span class="nc" id="L596">                break;</span>
+            case &quot;games&quot;:
+<span class="nc" id="L598">                deleteEndpoint = &quot;/games/&quot; + mediaID;</span>
+<span class="nc" id="L599">                break;</span>
+            case &quot;books&quot;:
+<span class="nc" id="L601">                deleteEndpoint = &quot;/books/&quot; + mediaID;</span>
+<span class="nc" id="L602">                break;</span>
+            case &quot;albums&quot;:
+<span class="nc" id="L604">                deleteEndpoint = &quot;/album/&quot; + mediaID;</span>
+<span class="nc" id="L605">                break;</span>
+            case &quot;artists&quot;:
+<span class="nc" id="L607">                deleteEndpoint = &quot;/artist/delete-artist/id/&quot; + mediaID;</span>
+<span class="nc" id="L608">                break;</span>
+            default:
+<span class="nc" id="L610">                Toast.makeText(ManageMediaActivity.this, &quot;ERROR: NO MEDIA TYPE&quot;, Toast.LENGTH_LONG).show();</span>
+        }
+
+<span class="nc" id="L613">        ApiClient.deleteString(ManageMediaActivity.this, deleteEndpoint, new Api_String_Interface() {</span>
+            @Override
+            public void onSuccess(String response) {
+<span class="nc" id="L616">                Toast.makeText(ManageMediaActivity.this, response, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L617">                Intent intent = new Intent(ManageMediaActivity.this, AdminPanelActivity.class);</span>
+<span class="nc" id="L618">                intent.putExtra(&quot;ADMIN_ID&quot;, adminID);</span>
+<span class="nc" id="L619">                intent.putExtra(&quot;USER_ID&quot;, userID);</span>
+<span class="nc" id="L620">                startActivity(intent);</span>
+<span class="nc" id="L621">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L625">                Toast.makeText(ManageMediaActivity.this, &quot;Could not delete item.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L626">                Log.e(&quot;Delete error&quot;, message);</span>
+<span class="nc" id="L627">            }</span>
+        });
+
+<span class="nc" id="L630">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

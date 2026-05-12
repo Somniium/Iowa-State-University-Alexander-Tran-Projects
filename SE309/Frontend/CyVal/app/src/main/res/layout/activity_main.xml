@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    tools:context=".MainActivity"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:background="@drawable/red_yellow_gradient">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="50dp"
+        android:layout_gravity="center_horizontal"
+        android:textSize="75sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:text="CyVal">
+    </TextView>
+
+    <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_width="300dp"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:layout_marginBottom="40dp"
+        android:background="@drawable/white_background">
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:textSize="50sp"
+            android:text="Welcome"
+            android:textStyle="bold"
+            android:textColor="#FF0000"
+            android:layout_gravity="center"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp"
+            android:gravity="center"/>
+
+
+
+            <Button android:id="@+id/loginBtn"
+                android:layout_width="200dp"
+                android:layout_height="80dp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="20dp"
+                android:text="Login"
+                android:textSize="30sp"
+                android:backgroundTint="#ff0000"/>
+
+        <Button android:id="@+id/signUpBtn"
+            android:layout_width="200dp"
+            android:layout_height="80dp"
+            android:layout_marginBottom="20dp"
+            android:layout_gravity="center"
+            android:text="Sign Up"
+            android:textSize="30sp"
+            android:backgroundTint="#ff0000"/>
+
+
+    </LinearLayout>
+
+
+
+</androidx.appcompat.widget.LinearLayoutCompat>

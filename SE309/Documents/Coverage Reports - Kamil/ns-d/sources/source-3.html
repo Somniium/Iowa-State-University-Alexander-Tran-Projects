@@ -1,0 +1,120 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LikeRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Likes</a>
+</div>
+
+<h1>Coverage Summary for Class: LikeRepository (onetoone.Likes)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">LikeRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Likes;
+&nbsp;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Modifying;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;public interface LikeRepository extends JpaRepository&lt;Like, Integer&gt; {
+&nbsp;
+&nbsp;    Optional&lt;Like&gt; findByUser_IdAndPost_Id(int userId, int postId);
+&nbsp;
+&nbsp;    List&lt;Like&gt; findByPost_Id(int postId);
+&nbsp;
+&nbsp;    List&lt;Like&gt; findByUser_Id(int userId);
+&nbsp;
+&nbsp;    long countByPost_Id(int postId);
+&nbsp;
+&nbsp;    boolean existsByUser_IdAndPost_Id(int userId, int postId);
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Explicit DELETE so the SQL fires immediately instead of being buffered in the
+&nbsp;     * persistence context. Returns rows-affected so callers can distinguish
+&nbsp;     * &quot;nothing to delete&quot; from &quot;deleted N&quot;.
+&nbsp;     *
+&nbsp;     * flushAutomatically  — flushes any pending changes before the DELETE runs.
+&nbsp;     * clearAutomatically  — clears the persistence context after, so subsequent
+&nbsp;     *                       queries (like countByPost_Id) read fresh DB state
+&nbsp;     *                       rather than the stale Hibernate L1 cache.
+&nbsp;     *
+&nbsp;     * Without this, the previous derived deleteBy* method left the DELETE
+&nbsp;     * unflushed long enough that countByPost_Id returned the pre-delete count,
+&nbsp;     * so the response said {&quot;liked&quot;:false,&quot;count&quot;:&lt;old number&gt;}.
+&nbsp;     */
+&nbsp;    @Modifying(clearAutomatically = true, flushAutomatically = true)
+&nbsp;    @Transactional
+&nbsp;    @Query(&quot;DELETE FROM Like l WHERE l.user.userId = :userId AND l.post.id = :postId&quot;)
+&nbsp;    int deleteByUser_IdAndPost_Id(@Param(&quot;userId&quot;) int userId, @Param(&quot;postId&quot;) int postId);
+&nbsp;
+&nbsp;    @Modifying(clearAutomatically = true, flushAutomatically = true)
+&nbsp;    @Transactional
+&nbsp;    @Query(&quot;DELETE FROM Like l WHERE l.post.id = :postId&quot;)
+&nbsp;    int deleteByPost_Id(@Param(&quot;postId&quot;) int postId);
+&nbsp;
+&nbsp;    @Modifying(clearAutomatically = true, flushAutomatically = true)
+&nbsp;    @Transactional
+&nbsp;    @Query(&quot;DELETE FROM Like l WHERE l.user.userId = :userId&quot;)
+&nbsp;    int deleteByUserId(@Param(&quot;userId&quot;) int userId);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-05 18:52</div>
+</div>
+</body>
+</html>

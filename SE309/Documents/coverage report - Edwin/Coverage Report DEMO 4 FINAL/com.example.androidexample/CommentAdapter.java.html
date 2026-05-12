@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CommentAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">CommentAdapter.java</span></div><h1>CommentAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Context;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.PopupMenu;
+import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.List;
+
+public class CommentAdapter extends RecyclerView.Adapter&lt;CommentAdapter.ViewHolder&gt; {
+
+    private final Context context;
+    private final List&lt;DTOmodels.FeedComment&gt; comments;
+    private final int currentUserId;
+    private final int postAuthorId;
+    private final OnCommentActionListener listener;
+
+    public CommentAdapter(Context context, List&lt;DTOmodels.FeedComment&gt; comments,
+                          int currentUserId, int postAuthorId,
+<span class="nc" id="L26">                          OnCommentActionListener listener) {</span>
+<span class="nc" id="L27">        this.context = context;</span>
+<span class="nc" id="L28">        this.comments = comments;</span>
+<span class="nc" id="L29">        this.currentUserId = currentUserId;</span>
+<span class="nc" id="L30">        this.postAuthorId = postAuthorId;</span>
+<span class="nc" id="L31">        this.listener = listener;</span>
+<span class="nc" id="L32">    }</span>
+
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+<span class="nc" id="L36">        View v = LayoutInflater.from(context).inflate(R.layout.item_comment, parent, false);</span>
+<span class="nc" id="L37">        return new ViewHolder(v);</span>
+    }
+
+    @Override
+    public void onBindViewHolder(ViewHolder h, int position) {
+<span class="nc" id="L42">        DTOmodels.FeedComment comment = comments.get(position);</span>
+
+<span class="nc" id="L44">        Log.d(&quot;CommentAdapter&quot;, &quot;Binding comment &quot; + comment.id + &quot; by &quot; + comment.authorName);</span>
+
+        // Author initial with randomized color
+<span class="nc bnc" id="L47" title="All 4 branches missed.">        h.authorInitial.setText(comment.authorName != null &amp;&amp; !comment.authorName.isEmpty()</span>
+<span class="nc" id="L48">                ? String.valueOf(comment.authorName.charAt(0)) : &quot;?&quot;);</span>
+<span class="nc" id="L49">        int avatarColor = RatingUtility.getUserColor(comment.authorName);</span>
+<span class="nc" id="L50">        h.authorInitial.getBackground().setColorFilter(avatarColor, android.graphics.PorterDuff.Mode.SRC_IN);</span>
+
+<span class="nc" id="L52">        h.authorName.setText(comment.authorName);</span>
+<span class="nc" id="L53">        h.body.setText(comment.body);</span>
+<span class="nc" id="L54">        h.timestamp.setText(RatingUtility.timeAgo(comment.createdAt));</span>
+
+        // Three dot menu: options change based on ownership
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        boolean isCommentAuthor = comment.authorId == currentUserId;</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        boolean isPostAuthor = currentUserId == postAuthorId;</span>
+
+<span class="nc" id="L60">        h.menu.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L61">            PopupMenu popup = new PopupMenu(context, v);</span>
+
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            if (isCommentAuthor) {</span>
+<span class="nc" id="L64">                popup.getMenu().add(&quot;Edit&quot;);</span>
+<span class="nc" id="L65">                Log.d(&quot;CommentAdapter&quot;, &quot;Menu: showing edit for comment &quot; + comment.id);</span>
+            }
+<span class="nc bnc" id="L67" title="All 4 branches missed.">            if (isCommentAuthor || isPostAuthor) {</span>
+<span class="nc" id="L68">                popup.getMenu().add(&quot;Delete&quot;);</span>
+<span class="nc" id="L69">                Log.d(&quot;CommentAdapter&quot;, &quot;Menu: showing delete for comment &quot; + comment.id);</span>
+            }
+<span class="nc bnc" id="L71" title="All 2 branches missed.">            if (!isCommentAuthor) {</span>
+<span class="nc" id="L72">                popup.getMenu().add(&quot;Report&quot;);</span>
+<span class="nc" id="L73">                Log.d(&quot;CommentAdapter&quot;, &quot;Menu: showing report for comment &quot; + comment.id);</span>
+            }
+
+<span class="nc" id="L76">            popup.setOnMenuItemClickListener(item -&gt; {</span>
+<span class="nc" id="L77">                Log.d(&quot;CommentAdapter&quot;, &quot;Menu item tapped: &quot; + item.getTitle() + &quot; on comment &quot; + comment.id);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                if (item.getTitle().equals(&quot;Edit&quot;)) {</span>
+<span class="nc" id="L79">                    listener.onEditComment(comment);</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">                } else if (item.getTitle().equals(&quot;Delete&quot;)) {</span>
+<span class="nc" id="L81">                    listener.onDeleteComment(comment);</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">                } else if (item.getTitle().equals(&quot;Report&quot;)) {</span>
+                    // TODO: implement reporting
+<span class="nc" id="L84">                    Log.d(&quot;CommentAdapter&quot;, &quot;Report tapped for comment &quot; + comment.id);</span>
+                }
+<span class="nc" id="L86">                return true;</span>
+            });
+<span class="nc" id="L88">            popup.show();</span>
+<span class="nc" id="L89">        });</span>
+<span class="nc" id="L90">    }</span>
+
+    @Override
+    public int getItemCount() {
+<span class="nc" id="L94">        return comments.size();</span>
+    }
+
+    public interface OnCommentActionListener {
+        void onEditComment(DTOmodels.FeedComment comment);
+
+        void onDeleteComment(DTOmodels.FeedComment comment);
+    }
+
+    static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView authorInitial, authorName, timestamp, body;
+        ImageView menu;
+
+        ViewHolder(View v) {
+<span class="nc" id="L108">            super(v);</span>
+<span class="nc" id="L109">            authorInitial = v.findViewById(R.id.comment_author_initial);</span>
+<span class="nc" id="L110">            authorName = v.findViewById(R.id.comment_author_name);</span>
+<span class="nc" id="L111">            timestamp = v.findViewById(R.id.comment_timestamp);</span>
+<span class="nc" id="L112">            body = v.findViewById(R.id.comment_body);</span>
+<span class="nc" id="L113">            menu = v.findViewById(R.id.comment_menu);</span>
+<span class="nc" id="L114">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

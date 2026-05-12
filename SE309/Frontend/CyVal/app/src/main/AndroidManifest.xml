@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:usesCleartextTraffic="true"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AndroidExample"
+        tools:targetApi="31">
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SignupActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AdminPanelActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ProfessorPanelActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ProfessorGroupManageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ChatActivity"
+            android:exported="false" />
+        <activity
+            android:name=".UserManageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ManageAdminsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ManageProfessorsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ManageMediaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ManageGroupsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ManagePostsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DeleteAccountActivity"
+            android:exported="false" />
+        <activity
+            android:name=".UserProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MainFeedActivity"
+            android:exported="true" />
+        <activity
+            android:name=".PostViewActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MediaDetailActivity"
+            android:exported="true" />
+        <activity
+            android:name=".AiChatActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <service android:name=".NotificationWebSocket" />
+    </application>
+
+</manifest>

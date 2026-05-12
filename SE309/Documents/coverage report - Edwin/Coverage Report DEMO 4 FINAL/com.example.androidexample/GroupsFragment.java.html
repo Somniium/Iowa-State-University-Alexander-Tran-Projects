@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GroupsFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">GroupsFragment.java</span></div><h1>GroupsFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+
+/**
+ * @author Edwin Cepeda
+ */
+<span class="fc" id="L27">public class GroupsFragment extends Fragment {</span>
+    int groupId;
+    int userId;
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+<span class="fc" id="L33">        View view = inflater.inflate(R.layout.fragment_groups, container, false);</span>
+<span class="fc" id="L34">        userId = getActivity().getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+<span class="fc" id="L35">        ListView groupList = view.findViewById(R.id.group_list);</span>
+<span class="fc" id="L36">        ArrayList&lt;String&gt; studentGroups = new ArrayList&lt;String&gt;();</span>
+<span class="fc" id="L37">        ApiClient.getArray(GroupsFragment.this.getContext(), &quot;/get-user-groups/&quot; + userId, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="fc" id="L41">                    String stringedResponse = response.toString();</span>
+<span class="fc" id="L42">                    JSONArray groupData = new JSONArray(stringedResponse);</span>
+<span class="fc" id="L43">                    studentGroups.add(&quot;CyVal AI&quot;);</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">                    for (int i = 0; i &lt; groupData.length(); i++) {</span>
+                        try {
+<span class="fc" id="L46">                            String singleGroupName = groupData.getJSONObject(i).getString(&quot;name&quot;);</span>
+<span class="fc" id="L47">                            studentGroups.add(singleGroupName);</span>
+<span class="fc" id="L48">                            Log.d(&quot;test: &quot;, studentGroups.get(i));</span>
+<span class="nc" id="L49">                        } catch (JSONException e) {</span>
+<span class="nc" id="L50">                            throw new RuntimeException(e);</span>
+<span class="fc" id="L51">                        }</span>
+                    }
+
+<span class="fc" id="L54">                    String[] studentGroupsArray = new String[studentGroups.size()];</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">                    for (int i = 0; i &lt; studentGroups.size(); i++) {</span>
+<span class="fc" id="L56">                        studentGroupsArray[i] = studentGroups.get(i);</span>
+<span class="fc" id="L57">                        Log.d(&quot;test2: &quot;, studentGroupsArray[i]);</span>
+                    }
+
+<span class="fc" id="L60">                    ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;String&gt;(getContext(), android.R.layout.simple_list_item_1, studentGroupsArray);</span>
+<span class="fc" id="L61">                    groupList.setAdapter(adapter);</span>
+
+<span class="nc" id="L63">                } catch (JSONException e) {</span>
+<span class="nc" id="L64">                    throw new RuntimeException(e);</span>
+<span class="fc" id="L65">                }</span>
+
+<span class="fc" id="L67">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L71">            }</span>
+        });
+
+<span class="fc" id="L74">        groupList.setOnItemClickListener(new AdapterView.OnItemClickListener() {</span>
+            @Override
+            public void onItemClick(AdapterView&lt;?&gt; adapterView, View view, int i, long l) {
+<span class="fc" id="L77">                String group = adapterView.getItemAtPosition(i).toString();</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">                if (&quot;CyVal AI&quot;.equals(group)) {</span>
+<span class="nc" id="L79">                    Intent intent = new Intent(getContext(), AiChatActivity.class);</span>
+<span class="nc" id="L80">                    intent.putExtra(&quot;USER_ID&quot;, userId);</span>
+<span class="nc" id="L81">                    startActivity(intent);</span>
+<span class="nc" id="L82">                    return;</span>
+                }
+<span class="fc" id="L84">                ApiClient.get(getContext(), &quot;/group/name/&quot; + group, new Api_Interface() {</span>
+
+                    @Override
+                    public void onSuccess(JSONObject response) {
+                        try {
+<span class="fc" id="L89">                            groupId = response.getInt(&quot;groupId&quot;);</span>
+<span class="nc" id="L90">                        } catch (JSONException e) {</span>
+<span class="nc" id="L91">                            throw new RuntimeException(e);</span>
+<span class="fc" id="L92">                        }</span>
+<span class="fc" id="L93">                        finishChatConnect(group);</span>
+<span class="fc" id="L94">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L98">                    }</span>
+                });
+
+<span class="fc" id="L101">            }</span>
+        });
+
+<span class="fc" id="L104">        return view;</span>
+    }
+
+    private void finishChatConnect(String group) {
+<span class="fc" id="L108">        Intent intent = new Intent(getContext(), ChatActivity.class);</span>
+
+<span class="fc" id="L110">        intent.putExtra(&quot;GROUP_ID&quot;, groupId);</span>
+<span class="fc" id="L111">        intent.putExtra(&quot;USER_ID&quot;, userId);</span>
+<span class="fc" id="L112">        intent.putExtra(&quot;GROUP_NAME&quot;, group);</span>
+<span class="fc" id="L113">        startActivity(intent);</span>
+<span class="fc" id="L114">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

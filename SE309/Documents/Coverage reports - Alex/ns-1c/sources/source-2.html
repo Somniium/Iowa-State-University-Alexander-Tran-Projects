@@ -1,0 +1,185 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CyValPostController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">org.springframework.samples.petclinic.owner</a>
+</div>
+
+<h1>Coverage Summary for Class: CyValPostController (org.springframework.samples.petclinic.owner)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CyValPostController</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;/*
+&nbsp; * Copyright 2002-2013 the original author or authors.
+&nbsp; *
+&nbsp; * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+&nbsp; * you may not use this file except in compliance with the License.
+&nbsp; * You may obtain a copy of the License at
+&nbsp; *
+&nbsp; *      http://www.apache.org/licenses/LICENSE-2.0
+&nbsp; *
+&nbsp; * Unless required by applicable law or agreed to in writing, software
+&nbsp; * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+&nbsp; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+&nbsp; * See the License for the specific language governing permissions and
+&nbsp; * limitations under the License.
+&nbsp; */
+&nbsp;package org.springframework.samples.petclinic.owner;
+&nbsp;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;
+&nbsp;/**
+&nbsp; * @author Juergen Hoeller
+&nbsp; * @author Ken Krebs
+&nbsp; * @author Arjen Poutsma
+&nbsp; * @author Michael Isvy
+&nbsp; * @Modified By Tanmay Ghosh
+&nbsp; * @Modified By Vivek Bengre
+&nbsp; * @Modified By Alexander Tran
+&nbsp; */
+&nbsp;@RestController
+<b class="nc">&nbsp;public class CyValPostController {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private CyValPostRepository postRepo;
+&nbsp;
+&nbsp;    // CREATE (POST)
+&nbsp;    @PostMapping(&quot;/posts/new&quot;)
+&nbsp;    public String createPost(@RequestBody CyValPost post) {
+<b class="nc">&nbsp;        postRepo.save(post);</b>
+<b class="nc">&nbsp;        return &quot;New CyVal post saved: &quot; + post.getTitle();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;     // function just to create dummy data
+&nbsp;    @GetMapping(&quot;/post/create&quot;)
+&nbsp;    public String createDummyData() {
+<b class="nc">&nbsp;        postRepo.save(new CyValPost(</b>
+&nbsp;                &quot;Favorite albums this week?&quot;,
+&nbsp;                &quot;Drop recs and explain why you like them.&quot;,
+&nbsp;                &quot;MUSIC&quot;,
+&nbsp;                &quot;alextran&quot;,
+&nbsp;                &quot;PUBLIC&quot;
+&nbsp;        ));
+&nbsp;
+<b class="nc">&nbsp;        postRepo.save(new CyValPost(</b>
+&nbsp;                &quot;Paper discussion: distributed systems&quot;,
+&nbsp;                &quot;What concept stood out to you?&quot;,
+&nbsp;                &quot;ACADEMIC_PAPER&quot;,
+&nbsp;                &quot;isuStudent42&quot;,
+&nbsp;                &quot;PUBLIC&quot;
+&nbsp;        ));
+<b class="nc">&nbsp;        return &quot;Dummy CyVal posts created&quot;;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // READ ALL (GET)
+&nbsp;    @GetMapping(&quot;/posts&quot;)
+&nbsp;    public List&lt;CyValPost&gt; getAllPosts() {
+<b class="nc">&nbsp;        return postRepo.findAll();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // READ ONE (GET)
+&nbsp;    @GetMapping(&quot;/posts/{id}&quot;)
+&nbsp;    public Optional&lt;CyValPost&gt; getPostById(@PathVariable int id) {
+<b class="nc">&nbsp;        return postRepo.findById(id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-06 02:09</div>
+</div>
+</body>
+</html>

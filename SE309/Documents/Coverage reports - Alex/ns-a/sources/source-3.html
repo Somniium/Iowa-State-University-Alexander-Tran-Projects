@@ -1,0 +1,272 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RawgService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Games</a>
+</div>
+
+<h1>Coverage Summary for Class: RawgService (onetoone.Games)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RawgService</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    14.3%
+  </span>
+  <span class="absValue">
+    (1/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/50)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    4.4%
+  </span>
+  <span class="absValue">
+    (3/68)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Games;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.web.client.RestTemplate;
+&nbsp;import org.springframework.web.util.UriComponentsBuilder;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;/**
+&nbsp; * Talks to the RAWG Video Games Database API.
+&nbsp; *
+&nbsp; * Docs: https://api.rawg.io/docs/
+&nbsp; */
+&nbsp;@Service
+<b class="fc">&nbsp;public class RawgService {</b>
+&nbsp;
+&nbsp;    private static final String BASE_URL = &quot;https://api.rawg.io/api&quot;;
+&nbsp;
+&nbsp;    @Value(&quot;${rawg.api.key}&quot;)
+&nbsp;    private String apiKey;
+&nbsp;
+<b class="fc">&nbsp;    private final RestTemplate restTemplate = new RestTemplate();</b>
+<b class="fc">&nbsp;    private final ObjectMapper mapper = new ObjectMapper();</b>
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Search for games by name.
+&nbsp;     * Maps to: GET /games?search={query}&amp;page_size={max}&amp;key={key}
+&nbsp;     */
+&nbsp;    public List&lt;Game&gt; searchGames(String query, int maxResults) {
+&nbsp;        try {
+<b class="nc">&nbsp;            int size = Math.min(Math.max(maxResults, 1), 40);</b>
+&nbsp;
+<b class="nc">&nbsp;            String url = UriComponentsBuilder</b>
+<b class="nc">&nbsp;                    .fromHttpUrl(BASE_URL + &quot;/games&quot;)</b>
+<b class="nc">&nbsp;                    .queryParam(&quot;key&quot;, apiKey)</b>
+<b class="nc">&nbsp;                    .queryParam(&quot;search&quot;, query)</b>
+<b class="nc">&nbsp;                    .queryParam(&quot;ordering&quot;, &quot;-relevance&quot;)</b>
+<b class="nc">&nbsp;                    .queryParam(&quot;page_size&quot;, size)</b>
+<b class="nc">&nbsp;                    .toUriString();</b>
+&nbsp;
+<b class="nc">&nbsp;            String json = restTemplate.getForObject(url, String.class);</b>
+<b class="nc">&nbsp;            JsonNode root = mapper.readTree(json);</b>
+<b class="nc">&nbsp;            JsonNode results = root.get(&quot;results&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;            List&lt;Game&gt; games = new ArrayList&lt;&gt;();</b>
+<b class="nc">&nbsp;            if (results == null || !results.isArray()) return games;</b>
+&nbsp;
+<b class="nc">&nbsp;            for (JsonNode node : results) {</b>
+<b class="nc">&nbsp;                Game g = parseGameNode(node);</b>
+<b class="nc">&nbsp;                if (g != null) games.add(g);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // Sort: exact title match first, then starts-with, then contains, then RAWG order
+<b class="nc">&nbsp;            String q = query.toLowerCase().trim();</b>
+<b class="nc">&nbsp;            games.sort((a, b) -&gt; Integer.compare(titleScore(b.getTitle(), q), titleScore(a.getTitle(), q)));</b>
+&nbsp;
+<b class="nc">&nbsp;            return games;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;RAWG search failed: &quot; + e.getMessage(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;    /**
+&nbsp;     * Title Score helper method
+&nbsp;     *
+&nbsp;     */
+&nbsp;    private int titleScore(String title, String query) {
+<b class="nc">&nbsp;        if (title == null) return 0;</b>
+<b class="nc">&nbsp;        String t = title.toLowerCase().trim();</b>
+<b class="nc">&nbsp;        if (t.equals(query))     return 3; // exact match</b>
+<b class="nc">&nbsp;        if (t.startsWith(query)) return 2; // e.g. &quot;red dead redemption 2&quot; for query &quot;red dead redemption&quot;</b>
+<b class="nc">&nbsp;        if (t.contains(query))   return 1; // contains</b>
+<b class="nc">&nbsp;        return 0;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Fetch full details for a game by its RAWG ID.
+&nbsp;     * Maps to: GET /games/{id}?key={key}
+&nbsp;     */
+&nbsp;    public Game getGameByRawgId(String rawgId) {
+&nbsp;        try {
+<b class="nc">&nbsp;            String url = UriComponentsBuilder</b>
+<b class="nc">&nbsp;                    .fromHttpUrl(BASE_URL + &quot;/games/&quot; + rawgId)</b>
+<b class="nc">&nbsp;                    .queryParam(&quot;key&quot;, apiKey)</b>
+<b class="nc">&nbsp;                    .toUriString();</b>
+&nbsp;
+<b class="nc">&nbsp;            String json = restTemplate.getForObject(url, String.class);</b>
+<b class="nc">&nbsp;            JsonNode root = mapper.readTree(json);</b>
+&nbsp;
+<b class="nc">&nbsp;            Game g = new Game();</b>
+<b class="nc">&nbsp;            g.setRawgId(textOrNull(root.get(&quot;id&quot;)));</b>
+<b class="nc">&nbsp;            g.setTitle(textOrNull(root.get(&quot;name&quot;)));</b>
+<b class="nc">&nbsp;            g.setReleaseDate(textOrNull(root.get(&quot;released&quot;)));</b>
+<b class="nc">&nbsp;            g.setCoverUrl(textOrNull(root.get(&quot;background_image&quot;)));</b>
+&nbsp;
+&nbsp;            // Metacritic score
+<b class="nc">&nbsp;            JsonNode mc = root.get(&quot;metacritic&quot;);</b>
+<b class="nc">&nbsp;            if (mc != null &amp;&amp; !mc.isNull()) g.setMetacriticScore(mc.asInt());</b>
+&nbsp;
+&nbsp;            // Description (detail endpoint has description_raw)
+<b class="nc">&nbsp;            String desc = textOrNull(root.get(&quot;description_raw&quot;));</b>
+<b class="nc">&nbsp;            if (desc != null &amp;&amp; desc.length() &gt; 2000) desc = desc.substring(0, 1997) + &quot;...&quot;;</b>
+<b class="nc">&nbsp;            g.setDescription(desc);</b>
+&nbsp;
+&nbsp;            // Genres: array of { id, name }
+<b class="nc">&nbsp;            g.setGenre(firstNameFromArray(root.get(&quot;genres&quot;)));</b>
+&nbsp;
+&nbsp;            // Developers: array of { id, name }
+<b class="nc">&nbsp;            g.setDeveloper(firstNameFromArray(root.get(&quot;developers&quot;)));</b>
+&nbsp;
+<b class="nc">&nbsp;            return g;</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;RAWG fetch failed for id=&quot; + rawgId + &quot;: &quot; + e.getMessage(), e);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    // ---- helpers ----
+&nbsp;
+&nbsp;    private Game parseGameNode(JsonNode node) {
+<b class="nc">&nbsp;        if (node == null) return null;</b>
+&nbsp;
+<b class="nc">&nbsp;        String rawgId = textOrNull(node.get(&quot;id&quot;));</b>
+<b class="nc">&nbsp;        String title  = textOrNull(node.get(&quot;name&quot;));</b>
+<b class="nc">&nbsp;        if (rawgId == null || title == null) return null;</b>
+&nbsp;
+<b class="nc">&nbsp;        Game g = new Game();</b>
+<b class="nc">&nbsp;        g.setRawgId(rawgId);</b>
+<b class="nc">&nbsp;        g.setTitle(title);</b>
+<b class="nc">&nbsp;        g.setReleaseDate(textOrNull(node.get(&quot;released&quot;)));</b>
+<b class="nc">&nbsp;        g.setCoverUrl(textOrNull(node.get(&quot;background_image&quot;)));</b>
+&nbsp;
+<b class="nc">&nbsp;        JsonNode mc = node.get(&quot;metacritic&quot;);</b>
+<b class="nc">&nbsp;        if (mc != null &amp;&amp; !mc.isNull()) g.setMetacriticScore(mc.asInt());</b>
+&nbsp;
+<b class="nc">&nbsp;        g.setGenre(firstNameFromArray(node.get(&quot;genres&quot;)));</b>
+&nbsp;
+&nbsp;        // Search results don&#39;t include developer — will be null until saved via detail endpoint
+<b class="nc">&nbsp;        return g;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    /** Returns the name of the first element in a RAWG array like [{ &quot;id&quot;: 1, &quot;name&quot;: &quot;Action&quot; }] */
+&nbsp;    private String firstNameFromArray(JsonNode array) {
+<b class="nc">&nbsp;        if (array == null || !array.isArray() || array.size() == 0) return null;</b>
+<b class="nc">&nbsp;        JsonNode first = array.get(0);</b>
+<b class="nc">&nbsp;        return first != null ? textOrNull(first.get(&quot;name&quot;)) : null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String textOrNull(JsonNode node) {
+<b class="nc">&nbsp;        if (node == null || node.isNull()) return null;</b>
+<b class="nc">&nbsp;        String s = node.asText();</b>
+<b class="nc">&nbsp;        return (s == null || s.isBlank()) ? null : s;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-06 03:05</div>
+</div>
+</body>
+</html>

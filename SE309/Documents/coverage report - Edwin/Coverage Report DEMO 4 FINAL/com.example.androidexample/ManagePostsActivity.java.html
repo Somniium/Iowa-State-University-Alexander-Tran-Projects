@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ManagePostsActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">ManagePostsActivity.java</span></div><h1>ManagePostsActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+/**
+ * @author Edwin Cepeda
+ */
+<span class="fc" id="L23">public class ManagePostsActivity extends AppCompatActivity {</span>
+
+    // Declare button variables
+    private Button deleteBtn, returnBtn;
+    private ImageButton searchBtn;
+
+    //Declare edit variables
+    private EditText findPostEdt;
+
+    //Declare textview variables
+    private TextView managePostHeader, authorNameText, authorIdText, postMediaTitleText, postTitleText, postRatingText, postReplyingToText, postBodyText;
+
+    private JSONObject postData;
+<span class="fc" id="L36">    private int postID = -1;</span>
+<span class="fc" id="L37">    private int adminID = -1;</span>
+<span class="fc" id="L38">    private int userID = -1;</span>
+<span class="fc" id="L39">    private String postType = null;</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L43">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L44">        setContentView(R.layout.activity_manage_posts); // Set the UI layout for the activity</span>
+
+<span class="fc" id="L46">        managePostHeader = findViewById(R.id.manage_post_header);</span>
+<span class="fc" id="L47">        findPostEdt = findViewById(R.id.findPostEdt);</span>
+<span class="fc" id="L48">        searchBtn = findViewById(R.id.searchBtn);</span>
+<span class="fc" id="L49">        authorNameText = findViewById(R.id.authorNameText);</span>
+<span class="fc" id="L50">        authorIdText = findViewById(R.id.authorIdText);</span>
+<span class="fc" id="L51">        postMediaTitleText = findViewById(R.id.postMediaTitleText);</span>
+<span class="fc" id="L52">        postTitleText = findViewById(R.id.postTitleText);</span>
+<span class="fc" id="L53">        postRatingText = findViewById(R.id.postRatingText);</span>
+<span class="fc" id="L54">        postReplyingToText = findViewById(R.id.postReplyingToText);</span>
+<span class="fc" id="L55">        postBodyText = findViewById(R.id.postBodyText);</span>
+<span class="fc" id="L56">        deleteBtn = findViewById(R.id.deleteBtn);</span>
+<span class="fc" id="L57">        returnBtn = findViewById(R.id.returnBtn);</span>
+<span class="fc" id="L58">        returnBtn.setVisibility(View.VISIBLE);</span>
+
+<span class="fc" id="L60">        Bundle extras = getIntent().getExtras();</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        if (extras != null) {</span>
+<span class="fc" id="L62">            adminID = extras.getInt(&quot;ADMIN_ID&quot;, -1);</span>
+<span class="fc" id="L63">            userID = extras.getInt(&quot;USER_ID&quot;, -1);</span>
+<span class="fc" id="L64">            postType = extras.getString(&quot;POST_TYPE&quot;, null);</span>
+        }
+
+<span class="fc" id="L67">        updateElements();</span>
+
+<span class="fc" id="L69">        searchBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L72">                searchPostInDB();</span>
+<span class="fc" id="L73">            }</span>
+        });
+
+<span class="fc" id="L76">        deleteBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L79">                deletePostInDB();</span>
+<span class="nc" id="L80">            }</span>
+        });
+
+<span class="fc" id="L83">        returnBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L86">                Intent intent = new Intent(ManagePostsActivity.this, AdminPanelActivity.class);</span>
+<span class="fc" id="L87">                intent.putExtra(&quot;ADMIN_ID&quot;, adminID);</span>
+<span class="fc" id="L88">                intent.putExtra(&quot;USER_ID&quot;, userID);</span>
+<span class="fc" id="L89">                startActivity(intent);</span>
+<span class="fc" id="L90">            }</span>
+        });
+
+<span class="fc" id="L93">    }</span>
+
+    private void updateElements() {
+<span class="pc bpc" id="L96" title="2 of 3 branches missed.">        switch (postType){</span>
+            case &quot;POSTS&quot;:
+<span class="fc" id="L98">                postReplyingToText.setVisibility(View.GONE);</span>
+<span class="fc" id="L99">                break;</span>
+            case &quot;COMMENTS&quot;:
+<span class="nc" id="L101">                findPostEdt.setHint(&quot;Get Comment by Comment ID&quot;);</span>
+<span class="nc" id="L102">                managePostHeader.setText(&quot;Manage Comments&quot;);</span>
+<span class="nc" id="L103">                postTitleText.setVisibility(View.GONE);</span>
+<span class="nc" id="L104">                postMediaTitleText.setVisibility(View.GONE);</span>
+<span class="nc" id="L105">                postRatingText.setVisibility(View.GONE);</span>
+<span class="nc" id="L106">                break;</span>
+            default:
+<span class="nc" id="L108">                Toast.makeText(ManagePostsActivity.this, &quot;ERROR: NO POST TYPE&quot;, Toast.LENGTH_LONG).show();</span>
+        }
+
+
+<span class="fc" id="L112">    }</span>
+
+    private void searchPostInDB() {
+<span class="fc" id="L115">        String searchEndpoint = &quot;&quot;;</span>
+<span class="pc bpc" id="L116" title="2 of 3 branches missed.">        switch (postType){</span>
+            case &quot;POSTS&quot;:
+<span class="fc" id="L118">                searchEndpoint = &quot;/posts/&quot; + findPostEdt.getText().toString();</span>
+<span class="fc" id="L119">                break;</span>
+            case &quot;COMMENTS&quot;:
+<span class="nc" id="L121">                searchEndpoint = &quot;/comments/&quot; + findPostEdt.getText().toString();</span>
+<span class="nc" id="L122">                break;</span>
+            default:
+<span class="nc" id="L124">                Toast.makeText(ManagePostsActivity.this, &quot;ERROR: NO POST TYPE&quot;, Toast.LENGTH_LONG).show();</span>
+        }
+<span class="fc" id="L126">        Log.d(&quot;test endpoint&quot;, searchEndpoint);</span>
+
+<span class="fc" id="L128">        ApiClient.get(ManagePostsActivity.this, searchEndpoint, new Api_Interface() {</span>
+
+            @SuppressLint(&quot;SetTextI18n&quot;)
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L134">                    Log.d(&quot;Response test&quot;, response.toString());</span>
+<span class="nc" id="L135">                    String mediaDataString = response.toString();</span>
+<span class="nc" id="L136">                    postData = new JSONObject(mediaDataString);</span>
+<span class="nc bnc" id="L137" title="All 3 branches missed.">                    switch (postType){</span>
+                        case &quot;POSTS&quot;:
+<span class="nc" id="L139">                            postID = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L140">                            authorNameText.setText(&quot;Author Name: &quot; + postData.getString(&quot;authorName&quot;));</span>
+<span class="nc" id="L141">                            authorIdText.setText(&quot;Author ID: &quot; + postData.getInt(&quot;authorId&quot;));</span>
+<span class="nc" id="L142">                            postMediaTitleText.setText(&quot;Media Title: &quot; + postData.getString(&quot;mediaTitle&quot;));</span>
+<span class="nc" id="L143">                            postTitleText.setText(&quot;Post Title: &quot; + &quot;(&quot; + postData.getString(&quot;mediaType&quot;) + &quot;)&quot; + postData.getString(&quot;caption&quot;));</span>
+<span class="nc" id="L144">                            postRatingText.setText(&quot;Post Rating: &quot; + postData.getInt(&quot;rating&quot;));</span>
+<span class="nc" id="L145">                            getPostBodyText(postData.getInt(&quot;reviewId&quot;));</span>
+<span class="nc" id="L146">                            break;</span>
+                        case &quot;COMMENTS&quot;:
+<span class="nc" id="L148">                            postID = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L149">                            authorNameText.setText(&quot;Author Name: &quot; + postData.getString(&quot;authorName&quot;));</span>
+<span class="nc" id="L150">                            authorIdText.setText(&quot;Author ID: &quot; + postData.getString(&quot;authorId&quot;));</span>
+<span class="nc" id="L151">                            postReplyingToText.setText(&quot;Replying To: &quot; + &quot;(POST ID: &quot; + postData.getInt(&quot;postId&quot;) + &quot;)&quot;);</span>
+<span class="nc" id="L152">                            postBodyText.setText(postData.getString(&quot;body&quot;));</span>
+<span class="nc" id="L153">                            break;</span>
+                        default:
+<span class="nc" id="L155">                            Toast.makeText(ManagePostsActivity.this, &quot;ERROR: NO MEDIA TYPE&quot;, Toast.LENGTH_LONG).show();</span>
+                    }
+<span class="nc" id="L157">                } catch (JSONException e) {</span>
+<span class="nc" id="L158">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L159">                }</span>
+<span class="nc" id="L160">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="fc" id="L164">                Log.e(&quot;search error&quot;, message);</span>
+<span class="fc" id="L165">                Toast.makeText(ManagePostsActivity.this, message, Toast.LENGTH_LONG).show();</span>
+<span class="fc" id="L166">            }</span>
+        });
+<span class="fc" id="L168">    }</span>
+
+    private void getPostBodyText(int reviewId) {
+<span class="nc" id="L171">        String getBodyEndpoint = &quot;/reviews/&quot; + reviewId;</span>
+
+<span class="nc" id="L173">        ApiClient.get(ManagePostsActivity.this, getBodyEndpoint, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L177">                    String body = response.getString(&quot;body&quot;);</span>
+<span class="nc" id="L178">                    postBodyText.setText(body);</span>
+<span class="nc" id="L179">                } catch (JSONException e) {</span>
+<span class="nc" id="L180">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L181">                }</span>
+<span class="nc" id="L182">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L186">                Toast.makeText(ManagePostsActivity.this, &quot;Could not get post body&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L187">            }</span>
+
+            ;
+
+        });
+<span class="nc" id="L192">    }</span>
+
+    private void deletePostInDB() {
+<span class="nc" id="L195">        String deleteEndpoint = &quot;&quot;;</span>
+<span class="nc bnc" id="L196" title="All 3 branches missed.">        switch (postType){</span>
+            case &quot;POSTS&quot;:
+<span class="nc" id="L198">                deleteEndpoint = &quot;/posts/&quot; + postID + &quot;?requesterId=&quot; + userID;</span>
+<span class="nc" id="L199">                break;</span>
+            case &quot;COMMENTS&quot;:
+<span class="nc" id="L201">                deleteEndpoint = &quot;/comments/&quot; + postID +  &quot;?requesterId=&quot; + userID;</span>
+<span class="nc" id="L202">                break;</span>
+            default:
+<span class="nc" id="L204">                Toast.makeText(ManagePostsActivity.this, &quot;ERROR: NO POST TYPE&quot;, Toast.LENGTH_LONG).show();</span>
+        }
+
+<span class="nc" id="L207">        ApiClient.deleteString(ManagePostsActivity.this, deleteEndpoint, new Api_String_Interface() {</span>
+            @Override
+            public void onSuccess(String response) {
+<span class="nc" id="L210">                Toast.makeText(ManagePostsActivity.this, response, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L211">                Intent intent = new Intent(ManagePostsActivity.this, AdminPanelActivity.class);</span>
+<span class="nc" id="L212">                intent.putExtra(&quot;ADMIN_ID&quot;, adminID);</span>
+<span class="nc" id="L213">                intent.putExtra(&quot;USER_ID&quot;, userID);</span>
+<span class="nc" id="L214">                startActivity(intent);</span>
+<span class="nc" id="L215">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L219">                Toast.makeText(ManagePostsActivity.this, &quot;Could not delete post/comment.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L220">                Log.e(&quot;Delete error&quot;, message);</span>
+<span class="nc" id="L221">            }</span>
+        });
+
+<span class="nc" id="L224">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

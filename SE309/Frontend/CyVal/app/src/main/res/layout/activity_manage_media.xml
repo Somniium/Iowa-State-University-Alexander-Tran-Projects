@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    tools:context=".MainActivity"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:gravity="center_vertical"
+    android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/queryInterface"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/queryHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add or Manage Media?"
+                android:layout_gravity="center"
+                android:layout_marginBottom="35dp"
+                android:textSize="30dp"
+                android:textColor="#fc0303">
+            </TextView>
+            <Button
+                android:id="@+id/queryAddBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Add"
+                android:textSize="20sp"
+                android:textColor="#ffffff"
+                android:backgroundTint="#fc0303">
+            </Button>
+            <Button
+                android:id="@+id/queryManageBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Manage"
+                android:textSize="20sp"
+                android:textColor="#ffffff"
+                android:backgroundTint="#fc0303">
+            </Button>
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/addInterface"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/searchAsShowBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Searching for MOVIES\n(Click to toggle)"
+                android:textSize="20dp"
+                android:visibility = "gone"
+                android:gravity = "center"
+                android:padding = "10dp"
+                android:layout_gravity = "center_horizontal"
+                android:layout_marginTop = "10dp"
+                android:layout_marginBottom = "10dp"
+                android:textColor="#000000"
+                android:background="#d3d3d3"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+                <EditText
+                    android:id="@+id/AddEdt"
+                    android:layout_width="300dp"
+                    android:layout_height="50dp"
+                    android:layout_gravity="center"
+                    android:hint="Look up media by name">
+                </EditText>
+                <ImageButton
+                    android:id="@+id/addSearchBtn"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/search_icon"
+                    />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/AddName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Title: "
+                android:textSize="20dp"
+                android:textColor="#000000"/>
+            <TextView
+                android:id="@+id/AddID"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="External ID: "
+                android:textSize="20dp"
+                android:textColor="#000000"/>
+
+
+            <Button
+                android:id="@+id/addBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Add Item to DB"
+                android:textSize="20sp"
+                android:textColor="#ffffff"
+                android:backgroundTint="#fc0303">
+            </Button>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/manageInterface"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+                <EditText
+                    android:id="@+id/searchEdt"
+                    android:layout_width="300dp"
+                    android:layout_height="50dp"
+                    android:layout_gravity="center"
+                    android:hint="Find item by ID">
+                </EditText>
+                <ImageButton
+                    android:id="@+id/searchBtn"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/search_icon"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/media_type_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="(MOVIE)"
+                android:textSize="20dp"
+                android:gravity="center"
+                android:layout_gravity="center_horizontal"
+                android:visibility="gone"
+                android:textColor="#000000">
+            </TextView>
+
+            <LinearLayout
+            android:id="@+id/title_input"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginLeft="30dp"
+            android:layout_marginBottom="30dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/title_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Title: "
+                android:textSize="20dp"
+                android:textColor="#000000">
+            </TextView>
+
+            <EditText
+                android:id="@+id/titleEdt"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:hint="Enter Title">
+            </EditText>
+
+        </LinearLayout>
+
+        <LinearLayout
+
+            android:id="@+id/author_input"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginBottom="30dp"
+            android:layout_marginLeft="30dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/author_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Developer: "
+                android:textSize="20dp"
+                android:textColor="#000000">
+            </TextView>
+
+            <EditText
+                android:id="@+id/authorEdt"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:hint="Developer Name">
+            </EditText>
+
+        </LinearLayout>
+
+        <LinearLayout
+
+            android:id="@+id/id_input"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginBottom="10dp"
+            android:layout_marginLeft="30dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/id_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RAWG ID: "
+                android:textSize="20dp"
+                android:textColor="#000000">
+            </TextView>
+
+            <EditText
+                android:id="@+id/idEdt"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:hint="Enter RAWG ID">
+            </EditText>
+
+        </LinearLayout>
+
+        <LinearLayout
+
+            android:id="@+id/other_input"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginBottom="10dp"
+            android:layout_marginLeft="30dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/other_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Genre: "
+                android:textSize="20dp"
+                android:textColor="#000000">
+            </TextView>
+
+            <EditText
+                android:id="@+id/otherEdt"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:hint="Enter Genre">
+            </EditText>
+
+        </LinearLayout>
+
+            <LinearLayout
+
+                android:id="@+id/release_date_input"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="30dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/release_date_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Release Date: "
+                    android:textSize="20dp"
+                    android:textColor="#000000">
+                </TextView>
+
+                <EditText
+                    android:id="@+id/releaseDateEdt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:hint="Enter Date">
+                </EditText>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="center"
+                android:layout_marginTop="30dp">
+
+                <Button
+                    android:id="@+id/updateBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Update Data"
+                    android:textSize="20sp"
+                    android:textColor="#ffffff"
+                    android:backgroundTint="#fc0303">
+                </Button>
+
+                <Button
+                    android:id="@+id/deleteBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Delete Media Data"
+                    android:textSize="20sp"
+                    android:textColor="#ffffff"
+                    android:backgroundTint="#fc0303">
+                </Button>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/returnBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Back to Dashboard"
+        android:textSize="20sp"
+        android:textColor="#ffffff"
+        android:backgroundTint="#fc0303">
+    </Button>
+
+
+
+</androidx.appcompat.widget.LinearLayoutCompat>

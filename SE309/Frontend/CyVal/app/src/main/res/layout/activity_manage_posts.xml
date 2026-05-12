@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    tools:context=".MainActivity"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:gravity="center_vertical"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/manage_post_header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Manage Post"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10dp"
+        android:textSize="30dp"
+        android:textColor="#fc0303">
+    </TextView>
+
+    <ScrollView
+        android:id="@+id/postScroller"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/manageInterface"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+                <EditText
+                    android:id="@+id/findPostEdt"
+                    android:layout_width="300dp"
+                    android:layout_height="50dp"
+                    android:layout_gravity="center"
+                    android:hint="Find Post by Post ID">
+                </EditText>
+                <ImageButton
+                    android:id="@+id/searchBtn"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/search_icon"/>
+            </LinearLayout>
+
+
+            <TextView
+                android:id="@+id/authorNameText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Author: "
+                android:textSize="20dp"
+                android:textColor="#000000">
+            </TextView>
+
+
+            <TextView
+                android:id="@+id/authorIdText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Author ID: "
+                android:textSize="20dp"
+                android:textColor="#000000">
+            </TextView>
+
+            <TextView
+                android:id="@+id/postTitleText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Post Title: "
+                android:textSize="20dp"
+                android:textColor="#000000">
+            </TextView>
+
+            <TextView
+                android:id="@+id/postMediaTitleText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Media Title: "
+                android:textSize="20dp"
+                android:textColor="#000000">
+            </TextView>
+
+            <TextView
+                android:id="@+id/postRatingText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Media Rating: "
+                android:textSize="20dp"
+                android:textColor="#000000">
+            </TextView>
+
+            <TextView
+                android:id="@+id/postReplyingToText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Replying To: "
+                android:textSize="20dp"
+                android:textColor="#000000">
+            </TextView>
+
+            <TextView
+                android:id="@+id/postBodyHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Post Body"
+                android:textSize="20dp"
+                android:textColor="#000000"
+                android:layout_gravity="center_horizontal">
+            </TextView>
+
+            <ScrollView
+                android:id="@+id/postBodyTextHolder"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:textSize="20dp"
+                android:textColor="#000000"
+                android:background="#f3f3f3">
+                <TextView
+                    android:id="@+id/postBodyText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="POST TEXT GOES HERE"
+                    android:textSize="20dp"
+                    android:textColor="#000000">
+                </TextView>
+            </ScrollView>
+
+
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="center"
+                android:layout_marginTop="30dp">
+
+                <Button
+                    android:id="@+id/deleteBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Delete Item"
+                    android:textSize="20sp"
+                    android:textColor="#ffffff"
+                    android:backgroundTint="#fc0303">
+                </Button>
+
+                <Button
+                    android:id="@+id/returnBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Back to Dashboard"
+                    android:textSize="20sp"
+                    android:textColor="#ffffff"
+                    android:backgroundTint="#fc0303">
+                </Button>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+
+
+
+
+</androidx.appcompat.widget.LinearLayoutCompat>

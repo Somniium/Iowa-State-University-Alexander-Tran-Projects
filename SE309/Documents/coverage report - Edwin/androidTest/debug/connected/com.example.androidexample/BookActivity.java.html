@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">BookActivity.java</span></div><h1>BookActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.google.gson.Gson;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @author Edwin Cepeda
+ */
+<span class="nc" id="L34">public class BookActivity extends AppCompatActivity {</span>
+
+    private ImageView coverImg;
+    private View bookView;
+
+    private TextView bookTxt, authorTxt, publishDateTxt, ratingTxt;
+    private Button bookButton, authorButton;
+    private EditText authorEdt;
+
+<span class="nc" id="L43">    private String titleNeeded = null;</span>
+<span class="nc" id="L44">    private String authorNeeded = null;</span>
+<span class="nc" id="L45">    private int ID = 0;</span>
+<span class="nc" id="L46">    private JSONObject foundBook = null;</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L50">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L51">        setContentView(R.layout.activity_book);</span>
+
+<span class="nc" id="L53">        Bundle extras = getIntent().getExtras();</span>
+<span class="nc" id="L54">        titleNeeded = null;</span>
+<span class="nc" id="L55">        authorNeeded = null;</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (extras != null) {</span>
+<span class="nc" id="L57">            titleNeeded = extras.getString(&quot;itemName&quot;);</span>
+<span class="nc" id="L58">            authorNeeded = extras.getString(&quot;author&quot;);</span>
+
+        }
+<span class="nc" id="L61">        bookView = findViewById(R.id.book_view);</span>
+
+<span class="nc" id="L63">        coverImg = findViewById(R.id.cover_img);</span>
+<span class="nc" id="L64">        bookTxt = findViewById(R.id.title_txt);</span>
+<span class="nc" id="L65">        authorTxt = findViewById(R.id.author_txt);</span>
+<span class="nc" id="L66">        publishDateTxt = findViewById(R.id.publishing_date_txt);</span>
+<span class="nc" id="L67">        ratingTxt = findViewById(R.id.rating_txt);</span>
+<span class="nc" id="L68">        bookButton = findViewById(R.id.delete_book_btn);</span>
+<span class="nc" id="L69">        authorEdt = findViewById(R.id.fix_author_edt);</span>
+<span class="nc" id="L70">        authorButton = findViewById(R.id.fix_author_btn);</span>
+
+
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (titleNeeded != null) {</span>
+<span class="nc" id="L74">            bookSearchRepository(titleNeeded);</span>
+        }
+
+<span class="nc" id="L77">        bookButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L80">                deleteBook(titleNeeded);</span>
+<span class="nc" id="L81">            }</span>
+        });
+
+<span class="nc" id="L84">        authorButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L87">                String fixedAuthor = authorEdt.getText().toString();</span>
+<span class="nc bnc" id="L88" title="All 4 branches missed.">                if (fixedAuthor == null || fixedAuthor.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L89">                    Toast.makeText(getApplicationContext(), &quot;No author written.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L90">                    return;</span>
+                }
+<span class="nc" id="L92">                updateAuthor(fixedAuthor);</span>
+<span class="nc" id="L93">            }</span>
+        });
+
+
+<span class="nc" id="L97">    }</span>
+
+    /**
+     * This method searches our database for the requested book coming from the Search activity.
+     * At this point, the book will always be in the repository, as that is handled in SearchActivity.
+     *
+     * @param mediaTitle The name of the book to be located in the Books repository.
+     */
+    private void bookSearchRepository(String mediaTitle) {
+<span class="nc" id="L106">        String url = String.format(&quot;http://coms-3090-017.class.las.iastate.edu:8080/book/name?title=%s&quot;, mediaTitle);</span>
+<span class="nc" id="L107">        JsonObjectRequest retrieveBook = new JsonObjectRequest(Request.Method.GET, // HTTP method (GET request)</span>
+                url, // API URL
+                null, // Request body (null for GET request)
+                response -&gt; {
+                    //extract information out of returned JSON book object
+                    String title;
+                    String year;
+                    String coverURL;
+<span class="nc" id="L115">                    foundBook = response;</span>
+                    try {
+<span class="nc" id="L117">                        Log.d(&quot;Server response:&quot;, response.toString());</span>
+<span class="nc" id="L118">                        title = foundBook.get(&quot;title&quot;).toString();</span>
+<span class="nc" id="L119">                        year = foundBook.get(&quot;publishedDate&quot;).toString();</span>
+<span class="nc" id="L120">                        coverURL = foundBook.get(&quot;thumbnailUrl&quot;).toString();</span>
+<span class="nc" id="L121">                        ID = (int) foundBook.get(&quot;id&quot;);</span>
+<span class="nc" id="L122">                    } catch (JSONException e) {</span>
+<span class="nc" id="L123">                        throw new RuntimeException(e);</span>
+<span class="nc" id="L124">                    }</span>
+                    //display results page for books
+<span class="nc" id="L126">                    bookTxt.setText(title);</span>
+<span class="nc" id="L127">                    authorTxt.setText(authorNeeded);</span>
+<span class="nc" id="L128">                    publishDateTxt.setText(&quot;(&quot; + year + &quot;)&quot;);</span>
+
+                    //Credit for this image loading thing also goes to Cristian
+<span class="nc bnc" id="L131" title="All 4 branches missed.">                    if (coverURL == null || coverURL.isEmpty()) {</span>
+<span class="nc" id="L132">                        coverImg.setImageResource(R.drawable.error_image);</span>
+<span class="nc" id="L133">                        return;</span>
+                    }
+
+<span class="nc" id="L136">                    VolleySingleton.getInstance(BookActivity.this).getImageLoader().get(coverURL,</span>
+<span class="nc" id="L137">                            com.android.volley.toolbox.ImageLoader.getImageListener(</span>
+                                    coverImg,
+                                    R.drawable.cyval_logo,
+                                    R.drawable.error_image
+                            )
+                    );
+<span class="nc" id="L143">                },</span>
+
+
+                error -&gt; {
+<span class="nc" id="L147">                    int errorCode = error.networkResponse.statusCode;</span>
+
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                    if (errorCode == 404) { //If book could not be found in repository (404 error), use API search (OpenLibrary)</span>
+<span class="nc" id="L150">                        Toast.makeText(getApplicationContext(), &quot;Could not retrieve book from database.&quot;, Toast.LENGTH_LONG).show();</span>
+                    } else {
+<span class="nc" id="L152">                        Toast.makeText(getApplicationContext(), &quot;Unknown error.&quot;, Toast.LENGTH_LONG).show();</span>
+                    }
+
+<span class="nc" id="L155">                }</span>
+<span class="nc" id="L156">        ) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() throws AuthFailureError {
+                // Define headers if needed
+<span class="nc" id="L160">                HashMap&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L161">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+                // Define parameters if needed
+<span class="nc" id="L167">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                // Example parameters (uncomment if needed)
+                // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L171">                return params;</span>
+            }
+        };
+
+        // Adding request to the Volley request queue
+<span class="nc" id="L176">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(retrieveBook);</span>
+<span class="nc" id="L177">    }</span>
+
+    /**
+     * This method deletes the book currently being viewed. Restricted to Administrators.
+     *
+     * @param mediaTitle The name of the book to be deleted.
+     */
+    private void deleteBook(String mediaTitle) {
+<span class="nc" id="L185">        String url = String.format(&quot;http://coms-3090-017.class.las.iastate.edu:8080/books/%d&quot;, ID);</span>
+<span class="nc" id="L186">        StringRequest deleteBook = new StringRequest(Request.Method.DELETE, // HTTP method (DELETE request)</span>
+                url, // API URL
+<span class="nc" id="L188">                new Response.Listener&lt;String&gt;() {</span>
+
+                    @Override
+                    public void onResponse(String response) {
+<span class="nc" id="L192">                        Toast.makeText(getApplicationContext(), response, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L193">                        Intent intent = new Intent(BookActivity.this, SearchActivity.class);</span>
+<span class="nc" id="L194">                        startActivity(intent);</span>
+<span class="nc" id="L195">                    }</span>
+                },
+<span class="nc" id="L197">                new Response.ErrorListener() {</span>
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L201">                        Toast.makeText(getApplicationContext(), &quot;Could not find book to delete&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L202">                    }</span>
+
+                }
+<span class="nc" id="L205">        ) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() throws AuthFailureError {
+                // Define headers if needed
+<span class="nc" id="L209">                HashMap&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L210">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+                // Define parameters if needed
+<span class="nc" id="L216">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                // Example parameters (uncomment if needed)
+                // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L220">                return params;</span>
+            }
+        };
+
+        // Adding request to the Volley request queue
+<span class="nc" id="L225">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(deleteBook);</span>
+<span class="nc" id="L226">    }</span>
+
+    /**
+     * If the author of a book is incorrect, this method can be used to update the current book
+     * being viewed's author reference in the Books repository.
+     *
+     * @param newAuthor The name of the updated author reference.
+     */
+    private void updateAuthor(String newAuthor) {
+        //update book information in foundBook
+        try {
+<span class="nc" id="L237">            foundBook.put(&quot;authors&quot;, newAuthor);</span>
+<span class="nc" id="L238">        } catch (JSONException e) {</span>
+<span class="nc" id="L239">            throw new RuntimeException(e);</span>
+<span class="nc" id="L240">        }</span>
+<span class="nc" id="L241">        String url = String.format(&quot;http://coms-3090-017.class.las.iastate.edu:8080/books/%d&quot;, ID);</span>
+<span class="nc" id="L242">        JsonObjectRequest update = new JsonObjectRequest(Request.Method.PUT, // HTTP method (GET request)</span>
+                url, // API URL
+                foundBook, // the updated book to updated
+                response -&gt; {
+<span class="nc" id="L246">                    Toast.makeText(getApplicationContext(), &quot;Thank you for fixing!&quot;, Toast.LENGTH_LONG).show();</span>
+
+                    //update results page
+                    String fixedText;
+                    try {
+<span class="nc" id="L251">                        fixedText = response.get(&quot;authors&quot;).toString();</span>
+<span class="nc" id="L252">                    } catch (JSONException e) {</span>
+<span class="nc" id="L253">                        throw new RuntimeException(e);</span>
+<span class="nc" id="L254">                    }</span>
+<span class="nc" id="L255">                    authorTxt.setText(fixedText);</span>
+<span class="nc" id="L256">                },</span>
+
+
+                error -&gt; {
+<span class="nc" id="L260">                    int errorCode = error.networkResponse.statusCode;</span>
+
+<span class="nc bnc" id="L262" title="All 2 branches missed.">                    if (errorCode == 404) { //If book could not be found in repository (404 error), use API search (OpenLibrary)</span>
+<span class="nc" id="L263">                        Toast.makeText(getApplicationContext(), &quot;Could not update book in database.&quot;, Toast.LENGTH_LONG).show();</span>
+                    } else {
+<span class="nc" id="L265">                        Toast.makeText(getApplicationContext(), &quot;Unknown error.&quot;, Toast.LENGTH_LONG).show();</span>
+                    }
+
+<span class="nc" id="L268">                }</span>
+<span class="nc" id="L269">        ) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() throws AuthFailureError {
+                // Define headers if needed
+<span class="nc" id="L273">                HashMap&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L274">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+                // Define parameters if needed
+<span class="nc" id="L280">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                // Example parameters (uncomment if needed)
+                // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L284">                return params;</span>
+            }
+        };
+
+        // Adding request to the Volley request queue
+<span class="nc" id="L289">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(update);</span>
+<span class="nc" id="L290">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

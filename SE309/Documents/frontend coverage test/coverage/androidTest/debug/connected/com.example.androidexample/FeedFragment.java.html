@@ -1,0 +1,724 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FeedFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">FeedFragment.java</span></div><h1>FeedFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Toast;
+
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.chip.ChipGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * FeedFragment — the main scrollable feed shown on the home tab.
+ *
+ * Data flow:
+ *   1. loadFeed() fires 6 parallel API calls (posts + 5 media types).
+ *   2. Each callback decrements pendingCalls; when it hits 0, checkAndMerge()
+ *      interleaves posts with media cards and stores the result in allItems.
+ *   3. applyFilters() narrows allItems into displayedItems for the RecyclerView.
+ *   4. If a search finds nothing locally, searchExternalApis() hits the backend's
+ *      third-party API proxies and appends results.
+ */
+<span class="fc" id="L50">public class FeedFragment extends Fragment {</span>
+
+    private static final String TAG = &quot;FeedFragment&quot;;
+
+    // -------------------------------------------------------------------------
+    // Data
+    // -------------------------------------------------------------------------
+
+<span class="fc" id="L58">    private final List&lt;DTOmodels.FeedItem&gt; postItems  = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L59">    private final List&lt;DTOmodels.FeedItem&gt; mediaItems = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L60">    private final List&lt;DTOmodels.FeedItem&gt; allItems   = new ArrayList&lt;&gt;();</span>
+    private List&lt;DTOmodels.FeedItem&gt; displayedItems;
+
+    // -------------------------------------------------------------------------
+    // UI
+    // -------------------------------------------------------------------------
+
+    private RecyclerView recyclerView;
+    private FeedAdapter adapter;
+    private EditText searchBar;
+    private SwipeRefreshLayout swipeRefresh;
+    /** Hamburger button — tinted yellow when a non-default filter is active. */
+    private ImageView menuBtn;
+
+    // -------------------------------------------------------------------------
+    // State
+    // -------------------------------------------------------------------------
+
+    /**
+     * Counts in-flight API calls. Decremented atomically from Volley threads;
+     * checkAndMerge() merges data when it reaches zero.
+     */
+<span class="fc" id="L82">    private final AtomicInteger pendingCalls = new AtomicInteger(0);</span>
+
+    /** True once the first successful load completes. Prevents onResume from
+     *  triggering a full 6-call reload every time the user navigates back. */
+<span class="fc" id="L86">    private boolean feedLoaded = false;</span>
+
+    /** Current view-type filter: &quot;ALL&quot; | &quot;POSTS&quot; | &quot;MEDIA&quot; | &quot;FOLLOWING&quot;. */
+<span class="fc" id="L89">    private String currentViewType = &quot;ALL&quot;;</span>
+
+    /** Current media-type filter: &quot;ALL&quot; | &quot;ALBUM&quot; | &quot;BOOK&quot; | &quot;GAME&quot; | &quot;MOVIE&quot; | &quot;ARTIST&quot;. */
+<span class="fc" id="L92">    private String currentFilter = &quot;ALL&quot;;</span>
+
+    /** IDs of users the current user follows — used by the FOLLOWING filter at display time. */
+<span class="fc" id="L95">    private final List&lt;Integer&gt; followedIDs = new ArrayList&lt;&gt;();</span>
+
+    /**
+     * Post IDs the current user has liked during this session.
+     * Shared with {@link FeedAdapter} by reference so the adapter always reflects the
+     * latest state without needing a full re-bind. Reset on each full feed reload.
+     */
+<span class="fc" id="L102">    private final Set&lt;Integer&gt; likedPostIds = new HashSet&lt;&gt;();</span>
+
+    private int currentUserId;
+
+    // -------------------------------------------------------------------------
+    // Functional interface for the generic media loader
+    // -------------------------------------------------------------------------
+
+    private interface FeedItemParser {
+        DTOmodels.FeedItem parse(JSONObject obj) throws Exception;
+    }
+
+    // =========================================================================
+    // Lifecycle
+    // =========================================================================
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+<span class="fc" id="L122">        View view = inflater.inflate(R.layout.fragment_feed, container, false);</span>
+
+<span class="fc" id="L124">        currentUserId = requireActivity().getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+
+<span class="fc" id="L126">        recyclerView = view.findViewById(R.id.feed_recycler_view);</span>
+<span class="fc" id="L127">        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));</span>
+
+<span class="fc" id="L129">        searchBar = view.findViewById(R.id.feed_search_bar);</span>
+<span class="fc" id="L130">        searchBar.setOnEditorActionListener((v, actionId, event) -&gt; {</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">            if (actionId == EditorInfo.IME_ACTION_SEARCH) {</span>
+<span class="fc" id="L132">                String query = searchBar.getText().toString().trim();</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">                if (!query.isEmpty()) searchFeed(query);</span>
+<span class="nc" id="L134">                else applyFilters();</span>
+<span class="fc" id="L135">                return true;</span>
+            }
+<span class="nc" id="L137">            return false;</span>
+        });
+
+<span class="fc" id="L140">        swipeRefresh = view.findViewById(R.id.swipe_refresh);</span>
+<span class="fc" id="L141">        swipeRefresh.setColorSchemeColors(Color.parseColor(&quot;#E53935&quot;));</span>
+<span class="fc" id="L142">        swipeRefresh.setOnRefreshListener(() -&gt; {</span>
+<span class="fc" id="L143">            feedLoaded = false; // force a real reload on the next loadFeed() call</span>
+<span class="fc" id="L144">            loadFeed();</span>
+<span class="fc" id="L145">        });</span>
+
+<span class="fc" id="L147">        menuBtn = view.findViewById(R.id.feed_menu_btn);</span>
+<span class="fc" id="L148">        menuBtn.setOnClickListener(v -&gt; showFilterSheet());</span>
+
+<span class="fc" id="L150">        displayedItems = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L151">        adapter = new FeedAdapter(getContext(), displayedItems, new FeedAdapter.OnItemClickListener() {</span>
+            @Override
+            public void onPostClick(DTOmodels.FeedPost post) {
+<span class="fc" id="L154">                Intent intent = new Intent(getContext(), PostViewActivity.class);</span>
+<span class="fc" id="L155">                intent.putExtra(&quot;postId&quot;,       post.id);</span>
+<span class="fc" id="L156">                intent.putExtra(&quot;reviewId&quot;,     post.reviewId);</span>
+<span class="fc" id="L157">                intent.putExtra(&quot;authorId&quot;,     post.authorId);</span>
+<span class="fc" id="L158">                intent.putExtra(&quot;authorName&quot;,   post.authorName);</span>
+<span class="fc" id="L159">                intent.putExtra(&quot;caption&quot;,      post.caption);</span>
+<span class="fc" id="L160">                intent.putExtra(&quot;mediaTitle&quot;,   post.mediaTitle);</span>
+<span class="fc" id="L161">                intent.putExtra(&quot;mediaType&quot;,    post.mediaType);</span>
+<span class="fc" id="L162">                intent.putExtra(&quot;rating&quot;,       post.rating);</span>
+<span class="fc" id="L163">                intent.putExtra(&quot;likeCount&quot;,    post.likeCount);</span>
+<span class="fc" id="L164">                intent.putExtra(&quot;commentCount&quot;, post.commentCount);</span>
+<span class="fc" id="L165">                intent.putExtra(&quot;publishedAt&quot;,  post.publishedAt);</span>
+<span class="fc" id="L166">                intent.putExtra(&quot;USER_ID&quot;,      currentUserId);</span>
+<span class="fc" id="L167">                startActivity(intent);</span>
+<span class="fc" id="L168">            }</span>
+
+            @Override
+            public void onMediaClick(DTOmodels.FeedMedia media) {
+<span class="fc" id="L172">                Intent intent = new Intent(getContext(), MediaDetailActivity.class);</span>
+<span class="fc" id="L173">                intent.putExtra(&quot;mediaType&quot;, media.mediaType);</span>
+<span class="fc" id="L174">                intent.putExtra(&quot;mediaId&quot;,   media.id);</span>
+<span class="fc" id="L175">                intent.putExtra(&quot;title&quot;,     media.title);</span>
+<span class="fc" id="L176">                intent.putExtra(&quot;USER_ID&quot;,   currentUserId);</span>
+<span class="fc" id="L177">                startActivity(intent);</span>
+<span class="fc" id="L178">            }</span>
+
+            @Override
+            public void onLikeClick(DTOmodels.FeedPost post) {
+<span class="pc bpc" id="L182" title="2 of 4 branches missed.">                if (currentUserId == -1 || post.id == 0) return;</span>
+
+                // Optimistic toggle — update UI immediately so it feels instant
+<span class="fc" id="L185">                boolean wasLiked = likedPostIds.contains(post.id);</span>
+<span class="fc bfc" id="L186" title="All 2 branches covered.">                if (wasLiked) {</span>
+<span class="fc" id="L187">                    likedPostIds.remove(post.id);</span>
+<span class="fc" id="L188">                    post.likeCount = Math.max(0, post.likeCount - 1);</span>
+                } else {
+<span class="fc" id="L190">                    likedPostIds.add(post.id);</span>
+<span class="fc" id="L191">                    post.likeCount++;</span>
+                }
+<span class="fc" id="L193">                adapter.notifyDataSetChanged();</span>
+
+<span class="fc" id="L195">                ApiClient.post(getContext(),</span>
+<span class="fc" id="L196">                        &quot;/posts/&quot; + post.id + &quot;/likes?userId=&quot; + currentUserId,</span>
+                        null,
+<span class="fc" id="L198">                        new Api_Interface() {</span>
+                            @Override
+                            public void onSuccess(JSONObject response) {
+                                try {
+                                    // Sync with the authoritative server count
+<span class="fc" id="L203">                                    boolean liked = response.getBoolean(&quot;liked&quot;);</span>
+<span class="fc" id="L204">                                    int count     = response.getInt(&quot;count&quot;);</span>
+<span class="fc bfc" id="L205" title="All 2 branches covered.">                                    if (liked) likedPostIds.add(post.id);</span>
+<span class="fc" id="L206">                                    else       likedPostIds.remove(post.id);</span>
+<span class="fc" id="L207">                                    post.likeCount = count;</span>
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">                                    if (getActivity() != null)</span>
+<span class="fc" id="L209">                                        getActivity().runOnUiThread(() -&gt; adapter.notifyDataSetChanged());</span>
+<span class="pc" id="L210">                                } catch (Exception ignored) {}</span>
+<span class="fc" id="L211">                            }</span>
+
+                            @Override
+                            public void onError(String message) {
+<span class="nc" id="L215">                                Log.e(TAG, &quot;Like toggle failed: &quot; + message);</span>
+                                // Revert the optimistic update
+<span class="nc bnc" id="L217" title="All 2 branches missed.">                                if (wasLiked) {</span>
+<span class="nc" id="L218">                                    likedPostIds.add(post.id);</span>
+<span class="nc" id="L219">                                    post.likeCount++;</span>
+                                } else {
+<span class="nc" id="L221">                                    likedPostIds.remove(post.id);</span>
+<span class="nc" id="L222">                                    post.likeCount = Math.max(0, post.likeCount - 1);</span>
+                                }
+<span class="nc bnc" id="L224" title="All 2 branches missed.">                                if (getActivity() != null)</span>
+<span class="nc" id="L225">                                    getActivity().runOnUiThread(() -&gt; adapter.notifyDataSetChanged());</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">                                if (getContext() != null)</span>
+<span class="nc" id="L227">                                    Toast.makeText(getContext(), &quot;Could not update like&quot;,</span>
+<span class="nc" id="L228">                                            Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L229">                            }</span>
+                        });
+<span class="fc" id="L231">            }</span>
+        }, likedPostIds);
+<span class="fc" id="L233">        recyclerView.setAdapter(adapter);</span>
+
+        // Fetch followed-user IDs upfront so the FOLLOWING filter works instantly.
+<span class="fc" id="L236">        getFollowedUsers();</span>
+
+<span class="fc" id="L238">        return view;</span>
+    }
+
+    @Override
+    public void onResume() {
+<span class="fc" id="L243">        super.onResume();</span>
+        // Only do a full reload the first time (or after a pull-to-refresh).
+        // Subsequent onResume calls (back-navigation from PostView, etc.) skip
+        // the 6+N network requests that were hammering the server on every tap.
+<span class="fc bfc" id="L247" title="All 2 branches covered.">        if (!feedLoaded) {</span>
+<span class="fc" id="L248">            loadFeed();</span>
+        }
+<span class="fc" id="L250">    }</span>
+
+    // =========================================================================
+    // Data loading
+    // =========================================================================
+
+    private void loadFeed() {
+<span class="pc bpc" id="L257" title="1 of 2 branches missed.">        if (!isAdded()) return;</span>
+
+<span class="fc" id="L259">        postItems.clear();</span>
+<span class="fc" id="L260">        mediaItems.clear();</span>
+<span class="fc" id="L261">        likedPostIds.clear(); // reset so stale liked state doesn't survive a full reload</span>
+<span class="fc" id="L262">        pendingCalls.set(6);  // must match the number of API calls below</span>
+
+        // --- Posts ---
+<span class="fc" id="L265">        ApiClient.getArray(getContext(), &quot;/feed&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+<span class="fc" id="L268">                Gson gson = new Gson();</span>
+                try {
+<span class="fc bfc" id="L270" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="fc" id="L271">                        DTOmodels.FeedPost post = gson.fromJson(</span>
+<span class="fc" id="L272">                                response.getJSONObject(i).toString(), DTOmodels.FeedPost.class);</span>
+<span class="fc" id="L273">                        synchronized (postItems) {</span>
+<span class="fc" id="L274">                            postItems.add(DTOmodels.FeedItem.fromPost(post));</span>
+<span class="fc" id="L275">                        }</span>
+                    }
+<span class="fc" id="L277">                    Log.d(TAG, &quot;Loaded &quot; + response.length() + &quot; posts&quot;);</span>
+<span class="nc" id="L278">                } catch (Exception e) {</span>
+<span class="nc" id="L279">                    Log.e(TAG, &quot;Error parsing posts: &quot; + e.getMessage());</span>
+<span class="fc" id="L280">                }</span>
+<span class="fc" id="L281">                checkAndMerge();</span>
+<span class="fc" id="L282">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L286">                Log.e(TAG, &quot;Posts failed: &quot; + message);</span>
+<span class="nc" id="L287">                checkAndMerge();</span>
+<span class="nc" id="L288">            }</span>
+        });
+
+        // --- Media (albums, books, games, movies, artists) ---
+<span class="fc" id="L292">        Gson gson = new Gson();</span>
+<span class="fc" id="L293">        loadMediaEndpoint(&quot;/albums&quot;,  &quot;albums&quot;,</span>
+<span class="fc" id="L294">                obj -&gt; DTOmodels.FeedItem.fromAlbum(gson.fromJson(obj.toString(),  DTOmodels.album.class)));</span>
+<span class="fc" id="L295">        loadMediaEndpoint(&quot;/books&quot;,   &quot;books&quot;,</span>
+<span class="fc" id="L296">                obj -&gt; DTOmodels.FeedItem.fromBook(gson.fromJson(obj.toString(),   DTOmodels.book.class)));</span>
+<span class="fc" id="L297">        loadMediaEndpoint(&quot;/games&quot;,   &quot;games&quot;,</span>
+<span class="fc" id="L298">                obj -&gt; DTOmodels.FeedItem.fromGame(gson.fromJson(obj.toString(),   DTOmodels.game.class)));</span>
+<span class="fc" id="L299">        loadMediaEndpoint(&quot;/movies&quot;,  &quot;movies&quot;,</span>
+<span class="fc" id="L300">                obj -&gt; DTOmodels.FeedItem.fromMovie(gson.fromJson(obj.toString(),  DTOmodels.movie.class)));</span>
+<span class="fc" id="L301">        loadMediaEndpoint(&quot;/artists&quot;, &quot;artists&quot;,</span>
+<span class="fc" id="L302">                obj -&gt; DTOmodels.FeedItem.fromArtist(gson.fromJson(obj.toString(), DTOmodels.artist.class)));</span>
+<span class="fc" id="L303">    }</span>
+
+    private void loadMediaEndpoint(String endpoint, String label, FeedItemParser parser) {
+<span class="fc" id="L306">        ApiClient.getArray(getContext(), endpoint, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="fc bfc" id="L310" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="fc" id="L311">                        DTOmodels.FeedItem item = parser.parse(response.getJSONObject(i));</span>
+<span class="fc" id="L312">                        synchronized (mediaItems) { mediaItems.add(item); }</span>
+                    }
+<span class="fc" id="L314">                    Log.d(TAG, &quot;Loaded &quot; + response.length() + &quot; &quot; + label);</span>
+<span class="nc" id="L315">                } catch (Exception e) {</span>
+<span class="nc" id="L316">                    Log.e(TAG, &quot;Error parsing &quot; + label + &quot;: &quot; + e.getMessage());</span>
+<span class="fc" id="L317">                }</span>
+<span class="fc" id="L318">                checkAndMerge();</span>
+<span class="fc" id="L319">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L323">                Log.e(TAG, label + &quot; failed: &quot; + message);</span>
+<span class="nc" id="L324">                checkAndMerge();</span>
+<span class="nc" id="L325">            }</span>
+        });
+<span class="fc" id="L327">    }</span>
+
+    /**
+     * Called by every API callback. Merges and displays data once all 6 calls finish.
+     */
+    private void checkAndMerge() {
+<span class="fc bfc" id="L333" title="All 2 branches covered.">        if (pendingCalls.decrementAndGet() &gt; 0) return;</span>
+
+<span class="fc" id="L335">        Log.d(TAG, &quot;All calls done — posts: &quot; + postItems.size() + &quot;, media: &quot; + mediaItems.size());</span>
+
+<span class="fc" id="L337">        Collections.shuffle(mediaItems);</span>
+
+<span class="fc" id="L339">        List&lt;DTOmodels.FeedItem&gt; merged = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L340">        Random random = new Random();</span>
+<span class="fc" id="L341">        int mediaIndex = 0;</span>
+
+<span class="fc bfc" id="L343" title="All 2 branches covered.">        for (DTOmodels.FeedItem post : postItems) {</span>
+<span class="fc" id="L344">            merged.add(post);</span>
+<span class="pc bpc" id="L345" title="1 of 4 branches missed.">            if (mediaIndex &lt; mediaItems.size() &amp;&amp; random.nextInt(3) == 0) {</span>
+<span class="fc" id="L346">                merged.add(mediaItems.get(mediaIndex++));</span>
+            }
+<span class="fc" id="L348">        }</span>
+<span class="fc bfc" id="L349" title="All 2 branches covered.">        while (mediaIndex &lt; mediaItems.size()) {</span>
+<span class="fc" id="L350">            merged.add(mediaItems.get(mediaIndex++));</span>
+        }
+
+<span class="fc bfc" id="L353" title="All 2 branches covered.">        if (getActivity() == null) return;</span>
+<span class="fc" id="L354">        getActivity().runOnUiThread(() -&gt; {</span>
+<span class="fc" id="L355">            allItems.clear();</span>
+<span class="fc" id="L356">            allItems.addAll(merged);</span>
+<span class="fc" id="L357">            feedLoaded = true; // suppress future onResume reloads until pull-to-refresh</span>
+<span class="fc" id="L358">            applyFilters();</span>
+<span class="pc bpc" id="L359" title="1 of 2 branches missed.">            if (swipeRefresh != null) swipeRefresh.setRefreshing(false);</span>
+<span class="fc" id="L360">            Log.d(TAG, &quot;Feed ready: &quot; + merged.size() + &quot; items&quot;);</span>
+<span class="fc" id="L361">            fetchLikeStatuses();</span>
+<span class="fc" id="L362">        });</span>
+<span class="fc" id="L363">    }</span>
+
+    /**
+     * Fetches followed-user IDs. The FOLLOWING filter uses these at display time,
+     * so there's no race with loadFeed().
+     */
+    private void getFollowedUsers() {
+<span class="pc bpc" id="L370" title="1 of 2 branches missed.">        if (!isAdded()) return;</span>
+<span class="fc" id="L371">        ApiClient.getArray(getContext(), &quot;/follower/get-following/&quot; + currentUserId,</span>
+<span class="fc" id="L372">                new Api_Array_Interface() {</span>
+                    @Override
+                    public void onSuccess(JSONArray response) {
+                        try {
+<span class="fc" id="L376">                            followedIDs.clear();</span>
+<span class="fc bfc" id="L377" title="All 2 branches covered.">                            for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="fc" id="L378">                                followedIDs.add(response.getJSONObject(i).getInt(&quot;id&quot;));</span>
+                            }
+<span class="fc" id="L380">                            Log.d(TAG, &quot;Following &quot; + followedIDs.size() + &quot; users&quot;);</span>
+                            // Re-apply filters if FOLLOWING is active so the list updates.
+<span class="pc bpc" id="L382" title="3 of 4 branches missed.">                            if (currentViewType.equals(&quot;FOLLOWING&quot;) &amp;&amp; getActivity() != null) {</span>
+<span class="nc" id="L383">                                getActivity().runOnUiThread(() -&gt; applyFilters());</span>
+                            }
+<span class="nc" id="L385">                        } catch (Exception e) {</span>
+<span class="nc" id="L386">                            Log.e(TAG, &quot;Error parsing followed users: &quot; + e.getMessage());</span>
+<span class="fc" id="L387">                        }</span>
+<span class="fc" id="L388">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L392">                        Log.e(TAG, &quot;Get following error: &quot; + message);</span>
+<span class="nc" id="L393">                    }</span>
+                });
+<span class="fc" id="L395">    }</span>
+
+    /**
+     * For every post currently in the feed, checks whether the signed-in user
+     * has already liked it ({@code GET /posts/{id}/likes/status?userId=…}).
+     *
+     * &lt;p&gt;Called once per feed reload, after {@link #checkAndMerge()} has finished
+     * building {@code postItems}. Each callback updates {@link #likedPostIds} and
+     * the authoritative server like-count on the {@link DTOmodels.FeedPost} object
+     * (which is shared by reference through {@code allItems} / {@code displayedItems}),
+     * then notifies the adapter so the ♥/♡ re-renders correctly.
+     *
+     * &lt;p&gt;Failures are silently ignored — the worst outcome is a heart that stays
+     * empty when the user already liked the post (corrects itself on next tap).
+     */
+    private void fetchLikeStatuses() {
+<span class="pc bpc" id="L411" title="2 of 4 branches missed.">        if (currentUserId == -1 || !isAdded()) return;</span>
+
+        // Count how many requests we're firing so we can do a single
+        // notifyDataSetChanged() after the last one comes back instead of
+        // one redraw per post (which was causing N full redraws per load).
+<span class="fc" id="L416">        List&lt;DTOmodels.FeedPost&gt; postsToCheck = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L417" title="All 2 branches covered.">        for (DTOmodels.FeedItem item : postItems) {</span>
+<span class="pc bpc" id="L418" title="3 of 6 branches missed.">            if (item.type == DTOmodels.FeedItem.TYPE_POST</span>
+                    &amp;&amp; item.post != null &amp;&amp; item.post.id != 0) {
+<span class="fc" id="L420">                postsToCheck.add(item.post);</span>
+            }
+<span class="fc" id="L422">        }</span>
+<span class="pc bpc" id="L423" title="1 of 2 branches missed.">        if (postsToCheck.isEmpty()) return;</span>
+
+<span class="fc" id="L425">        AtomicInteger remaining = new AtomicInteger(postsToCheck.size());</span>
+
+<span class="fc bfc" id="L427" title="All 2 branches covered.">        for (DTOmodels.FeedPost post : postsToCheck) {</span>
+<span class="fc" id="L428">            ApiClient.get(getContext(),</span>
+                    &quot;/posts/&quot; + post.id + &quot;/likes/status?userId=&quot; + currentUserId,
+<span class="fc" id="L430">                    new Api_Interface() {</span>
+                        @Override
+                        public void onSuccess(JSONObject response) {
+                            try {
+<span class="fc" id="L434">                                boolean liked = response.getBoolean(&quot;liked&quot;);</span>
+<span class="fc" id="L435">                                int count     = response.getInt(&quot;count&quot;);</span>
+<span class="fc" id="L436">                                post.likeCount = count;</span>
+<span class="fc bfc" id="L437" title="All 2 branches covered.">                                if (liked) likedPostIds.add(post.id);</span>
+<span class="pc" id="L438">                            } catch (Exception ignored) {}</span>
+                            // Only notify the adapter once — after the last response
+<span class="fc bfc" id="L440" title="All 4 branches covered.">                            if (remaining.decrementAndGet() == 0 &amp;&amp; getActivity() != null) {</span>
+<span class="fc" id="L441">                                getActivity().runOnUiThread(</span>
+<span class="fc" id="L442">                                        () -&gt; adapter.notifyDataSetChanged());</span>
+                            }
+<span class="fc" id="L444">                        }</span>
+
+                        @Override
+                        public void onError(String message) {
+                            // Leave heart empty — still decrement so the final notify fires
+<span class="nc" id="L449">                            remaining.decrementAndGet();</span>
+<span class="nc" id="L450">                        }</span>
+                    });
+<span class="fc" id="L452">        }</span>
+<span class="fc" id="L453">    }</span>
+
+    // =========================================================================
+    // Filter bottom sheet
+    // =========================================================================
+
+    private void showFilterSheet() {
+<span class="pc bpc" id="L460" title="1 of 2 branches missed.">        if (!isAdded()) return;</span>
+
+<span class="fc" id="L462">        BottomSheetDialog sheet = new BottomSheetDialog(requireContext());</span>
+<span class="fc" id="L463">        View sheetView = getLayoutInflater().inflate(R.layout.dialog_feed_filter, null);</span>
+<span class="fc" id="L464">        sheet.setContentView(sheetView);</span>
+
+<span class="fc" id="L466">        ChipGroup chipViewType  = sheetView.findViewById(R.id.sheet_chip_view_type);</span>
+<span class="fc" id="L467">        ChipGroup chipMediaType = sheetView.findViewById(R.id.sheet_chip_media_type);</span>
+
+        // Restore current state BEFORE attaching listeners so check() doesn't fire them.
+        int viewChipId;
+<span class="fc bfc" id="L471" title="All 4 branches covered.">        switch (currentViewType) {</span>
+<span class="fc" id="L472">            case &quot;FOLLOWING&quot;: viewChipId = R.id.sheet_chip_view_following; break;</span>
+<span class="fc" id="L473">            case &quot;POSTS&quot;:     viewChipId = R.id.sheet_chip_view_posts;     break;</span>
+<span class="fc" id="L474">            case &quot;MEDIA&quot;:     viewChipId = R.id.sheet_chip_view_media;     break;</span>
+<span class="fc" id="L475">            default:          viewChipId = R.id.sheet_chip_view_all;       break;</span>
+        }
+<span class="fc" id="L477">        chipViewType.check(viewChipId);</span>
+
+        int typeChipId;
+<span class="fc bfc" id="L480" title="All 6 branches covered.">        switch (currentFilter) {</span>
+<span class="fc" id="L481">            case &quot;ALBUM&quot;:  typeChipId = R.id.sheet_chip_type_album;  break;</span>
+<span class="fc" id="L482">            case &quot;MOVIE&quot;:  typeChipId = R.id.sheet_chip_type_movie;  break;</span>
+<span class="fc" id="L483">            case &quot;BOOK&quot;:   typeChipId = R.id.sheet_chip_type_book;   break;</span>
+<span class="fc" id="L484">            case &quot;GAME&quot;:   typeChipId = R.id.sheet_chip_type_game;   break;</span>
+<span class="fc" id="L485">            case &quot;ARTIST&quot;: typeChipId = R.id.sheet_chip_type_artist; break;</span>
+<span class="fc" id="L486">            default:       typeChipId = R.id.sheet_chip_type_all;    break;</span>
+        }
+<span class="fc" id="L488">        chipMediaType.check(typeChipId);</span>
+
+<span class="fc" id="L490">        chipViewType.setOnCheckedStateChangeListener((group, checkedIds) -&gt; {</span>
+<span class="pc bpc" id="L491" title="1 of 2 branches missed.">            int id = checkedIds.isEmpty() ? R.id.sheet_chip_view_all : checkedIds.get(0);</span>
+<span class="fc bfc" id="L492" title="All 2 branches covered.">            if      (id == R.id.sheet_chip_view_following) currentViewType = &quot;FOLLOWING&quot;;</span>
+<span class="fc bfc" id="L493" title="All 2 branches covered.">            else if (id == R.id.sheet_chip_view_posts)     currentViewType = &quot;POSTS&quot;;</span>
+<span class="fc bfc" id="L494" title="All 2 branches covered.">            else if (id == R.id.sheet_chip_view_media)     currentViewType = &quot;MEDIA&quot;;</span>
+<span class="fc" id="L495">            else                                           currentViewType = &quot;ALL&quot;;</span>
+<span class="fc" id="L496">            Log.d(TAG, &quot;View filter → &quot; + currentViewType);</span>
+<span class="fc" id="L497">            applyFilters();</span>
+<span class="fc" id="L498">            updateMenuBtnIndicator();</span>
+<span class="fc" id="L499">        });</span>
+
+<span class="fc" id="L501">        chipMediaType.setOnCheckedStateChangeListener((group, checkedIds) -&gt; {</span>
+<span class="pc bpc" id="L502" title="1 of 2 branches missed.">            int id = checkedIds.isEmpty() ? R.id.sheet_chip_type_all : checkedIds.get(0);</span>
+<span class="fc bfc" id="L503" title="All 2 branches covered.">            if      (id == R.id.sheet_chip_type_album)  currentFilter = &quot;ALBUM&quot;;</span>
+<span class="fc bfc" id="L504" title="All 2 branches covered.">            else if (id == R.id.sheet_chip_type_movie)  currentFilter = &quot;MOVIE&quot;;</span>
+<span class="fc bfc" id="L505" title="All 2 branches covered.">            else if (id == R.id.sheet_chip_type_book)   currentFilter = &quot;BOOK&quot;;</span>
+<span class="fc bfc" id="L506" title="All 2 branches covered.">            else if (id == R.id.sheet_chip_type_game)   currentFilter = &quot;GAME&quot;;</span>
+<span class="fc bfc" id="L507" title="All 2 branches covered.">            else if (id == R.id.sheet_chip_type_artist) currentFilter = &quot;ARTIST&quot;;</span>
+<span class="fc" id="L508">            else                                         currentFilter = &quot;ALL&quot;;</span>
+<span class="fc" id="L509">            Log.d(TAG, &quot;Media filter → &quot; + currentFilter);</span>
+<span class="fc" id="L510">            applyFilters();</span>
+<span class="fc" id="L511">            updateMenuBtnIndicator();</span>
+<span class="fc" id="L512">        });</span>
+
+<span class="fc" id="L514">        sheet.show();</span>
+<span class="fc" id="L515">    }</span>
+
+    /** Tints the hamburger yellow when any non-default filter is active. */
+    private void updateMenuBtnIndicator() {
+<span class="pc bpc" id="L519" title="1 of 2 branches missed.">        if (menuBtn == null) return;</span>
+<span class="fc bfc" id="L520" title="All 4 branches covered.">        boolean active = !currentViewType.equals(&quot;ALL&quot;) || !currentFilter.equals(&quot;ALL&quot;);</span>
+<span class="fc" id="L521">        menuBtn.setColorFilter(</span>
+<span class="fc bfc" id="L522" title="All 2 branches covered.">                active ? Color.parseColor(&quot;#FFD54F&quot;) : Color.WHITE,</span>
+                PorterDuff.Mode.SRC_IN);
+<span class="fc" id="L524">    }</span>
+
+    // =========================================================================
+    // Filtering &amp; search
+    // =========================================================================
+
+    private void applyFilters() {
+<span class="fc" id="L531">        List&lt;DTOmodels.FeedItem&gt; filtered = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L532" title="All 2 branches covered.">        for (DTOmodels.FeedItem item : allItems) {</span>
+<span class="fc bfc" id="L533" title="All 4 branches covered.">            if (passesViewTypeFilter(item) &amp;&amp; passesMediaTypeFilter(item)) {</span>
+<span class="fc" id="L534">                filtered.add(item);</span>
+            }
+<span class="fc" id="L536">        }</span>
+<span class="fc" id="L537">        updateDisplay(filtered);</span>
+<span class="fc" id="L538">    }</span>
+
+    private void searchFeed(String query) {
+<span class="fc" id="L541">        String lower = query.toLowerCase();</span>
+<span class="fc" id="L542">        List&lt;DTOmodels.FeedItem&gt; filtered = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L544" title="All 2 branches covered.">        for (DTOmodels.FeedItem item : allItems) {</span>
+<span class="pc bpc" id="L545" title="2 of 4 branches missed.">            if (!passesViewTypeFilter(item) || !passesMediaTypeFilter(item)) continue;</span>
+
+<span class="fc" id="L547">            String title = null;</span>
+<span class="pc bpc" id="L548" title="1 of 4 branches missed.">            if (item.type == DTOmodels.FeedItem.TYPE_POST &amp;&amp; item.post != null) {</span>
+<span class="fc" id="L549">                title = item.post.mediaTitle;</span>
+<span class="pc bpc" id="L550" title="2 of 4 branches missed.">            } else if (item.type == DTOmodels.FeedItem.TYPE_MEDIA &amp;&amp; item.media != null) {</span>
+<span class="fc" id="L551">                title = item.media.title;</span>
+            }
+<span class="pc bpc" id="L553" title="1 of 4 branches missed.">            if (title != null &amp;&amp; title.toLowerCase().contains(lower)) {</span>
+<span class="fc" id="L554">                filtered.add(item);</span>
+            }
+<span class="fc" id="L556">        }</span>
+
+<span class="fc" id="L558">        updateDisplay(filtered);</span>
+<span class="fc" id="L559">        searchBar.clearFocus();</span>
+
+<span class="pc bpc" id="L561" title="1 of 2 branches missed.">        if (filtered.isEmpty()) {</span>
+<span class="nc" id="L562">            Log.d(TAG, &quot;No local results for '&quot; + query + &quot;', searching external APIs...&quot;);</span>
+<span class="nc bnc" id="L563" title="All 2 branches missed.">            if (getContext() != null) {</span>
+<span class="nc" id="L564">                Toast.makeText(getContext(), &quot;Searching for '&quot; + query + &quot;'...&quot;, Toast.LENGTH_SHORT).show();</span>
+            }
+<span class="nc" id="L566">            searchExternalApis(query);</span>
+        }
+<span class="fc" id="L568">    }</span>
+
+    private void searchExternalApis(String query) {
+<span class="nc bnc" id="L571" title="All 2 branches missed.">        if (!isAdded()) return;</span>
+
+<span class="nc" id="L573">        final List&lt;DTOmodels.FeedItem&gt; results = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L574">        Gson gson = new Gson();</span>
+
+<span class="nc" id="L576">        int searchCount = 0;</span>
+<span class="nc bnc" id="L577" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;ALBUM&quot;))  searchCount++;</span>
+<span class="nc bnc" id="L578" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;GAME&quot;))   searchCount++;</span>
+<span class="nc bnc" id="L579" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;MOVIE&quot;))  searchCount++;</span>
+<span class="nc bnc" id="L580" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;BOOK&quot;))   searchCount++;</span>
+<span class="nc bnc" id="L581" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;ARTIST&quot;)) searchCount++;</span>
+
+<span class="nc bnc" id="L583" title="All 2 branches missed.">        if (searchCount == 0) return;</span>
+
+<span class="nc" id="L585">        final int[] pending = {searchCount};</span>
+
+<span class="nc bnc" id="L587" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;ALBUM&quot;)) {</span>
+<span class="nc" id="L588">            ApiClient.get(getContext(), &quot;/search-albums-and-save?album_name=&quot; + query, new Api_Interface() {</span>
+                @Override
+                public void onSuccess(JSONObject response) {
+                    try {
+<span class="nc" id="L592">                        DTOmodels.album album = gson.fromJson(response.toString(), DTOmodels.album.class);</span>
+<span class="nc" id="L593">                        synchronized (results) { results.add(DTOmodels.FeedItem.fromAlbum(album)); }</span>
+<span class="nc" id="L594">                    } catch (Exception e) { Log.e(TAG, &quot;Album search parse error: &quot; + e.getMessage()); }</span>
+<span class="nc" id="L595">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L596">                }</span>
+                @Override
+<span class="nc" id="L598">                public void onError(String message) { checkExternalDone(pending, results); }</span>
+            });
+        }
+
+<span class="nc bnc" id="L602" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;GAME&quot;)) {</span>
+<span class="nc" id="L603">            ApiClient.getArray(getContext(), &quot;/search-games?q=&quot; + query, new Api_Array_Interface() {</span>
+                @Override
+                public void onSuccess(JSONArray response) {
+                    try {
+<span class="nc bnc" id="L607" title="All 2 branches missed.">                        for (int i = 0; i &lt; Math.min(response.length(), 3); i++) {</span>
+<span class="nc" id="L608">                            DTOmodels.game game = gson.fromJson(response.getJSONObject(i).toString(), DTOmodels.game.class);</span>
+<span class="nc" id="L609">                            synchronized (results) { results.add(DTOmodels.FeedItem.fromGame(game)); }</span>
+                        }
+<span class="nc" id="L611">                    } catch (Exception e) { Log.e(TAG, &quot;Game search parse error: &quot; + e.getMessage()); }</span>
+<span class="nc" id="L612">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L613">                }</span>
+                @Override
+<span class="nc" id="L615">                public void onError(String message) { checkExternalDone(pending, results); }</span>
+            });
+        }
+
+<span class="nc bnc" id="L619" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;MOVIE&quot;)) {</span>
+<span class="nc" id="L620">            ApiClient.getArray(getContext(), &quot;/search-movies?q=&quot; + query, new Api_Array_Interface() {</span>
+                @Override
+                public void onSuccess(JSONArray response) {
+                    try {
+<span class="nc bnc" id="L624" title="All 2 branches missed.">                        for (int i = 0; i &lt; Math.min(response.length(), 3); i++) {</span>
+<span class="nc" id="L625">                            DTOmodels.movie movie = gson.fromJson(response.getJSONObject(i).toString(), DTOmodels.movie.class);</span>
+<span class="nc" id="L626">                            synchronized (results) { results.add(DTOmodels.FeedItem.fromMovie(movie)); }</span>
+                        }
+<span class="nc" id="L628">                    } catch (Exception e) { Log.e(TAG, &quot;Movie search parse error: &quot; + e.getMessage()); }</span>
+<span class="nc" id="L629">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L630">                }</span>
+                @Override
+<span class="nc" id="L632">                public void onError(String message) { checkExternalDone(pending, results); }</span>
+            });
+        }
+
+<span class="nc bnc" id="L636" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;BOOK&quot;)) {</span>
+<span class="nc" id="L637">            ApiClient.getArray(getContext(), &quot;/search-books?q=&quot; + query, new Api_Array_Interface() {</span>
+                @Override
+                public void onSuccess(JSONArray response) {
+                    try {
+<span class="nc bnc" id="L641" title="All 2 branches missed.">                        for (int i = 0; i &lt; Math.min(response.length(), 3); i++) {</span>
+<span class="nc" id="L642">                            DTOmodels.book book = gson.fromJson(response.getJSONObject(i).toString(), DTOmodels.book.class);</span>
+<span class="nc" id="L643">                            synchronized (results) { results.add(DTOmodels.FeedItem.fromBook(book)); }</span>
+                        }
+<span class="nc" id="L645">                    } catch (Exception e) { Log.e(TAG, &quot;Book search parse error: &quot; + e.getMessage()); }</span>
+<span class="nc" id="L646">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L647">                }</span>
+                @Override
+<span class="nc" id="L649">                public void onError(String message) { checkExternalDone(pending, results); }</span>
+            });
+        }
+
+<span class="nc bnc" id="L653" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;ARTIST&quot;)) {</span>
+<span class="nc" id="L654">            ApiClient.get(getContext(), &quot;/search-artist-and-save?artist_name=&quot; + query, new Api_Interface() {</span>
+                @Override
+                public void onSuccess(JSONObject response) {
+                    try {
+<span class="nc" id="L658">                        DTOmodels.artist artist = gson.fromJson(response.toString(), DTOmodels.artist.class);</span>
+<span class="nc" id="L659">                        synchronized (results) { results.add(DTOmodels.FeedItem.fromArtist(artist)); }</span>
+<span class="nc" id="L660">                    } catch (Exception e) { Log.e(TAG, &quot;Artist search parse error: &quot; + e.getMessage()); }</span>
+<span class="nc" id="L661">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L662">                }</span>
+                @Override
+<span class="nc" id="L664">                public void onError(String message) { checkExternalDone(pending, results); }</span>
+            });
+        }
+<span class="nc" id="L667">    }</span>
+
+    private void checkExternalDone(int[] pending, List&lt;DTOmodels.FeedItem&gt; results) {
+<span class="nc bnc" id="L670" title="All 2 branches missed.">        synchronized (pending) { pending[0]--; if (pending[0] &gt; 0) return; }</span>
+<span class="nc bnc" id="L671" title="All 2 branches missed.">        if (getActivity() == null) return;</span>
+
+<span class="nc" id="L673">        getActivity().runOnUiThread(() -&gt; {</span>
+<span class="nc bnc" id="L674" title="All 2 branches missed.">            if (!isAdded()) return;</span>
+<span class="nc bnc" id="L675" title="All 2 branches missed.">            if (!results.isEmpty()) {</span>
+<span class="nc" id="L676">                allItems.addAll(results);</span>
+<span class="nc" id="L677">                mediaItems.addAll(results);</span>
+<span class="nc" id="L678">                updateDisplay(results);</span>
+<span class="nc" id="L679">                Toast.makeText(getContext(),</span>
+<span class="nc" id="L680">                        &quot;Found &quot; + results.size() + &quot; result(s)!&quot;, Toast.LENGTH_SHORT).show();</span>
+            } else {
+<span class="nc" id="L682">                Toast.makeText(getContext(), &quot;No results found&quot;, Toast.LENGTH_SHORT).show();</span>
+            }
+<span class="nc" id="L684">        });</span>
+<span class="nc" id="L685">    }</span>
+
+    // =========================================================================
+    // Filter helpers
+    // =========================================================================
+
+    private boolean passesViewTypeFilter(DTOmodels.FeedItem item) {
+<span class="fc bfc" id="L692" title="All 4 branches covered.">        switch (currentViewType) {</span>
+            case &quot;POSTS&quot;:
+<span class="fc bfc" id="L694" title="All 2 branches covered.">                return item.type == DTOmodels.FeedItem.TYPE_POST;</span>
+            case &quot;FOLLOWING&quot;:
+                // Only posts from users the current user follows.
+<span class="pc bpc" id="L697" title="1 of 4 branches missed.">                return item.type == DTOmodels.FeedItem.TYPE_POST</span>
+                        &amp;&amp; item.post != null
+<span class="pc bpc" id="L699" title="1 of 2 branches missed.">                        &amp;&amp; followedIDs.contains(item.post.authorId);</span>
+            case &quot;MEDIA&quot;:
+<span class="fc bfc" id="L701" title="All 2 branches covered.">                return item.type == DTOmodels.FeedItem.TYPE_MEDIA;</span>
+            default: // &quot;ALL&quot;
+<span class="fc" id="L703">                return true;</span>
+        }
+    }
+
+    private boolean passesMediaTypeFilter(DTOmodels.FeedItem item) {
+<span class="fc bfc" id="L708" title="All 2 branches covered.">        if (currentFilter.equals(&quot;ALL&quot;)) return true;</span>
+<span class="pc bpc" id="L709" title="1 of 4 branches missed.">        if (item.type == DTOmodels.FeedItem.TYPE_POST &amp;&amp; item.post != null) {</span>
+<span class="fc" id="L710">            return currentFilter.equals(item.post.mediaType);</span>
+        }
+<span class="pc bpc" id="L712" title="2 of 4 branches missed.">        if (item.type == DTOmodels.FeedItem.TYPE_MEDIA &amp;&amp; item.media != null) {</span>
+<span class="fc" id="L713">            return currentFilter.equals(item.media.mediaType);</span>
+        }
+<span class="nc" id="L715">        return false;</span>
+    }
+
+    private void updateDisplay(List&lt;DTOmodels.FeedItem&gt; items) {
+<span class="fc" id="L719">        displayedItems.clear();</span>
+<span class="fc" id="L720">        displayedItems.addAll(items);</span>
+<span class="fc" id="L721">        adapter.notifyDataSetChanged();</span>
+<span class="fc" id="L722">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

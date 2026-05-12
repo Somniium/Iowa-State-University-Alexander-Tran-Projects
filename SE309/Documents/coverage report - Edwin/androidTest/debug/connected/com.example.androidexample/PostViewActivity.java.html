@@ -1,0 +1,675 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PostViewActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">PostViewActivity.java</span></div><h1>PostViewActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupMenu;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="nc" id="L31">public class PostViewActivity extends AppCompatActivity {</span>
+
+    private TextView authorInitial, authorName, timestamp;
+    private TextView mediaTypeChip, caption, reviewBody;
+    private View captionDivider;
+    private TextView likeCount, commentCount, commentsHeader;
+    private ImageView postMenu, btnBack;
+    private FrameLayout mediaCardContainer;
+    private CardView authorAvatar;
+
+    private RecyclerView commentsRecycler;
+    private CommentAdapter commentAdapter;
+    private List&lt;DTOmodels.FeedComment&gt; comments;
+    private EditText commentInput;
+    private Button submitCommentBtn;
+
+    private int postId;
+    private int reviewId;
+    private int authorId;
+    private String authorNameStr;
+    private String captionStr;
+    private String mediaTitleStr;
+    private String mediaTypeStr;
+    private int rating;
+    private int likes;
+    private int commentCt;
+    private String publishedAt;
+
+    private int currentUserId;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L63">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L64">        setContentView(R.layout.activity_post_view);</span>
+
+<span class="nc" id="L66">        btnBack = findViewById(R.id.btn_back);</span>
+<span class="nc" id="L67">        authorAvatar = findViewById(R.id.detail_author_avatar);</span>
+<span class="nc" id="L68">        authorInitial = findViewById(R.id.detail_author_initial);</span>
+<span class="nc" id="L69">        authorName = findViewById(R.id.detail_author_name);</span>
+<span class="nc" id="L70">        timestamp = findViewById(R.id.detail_timestamp);</span>
+<span class="nc" id="L71">        mediaTypeChip = findViewById(R.id.detail_media_type_chip);</span>
+<span class="nc" id="L72">        caption = findViewById(R.id.detail_caption);</span>
+<span class="nc" id="L73">        captionDivider = findViewById(R.id.detail_caption_divider);</span>
+<span class="nc" id="L74">        reviewBody = findViewById(R.id.detail_review_body);</span>
+<span class="nc" id="L75">        likeCount = findViewById(R.id.detail_like_count);</span>
+<span class="nc" id="L76">        commentCount = findViewById(R.id.detail_comment_count);</span>
+<span class="nc" id="L77">        commentsHeader = findViewById(R.id.comments_header);</span>
+<span class="nc" id="L78">        postMenu = findViewById(R.id.detail_post_menu);</span>
+<span class="nc" id="L79">        mediaCardContainer = findViewById(R.id.detail_media_card_container);</span>
+
+<span class="nc" id="L81">        commentsRecycler = findViewById(R.id.comments_recycler_view);</span>
+<span class="nc" id="L82">        commentInput = findViewById(R.id.comment_input);</span>
+<span class="nc" id="L83">        submitCommentBtn = findViewById(R.id.btn_submit_comment);</span>
+
+<span class="nc" id="L85">        postId = getIntent().getIntExtra(&quot;postId&quot;, -1);</span>
+<span class="nc" id="L86">        reviewId = getIntent().getIntExtra(&quot;reviewId&quot;, -1);</span>
+<span class="nc" id="L87">        authorId = getIntent().getIntExtra(&quot;authorId&quot;, 0);</span>
+<span class="nc" id="L88">        authorNameStr = getIntent().getStringExtra(&quot;authorName&quot;);</span>
+<span class="nc" id="L89">        captionStr = getIntent().getStringExtra(&quot;caption&quot;);</span>
+<span class="nc" id="L90">        mediaTitleStr = getIntent().getStringExtra(&quot;mediaTitle&quot;);</span>
+<span class="nc" id="L91">        mediaTypeStr = getIntent().getStringExtra(&quot;mediaType&quot;);</span>
+<span class="nc" id="L92">        rating = getIntent().getIntExtra(&quot;rating&quot;, 0);</span>
+<span class="nc" id="L93">        likes = getIntent().getIntExtra(&quot;likeCount&quot;, 0);</span>
+<span class="nc" id="L94">        commentCt = getIntent().getIntExtra(&quot;commentCount&quot;, 0);</span>
+<span class="nc" id="L95">        publishedAt = getIntent().getStringExtra(&quot;publishedAt&quot;);</span>
+<span class="nc" id="L96">        currentUserId = getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+
+<span class="nc" id="L98">        Log.d(&quot;PostDetail&quot;, &quot;Intent data: postId=&quot; + postId + &quot; reviewId=&quot; + reviewId</span>
+                + &quot; author=&quot; + authorNameStr + &quot; mediaType=&quot; + mediaTypeStr
+                + &quot; rating=&quot; + rating + &quot; title=&quot; + mediaTitleStr);
+
+<span class="nc" id="L102">        displayPost();</span>
+
+<span class="nc" id="L104">        commentsRecycler.setLayoutManager(new LinearLayoutManager(this));</span>
+<span class="nc" id="L105">        comments = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L106">        commentAdapter = new CommentAdapter(this, comments, currentUserId, authorId,</span>
+<span class="nc" id="L107">                new CommentAdapter.OnCommentActionListener() {</span>
+                    @Override
+                    public void onEditComment(DTOmodels.FeedComment comment) {
+<span class="nc" id="L110">                        Log.d(&quot;PostDetail&quot;, &quot;Edit comment tapped: id=&quot; + comment.id);</span>
+<span class="nc" id="L111">                        showEditCommentDialog(comment);</span>
+<span class="nc" id="L112">                    }</span>
+
+                    @Override
+                    public void onDeleteComment(DTOmodels.FeedComment comment) {
+<span class="nc" id="L116">                        Log.d(&quot;PostDetail&quot;, &quot;Delete comment tapped: id=&quot; + comment.id);</span>
+<span class="nc" id="L117">                        deleteComment(comment);</span>
+<span class="nc" id="L118">                    }</span>
+                });
+<span class="nc" id="L120">        commentsRecycler.setAdapter(commentAdapter);</span>
+
+<span class="nc" id="L122">        loadComments();</span>
+<span class="nc" id="L123">        loadMediaDetails();</span>
+
+<span class="nc" id="L125">        btnBack.setOnClickListener(v -&gt; finish());</span>
+
+<span class="nc" id="L127">        submitCommentBtn.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L128">            String body = commentInput.getText().toString().trim();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">            if (body.isEmpty()) {</span>
+<span class="nc" id="L130">                Toast.makeText(this, &quot;Write something first!&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L131">                return;</span>
+            }
+<span class="nc" id="L133">            submitComment(body);</span>
+<span class="nc" id="L134">        });</span>
+
+<span class="nc" id="L136">        Log.d(&quot;PostDetail&quot;, &quot;onCreate complete&quot;);</span>
+<span class="nc" id="L137">    }</span>
+
+    private void displayPost() {
+<span class="nc" id="L140">        Log.d(&quot;PostDetail&quot;, &quot;Displaying post content&quot;);</span>
+
+<span class="nc bnc" id="L142" title="All 4 branches missed.">        authorInitial.setText(authorNameStr != null &amp;&amp; !authorNameStr.isEmpty()</span>
+<span class="nc" id="L143">                ? String.valueOf(authorNameStr.charAt(0)) : &quot;?&quot;);</span>
+<span class="nc" id="L144">        authorAvatar.setCardBackgroundColor(RatingUtility.getUserColor(authorNameStr));</span>
+
+<span class="nc" id="L146">        authorName.setText(authorNameStr);</span>
+<span class="nc" id="L147">        timestamp.setText(RatingUtility.timeAgo(publishedAt));</span>
+
+<span class="nc" id="L149">        mediaTypeChip.setText(mediaTypeStr);</span>
+<span class="nc" id="L150">        int chipColor = getMediaTypeColor(mediaTypeStr);</span>
+<span class="nc" id="L151">        mediaTypeChip.getBackground().setColorFilter(chipColor, android.graphics.PorterDuff.Mode.SRC_IN);</span>
+
+<span class="nc bnc" id="L153" title="All 4 branches missed.">        if (captionStr != null &amp;&amp; !captionStr.isEmpty()) {</span>
+<span class="nc" id="L154">            caption.setText(captionStr);</span>
+<span class="nc" id="L155">            caption.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L156">            captionDivider.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L157">            Log.d(&quot;PostDetail&quot;, &quot;Caption shown: &quot; + captionStr);</span>
+        } else {
+<span class="nc" id="L159">            caption.setVisibility(View.GONE);</span>
+<span class="nc" id="L160">            captionDivider.setVisibility(View.GONE);</span>
+<span class="nc" id="L161">            Log.d(&quot;PostDetail&quot;, &quot;No caption — hidden&quot;);</span>
+        }
+
+<span class="nc" id="L164">        reviewBody.setVisibility(View.GONE);</span>
+
+<span class="nc" id="L166">        likeCount.setText(&quot;♡ &quot; + likes);</span>
+<span class="nc" id="L167">        commentCount.setText(&quot;💬 &quot; + commentCt);</span>
+<span class="nc" id="L168">        commentsHeader.setText(&quot;Comments (&quot; + commentCt + &quot;)&quot;);</span>
+
+<span class="nc" id="L170">        postMenu.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L171">            PopupMenu popup = new PopupMenu(this, v);</span>
+
+<span class="nc bnc" id="L173" title="All 2 branches missed.">            if (authorId == currentUserId) {</span>
+<span class="nc" id="L174">                popup.getMenu().add(&quot;Edit caption&quot;);</span>
+<span class="nc" id="L175">                popup.getMenu().add(&quot;Edit review&quot;);</span>
+<span class="nc" id="L176">                popup.getMenu().add(&quot;Delete post&quot;);</span>
+            } else {
+<span class="nc" id="L178">                popup.getMenu().add(&quot;Report post&quot;);</span>
+            }
+
+<span class="nc" id="L181">            popup.setOnMenuItemClickListener(item -&gt; {</span>
+<span class="nc" id="L182">                Log.d(&quot;PostDetail&quot;, &quot;Menu item tapped: &quot; + item.getTitle());</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">                if (item.getTitle().equals(&quot;Edit caption&quot;)) {</span>
+<span class="nc" id="L184">                    showEditCaptionDialog();</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">                } else if (item.getTitle().equals(&quot;Edit review&quot;)) {</span>
+<span class="nc" id="L186">                    showEditReviewDialog();</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">                } else if (item.getTitle().equals(&quot;Delete post&quot;)) {</span>
+<span class="nc" id="L188">                    deletePost();</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">                } else if (item.getTitle().equals(&quot;Report post&quot;)) {</span>
+<span class="nc" id="L190">                    Toast.makeText(this, &quot;Post reported&quot;, Toast.LENGTH_SHORT).show();</span>
+                }
+<span class="nc" id="L192">                return true;</span>
+            });
+<span class="nc" id="L194">            popup.show();</span>
+<span class="nc" id="L195">        });</span>
+<span class="nc" id="L196">    }</span>
+
+    private int getMediaTypeColor(String type) {
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        if (type == null) return android.graphics.Color.parseColor(&quot;#888888&quot;);</span>
+<span class="nc bnc" id="L200" title="All 6 branches missed.">        switch (type) {</span>
+            case &quot;MUSIC&quot;:
+<span class="nc" id="L202">                return android.graphics.Color.parseColor(&quot;#E53935&quot;);</span>
+            case &quot;MOVIE&quot;:
+<span class="nc" id="L204">                return android.graphics.Color.parseColor(&quot;#1E88E5&quot;);</span>
+            case &quot;BOOK&quot;:
+<span class="nc" id="L206">                return android.graphics.Color.parseColor(&quot;#43A047&quot;);</span>
+            case &quot;GAME&quot;:
+<span class="nc" id="L208">                return android.graphics.Color.parseColor(&quot;#8E24AA&quot;);</span>
+            case &quot;SHOW&quot;:
+<span class="nc" id="L210">                return android.graphics.Color.parseColor(&quot;#FB8C00&quot;);</span>
+            default:
+<span class="nc" id="L212">                return android.graphics.Color.parseColor(&quot;#888888&quot;);</span>
+        }
+    }
+
+    private void loadMediaDetails() {
+<span class="nc bnc" id="L217" title="All 2 branches missed.">        if (reviewId == -1) {</span>
+<span class="nc" id="L218">            Log.e(&quot;PostDetail&quot;, &quot;No reviewId — showing fallback&quot;);</span>
+<span class="nc" id="L219">            showFallbackCard();</span>
+<span class="nc" id="L220">            return;</span>
+        }
+
+<span class="nc" id="L223">        Log.d(&quot;PostDetail&quot;, &quot;Loading review &quot; + reviewId + &quot; for media details&quot;);</span>
+
+<span class="nc" id="L225">        ApiClient.get(this, &quot;/reviews/&quot; + reviewId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                    if (!response.isNull(&quot;body&quot;)) {</span>
+<span class="nc" id="L230">                        reviewBody.setText(response.getString(&quot;body&quot;));</span>
+<span class="nc" id="L231">                        reviewBody.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L232">                        Log.d(&quot;PostDetail&quot;, &quot;Review body loaded&quot;);</span>
+                    }
+
+<span class="nc bnc" id="L235" title="All 2 branches missed.">                    if (!response.isNull(&quot;albumId&quot;)) {</span>
+<span class="nc" id="L236">                        loadAlbum(response.getLong(&quot;albumId&quot;));</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">                    } else if (!response.isNull(&quot;bookId&quot;)) {</span>
+<span class="nc" id="L238">                        loadBook(response.getLong(&quot;bookId&quot;));</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">                    } else if (!response.isNull(&quot;gameId&quot;)) {</span>
+<span class="nc" id="L240">                        loadGame(response.getLong(&quot;gameId&quot;));</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">                    } else if (!response.isNull(&quot;movieId&quot;)) {</span>
+<span class="nc" id="L242">                        loadMovie(response.getLong(&quot;movieId&quot;));</span>
+                    } else {
+<span class="nc" id="L244">                        Log.d(&quot;PostDetail&quot;, &quot;No media ID — showing fallback&quot;);</span>
+<span class="nc" id="L245">                        showFallbackCard();</span>
+                    }
+<span class="nc" id="L247">                } catch (Exception e) {</span>
+<span class="nc" id="L248">                    Log.e(&quot;PostDetail&quot;, &quot;Error parsing review: &quot; + e.getMessage());</span>
+<span class="nc" id="L249">                    e.printStackTrace();</span>
+<span class="nc" id="L250">                    showFallbackCard();</span>
+<span class="nc" id="L251">                }</span>
+<span class="nc" id="L252">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L256">                Log.e(&quot;PostDetail&quot;, &quot;Failed to load review: &quot; + message);</span>
+<span class="nc" id="L257">                showFallbackCard();</span>
+<span class="nc" id="L258">            }</span>
+        });
+<span class="nc" id="L260">    }</span>
+
+    private void showFallbackCard() {
+<span class="nc" id="L263">        View mediaCard = LayoutInflater.from(this).inflate(R.layout.item_feed_post, mediaCardContainer, false);</span>
+
+<span class="nc" id="L265">        TextView titleView = mediaCard.findViewById(R.id.feed_title);</span>
+<span class="nc" id="L266">        TextView subtitleView = mediaCard.findViewById(R.id.feed_subtitle);</span>
+<span class="nc" id="L267">        TextView typeView = mediaCard.findViewById(R.id.feed_media_type);</span>
+<span class="nc" id="L268">        TextView extraView = mediaCard.findViewById(R.id.feed_extra_info);</span>
+<span class="nc" id="L269">        TextView badgeView = mediaCard.findViewById(R.id.feed_rating_badge);</span>
+<span class="nc" id="L270">        ImageView coverView = mediaCard.findViewById(R.id.feed_cover_img);</span>
+<span class="nc" id="L271">        CardView cardRoot = mediaCard.findViewById(R.id.card_root);</span>
+
+<span class="nc" id="L273">        titleView.setText(mediaTitleStr);</span>
+<span class="nc" id="L274">        subtitleView.setText(mediaTypeStr);</span>
+<span class="nc" id="L275">        typeView.setText(mediaTypeStr);</span>
+<span class="nc" id="L276">        extraView.setVisibility(View.GONE);</span>
+<span class="nc" id="L277">        coverView.setVisibility(View.GONE);</span>
+
+<span class="nc" id="L279">        int color = RatingUtility.getRatingColor(rating);</span>
+<span class="nc" id="L280">        cardRoot.setCardBackgroundColor(color);</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">        badgeView.setText(rating &gt; 0 ? String.valueOf(rating) : &quot;-&quot;);</span>
+<span class="nc" id="L282">        badgeView.getBackground().setColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN);</span>
+
+<span class="nc" id="L284">        mediaCardContainer.addView(mediaCard);</span>
+<span class="nc" id="L285">        mediaCardContainer.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L286">        Log.d(&quot;PostDetail&quot;, &quot;Fallback card shown: &quot; + mediaTitleStr);</span>
+<span class="nc" id="L287">    }</span>
+
+
+    private void loadAlbum(long id) {
+<span class="nc" id="L291">        ApiClient.get(this, &quot;/album/&quot; + id, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L294">                DTOmodels.album album = new Gson().fromJson(response.toString(), DTOmodels.album.class);</span>
+<span class="nc" id="L295">                Log.d(&quot;PostDetail&quot;, &quot;Album loaded: &quot; + album.name + &quot; rating=&quot; + album.rating);</span>
+<span class="nc" id="L296">                showMediaCard(album.name, album.artist, album.genre, album.rating, album.coverURL, album.albumId);</span>
+<span class="nc" id="L297">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L301">                showFallbackCard();</span>
+<span class="nc" id="L302">                Log.e(&quot;PostDetail&quot;, &quot;Failed to load album &quot; + id + &quot;: &quot; + message);</span>
+<span class="nc" id="L303">            }</span>
+        });
+<span class="nc" id="L305">    }</span>
+
+    private void loadBook(long id) {
+<span class="nc" id="L308">        ApiClient.get(this, &quot;/books/&quot; + id, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L311">                DTOmodels.book book = new Gson().fromJson(response.toString(), DTOmodels.book.class);</span>
+<span class="nc" id="L312">                Log.d(&quot;PostDetail&quot;, &quot;Book loaded: &quot; + book.title);</span>
+<span class="nc" id="L313">                showMediaCard(book.title, book.authors, book.publisheddate, 0, book.thumbnailurl, book.id);</span>
+<span class="nc" id="L314">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L318">                showFallbackCard();</span>
+<span class="nc" id="L319">                Log.e(&quot;PostDetail&quot;, &quot;Failed to load book &quot; + id + &quot;: &quot; + message);</span>
+<span class="nc" id="L320">            }</span>
+        });
+<span class="nc" id="L322">    }</span>
+
+    private void loadGame(long id) {
+<span class="nc" id="L325">        ApiClient.get(this, &quot;/games/&quot; + id, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L328">                DTOmodels.game game = new Gson().fromJson(response.toString(), DTOmodels.game.class);</span>
+<span class="nc" id="L329">                Log.d(&quot;PostDetail&quot;, &quot;Game loaded: &quot; + game.title + &quot; rating=&quot; + game.rating);</span>
+<span class="nc" id="L330">                showMediaCard(game.title, game.developer, game.genre, game.rating, game.coverUrl, game.id);</span>
+<span class="nc" id="L331">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L335">                showFallbackCard();</span>
+<span class="nc" id="L336">                Log.e(&quot;PostDetail&quot;, &quot;Failed to load game &quot; + id + &quot;: &quot; + message);</span>
+<span class="nc" id="L337">            }</span>
+        });
+<span class="nc" id="L339">    }</span>
+
+    private void loadMovie(long id) {
+<span class="nc" id="L342">        ApiClient.get(this, &quot;/movies/&quot; + id, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L345">                DTOmodels.movie movie = new Gson().fromJson(response.toString(), DTOmodels.movie.class);</span>
+<span class="nc" id="L346">                Log.d(&quot;PostDetail&quot;, &quot;Movie loaded: &quot; + movie.title + &quot; rating=&quot; + movie.rating);</span>
+<span class="nc" id="L347">                showMediaCard(movie.title, movie.director, movie.genre, movie.rating, movie.posterUrl, movie.id);</span>
+<span class="nc" id="L348">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L352">                showFallbackCard();</span>
+<span class="nc" id="L353">                Log.e(&quot;PostDetail&quot;, &quot;Failed to load movie &quot; + id + &quot;: &quot; + message);</span>
+<span class="nc" id="L354">            }</span>
+        });
+<span class="nc" id="L356">    }</span>
+
+    private void showMediaCard(String title, String subtitle, String extra, int mediaRating, String imageUrl, long mediaId) {
+<span class="nc" id="L359">        Log.d(&quot;PostDetail&quot;, &quot;Showing media card: &quot; + title + &quot; rating=&quot; + mediaRating + &quot; image=&quot; + imageUrl);</span>
+
+<span class="nc" id="L361">        View mediaCard = LayoutInflater.from(this).inflate(R.layout.item_feed_post, mediaCardContainer, false);</span>
+
+<span class="nc" id="L363">        TextView titleView = mediaCard.findViewById(R.id.feed_title);</span>
+<span class="nc" id="L364">        TextView subtitleView = mediaCard.findViewById(R.id.feed_subtitle);</span>
+<span class="nc" id="L365">        TextView typeView = mediaCard.findViewById(R.id.feed_media_type);</span>
+<span class="nc" id="L366">        TextView extraView = mediaCard.findViewById(R.id.feed_extra_info);</span>
+<span class="nc" id="L367">        TextView badgeView = mediaCard.findViewById(R.id.feed_rating_badge);</span>
+<span class="nc" id="L368">        ImageView coverView = mediaCard.findViewById(R.id.feed_cover_img);</span>
+<span class="nc" id="L369">        CardView cardRoot = mediaCard.findViewById(R.id.card_root);</span>
+
+<span class="nc" id="L371">        titleView.setText(title);</span>
+<span class="nc" id="L372">        subtitleView.setText(subtitle);</span>
+<span class="nc" id="L373">        typeView.setText(mediaTypeStr);</span>
+<span class="nc" id="L374">        extraView.setText(extra);</span>
+
+<span class="nc" id="L376">        int color = RatingUtility.getRatingColor(mediaRating);</span>
+<span class="nc" id="L377">        cardRoot.setCardBackgroundColor(color);</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">        badgeView.setText(mediaRating &gt; 0 ? String.valueOf(mediaRating) : &quot;-&quot;);</span>
+<span class="nc" id="L379">        badgeView.getBackground().setColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN);</span>
+
+<span class="nc" id="L381">        ApiClient.loadImage(this, imageUrl, coverView);</span>
+
+        //add other media types only handles music for now
+<span class="nc" id="L384">        mediaCard.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L385">            Log.d(&quot;PostDetail&quot;, &quot;Media card tapped: &quot; + mediaTypeStr + &quot; - &quot; + title);</span>
+<span class="nc" id="L386">            Intent intent = new Intent(this, MediaDetailActivity.class);</span>
+<span class="nc" id="L387">            intent.putExtra(&quot;mediaType&quot;, mediaTypeStr);</span>
+<span class="nc" id="L388">            intent.putExtra(&quot;mediaId&quot;, mediaId);</span>
+<span class="nc" id="L389">            intent.putExtra(&quot;title&quot;, title);</span>
+<span class="nc" id="L390">            startActivity(intent);</span>
+<span class="nc" id="L391">        });</span>
+
+<span class="nc" id="L393">        mediaCardContainer.addView(mediaCard);</span>
+<span class="nc" id="L394">        mediaCardContainer.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L395">        Log.d(&quot;PostDetail&quot;, &quot;Media card visible&quot;);</span>
+<span class="nc" id="L396">    }</span>
+
+    private void loadComments() {
+<span class="nc" id="L399">        Log.d(&quot;PostDetail&quot;, &quot;Loading comments for post &quot; + postId);</span>
+
+<span class="nc" id="L401">        ApiClient.getArray(this, &quot;/posts/&quot; + postId + &quot;/comments&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L405">                    comments.clear();</span>
+<span class="nc" id="L406">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L407" title="All 2 branches missed.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L408">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L409">                        DTOmodels.FeedComment comment = gson.fromJson(obj.toString(), DTOmodels.FeedComment.class);</span>
+<span class="nc" id="L410">                        comments.add(comment);</span>
+                    }
+<span class="nc" id="L412">                    commentAdapter.notifyDataSetChanged();</span>
+<span class="nc" id="L413">                    commentsHeader.setText(&quot;Comments (&quot; + comments.size() + &quot;)&quot;);</span>
+<span class="nc" id="L414">                    commentCount.setText(&quot;💬 &quot; + comments.size());</span>
+<span class="nc" id="L415">                    Log.d(&quot;PostDetail&quot;, &quot;Loaded &quot; + comments.size() + &quot; comments&quot;);</span>
+<span class="nc" id="L416">                } catch (Exception e) {</span>
+<span class="nc" id="L417">                    Log.e(&quot;PostDetail&quot;, &quot;Error parsing comments: &quot; + e.getMessage());</span>
+<span class="nc" id="L418">                    e.printStackTrace();</span>
+<span class="nc" id="L419">                }</span>
+<span class="nc" id="L420">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L424">                Log.e(&quot;PostDetail&quot;, &quot;Failed to load comments: &quot; + message);</span>
+<span class="nc" id="L425">                Toast.makeText(PostViewActivity.this, &quot;Failed to load comments&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L426">            }</span>
+        });
+<span class="nc" id="L428">    }</span>
+
+    private void submitComment(String body) {
+<span class="nc" id="L431">        submitCommentBtn.setEnabled(false);</span>
+<span class="nc" id="L432">        String endpoint = &quot;/posts/&quot; + postId + &quot;/comments?authorId=&quot; + currentUserId;</span>
+<span class="nc" id="L433">        Log.d(&quot;PostDetail&quot;, &quot;Submitting comment: &quot; + body);</span>
+
+<span class="nc" id="L435">        DTOmodels.CommentRequest request = new DTOmodels.CommentRequest(body);</span>
+
+<span class="nc" id="L437">        ApiClient.post(this, endpoint, request, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L440">                submitCommentBtn.setEnabled(true);</span>
+<span class="nc" id="L441">                commentInput.setText(&quot;&quot;);</span>
+<span class="nc" id="L442">                Log.d(&quot;PostDetail&quot;, &quot;Comment posted successfully&quot;);</span>
+<span class="nc" id="L443">                Toast.makeText(PostViewActivity.this, &quot;Comment posted!&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L444">                loadComments();</span>
+<span class="nc" id="L445">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L449">                submitCommentBtn.setEnabled(true);</span>
+<span class="nc" id="L450">                Log.e(&quot;PostDetail&quot;, &quot;Comment failed: &quot; + message);</span>
+<span class="nc" id="L451">                Toast.makeText(PostViewActivity.this, &quot;Failed to post comment&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L452">            }</span>
+        });
+<span class="nc" id="L454">    }</span>
+
+    private void showEditReviewDialog() {
+<span class="nc bnc" id="L457" title="All 2 branches missed.">        if (reviewId == -1) {</span>
+<span class="nc" id="L458">            Toast.makeText(this, &quot;Cannot edit — review not loaded&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L459">            return;</span>
+        }
+
+<span class="nc" id="L462">        EditText ratingInput = new EditText(this);</span>
+<span class="nc" id="L463">        ratingInput.setHint(&quot;Rating (0-100)&quot;);</span>
+<span class="nc" id="L464">        ratingInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);</span>
+<span class="nc" id="L465">        ratingInput.setText(String.valueOf(rating));</span>
+
+<span class="nc" id="L467">        new AlertDialog.Builder(this)</span>
+<span class="nc" id="L468">                .setTitle(&quot;Edit rating&quot;)</span>
+<span class="nc" id="L469">                .setView(ratingInput)</span>
+<span class="nc" id="L470">                .setPositiveButton(&quot;Next&quot;, (dialog, which) -&gt; {</span>
+<span class="nc" id="L471">                    String newRatingStr = ratingInput.getText().toString().trim();</span>
+<span class="nc bnc" id="L472" title="All 2 branches missed.">                    if (newRatingStr.isEmpty()) {</span>
+<span class="nc" id="L473">                        Toast.makeText(this, &quot;Please enter a rating&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L474">                        return;</span>
+                    }
+
+<span class="nc" id="L477">                    int newRating = Integer.parseInt(newRatingStr);</span>
+<span class="nc bnc" id="L478" title="All 4 branches missed.">                    if (newRating &lt; 0 || newRating &gt; 100) {</span>
+<span class="nc" id="L479">                        Toast.makeText(this, &quot;Rating must be between 0 and 100&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L480">                        return;</span>
+                    }
+
+<span class="nc" id="L483">                    EditText bodyInput = new EditText(this);</span>
+<span class="nc" id="L484">                    bodyInput.setHint(&quot;Review body&quot;);</span>
+<span class="nc" id="L485">                    bodyInput.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);</span>
+<span class="nc" id="L486">                    bodyInput.setMinLines(3);</span>
+<span class="nc" id="L487">                    bodyInput.setText(reviewBody.getText().toString());</span>
+
+<span class="nc" id="L489">                    new AlertDialog.Builder(this)</span>
+<span class="nc" id="L490">                            .setTitle(&quot;Edit review&quot;)</span>
+<span class="nc" id="L491">                            .setView(bodyInput)</span>
+<span class="nc" id="L492">                            .setPositiveButton(&quot;Save&quot;, (dialog2, which2) -&gt; {</span>
+<span class="nc" id="L493">                                String newBody = bodyInput.getText().toString().trim();</span>
+<span class="nc" id="L494">                                updateReview(newRating, newBody);</span>
+<span class="nc" id="L495">                            })</span>
+<span class="nc" id="L496">                            .setNegativeButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L497">                            .show();</span>
+<span class="nc" id="L498">                })</span>
+<span class="nc" id="L499">                .setNegativeButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L500">                .show();</span>
+<span class="nc" id="L501">    }</span>
+
+    private void updateReview(int newRating, String newBody) {
+<span class="nc" id="L504">        Log.d(&quot;PostDetail&quot;, &quot;Updating review &quot; + reviewId + &quot; rating=&quot; + newRating);</span>
+
+<span class="nc" id="L506">        DTOmodels.ReviewUpdateRequest request = new DTOmodels.ReviewUpdateRequest(</span>
+                reviewId, mediaTypeStr, mediaTitleStr, newRating, newBody);
+
+<span class="nc" id="L509">        ApiClient.put(this, &quot;/reviews/&quot; + reviewId, request, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L512">                Log.d(&quot;PostDetail&quot;, &quot;Review updated successfully&quot;);</span>
+
+<span class="nc" id="L514">                rating = newRating;</span>
+<span class="nc" id="L515">                reviewBody.setText(newBody);</span>
+<span class="nc" id="L516">                reviewBody.setVisibility(View.VISIBLE);</span>
+
+<span class="nc" id="L518">                likeCount.setText(&quot;♡ &quot; + likes);</span>
+
+<span class="nc" id="L520">                Toast.makeText(PostViewActivity.this, &quot;Review updated!&quot;, Toast.LENGTH_SHORT).show();</span>
+
+<span class="nc" id="L522">                mediaCardContainer.removeAllViews();</span>
+<span class="nc" id="L523">                mediaCardContainer.setVisibility(View.GONE);</span>
+<span class="nc" id="L524">                loadMediaDetails();</span>
+<span class="nc" id="L525">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L529">                Log.e(&quot;PostDetail&quot;, &quot;Review update failed: &quot; + message);</span>
+<span class="nc" id="L530">                Toast.makeText(PostViewActivity.this, &quot;Failed to update review&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L531">            }</span>
+        });
+<span class="nc" id="L533">    }</span>
+
+    private void showEditCaptionDialog() {
+<span class="nc" id="L536">        EditText input = new EditText(this);</span>
+<span class="nc" id="L537">        input.setText(captionStr);</span>
+
+<span class="nc" id="L539">        new AlertDialog.Builder(this)</span>
+<span class="nc" id="L540">                .setTitle(&quot;Edit caption&quot;)</span>
+<span class="nc" id="L541">                .setView(input)</span>
+<span class="nc" id="L542">                .setPositiveButton(&quot;Save&quot;, (dialog, which) -&gt; {</span>
+<span class="nc" id="L543">                    String newCaption = input.getText().toString().trim();</span>
+<span class="nc" id="L544">                    Log.d(&quot;PostDetail&quot;, &quot;Editing caption to: &quot; + newCaption);</span>
+<span class="nc" id="L545">                    updateCaption(newCaption);</span>
+<span class="nc" id="L546">                })</span>
+<span class="nc" id="L547">                .setNegativeButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L548">                .show();</span>
+<span class="nc" id="L549">    }</span>
+
+    private void updateCaption(String newCaption) {
+<span class="nc" id="L552">        String endpoint = &quot;/posts/&quot; + postId + &quot;?requesterId=&quot; + currentUserId;</span>
+
+<span class="nc" id="L554">        DTOmodels.PostUpdateRequest request = new DTOmodels.PostUpdateRequest(newCaption);</span>
+
+<span class="nc" id="L556">        ApiClient.put(this, endpoint, request, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L559">                captionStr = newCaption;</span>
+<span class="nc bnc" id="L560" title="All 4 branches missed.">                if (newCaption != null &amp;&amp; !newCaption.isEmpty()) {</span>
+<span class="nc" id="L561">                    caption.setText(newCaption);</span>
+<span class="nc" id="L562">                    caption.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L563">                    captionDivider.setVisibility(View.VISIBLE);</span>
+                } else {
+<span class="nc" id="L565">                    caption.setVisibility(View.GONE);</span>
+<span class="nc" id="L566">                    captionDivider.setVisibility(View.GONE);</span>
+                }
+<span class="nc" id="L568">                Log.d(&quot;PostDetail&quot;, &quot;Caption updated successfully&quot;);</span>
+<span class="nc" id="L569">                Toast.makeText(PostViewActivity.this, &quot;Caption updated!&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L570">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L574">                Log.e(&quot;PostDetail&quot;, &quot;Caption update failed: &quot; + message);</span>
+<span class="nc" id="L575">                Toast.makeText(PostViewActivity.this, &quot;Failed to update caption&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L576">            }</span>
+        });
+<span class="nc" id="L578">    }</span>
+
+    private void deletePost() {
+<span class="nc" id="L581">        new AlertDialog.Builder(this)</span>
+<span class="nc" id="L582">                .setTitle(&quot;Delete post&quot;)</span>
+<span class="nc" id="L583">                .setMessage(&quot;Are you sure? This cannot be undone.&quot;)</span>
+<span class="nc" id="L584">                .setPositiveButton(&quot;Delete&quot;, (dialog, which) -&gt; {</span>
+<span class="nc" id="L585">                    String endpoint = &quot;/posts/&quot; + postId + &quot;?requesterId=&quot; + currentUserId;</span>
+<span class="nc" id="L586">                    Log.d(&quot;PostDetail&quot;, &quot;Deleting post &quot; + postId);</span>
+
+<span class="nc" id="L588">                    ApiClient.deleteString(this, endpoint, new Api_String_Interface() {</span>
+                        @Override
+                        public void onSuccess(String response) {
+<span class="nc" id="L591">                            Log.d(&quot;PostDetail&quot;, &quot;Post deleted successfully&quot;);</span>
+<span class="nc" id="L592">                            Toast.makeText(PostViewActivity.this, &quot;Post deleted!&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L593">                            finish();</span>
+<span class="nc" id="L594">                        }</span>
+
+                        @Override
+                        public void onError(String message) {
+<span class="nc" id="L598">                            Log.e(&quot;PostDetail&quot;, &quot;Post delete failed: &quot; + message);</span>
+<span class="nc" id="L599">                            Toast.makeText(PostViewActivity.this, &quot;Failed to delete post&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L600">                        }</span>
+                    });
+<span class="nc" id="L602">                })</span>
+<span class="nc" id="L603">                .setNegativeButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L604">                .show();</span>
+<span class="nc" id="L605">    }</span>
+
+    private void showEditCommentDialog(DTOmodels.FeedComment comment) {
+<span class="nc" id="L608">        EditText input = new EditText(this);</span>
+<span class="nc" id="L609">        input.setText(comment.body);</span>
+
+<span class="nc" id="L611">        new AlertDialog.Builder(this)</span>
+<span class="nc" id="L612">                .setTitle(&quot;Edit comment&quot;)</span>
+<span class="nc" id="L613">                .setView(input)</span>
+<span class="nc" id="L614">                .setPositiveButton(&quot;Save&quot;, (dialog, which) -&gt; {</span>
+<span class="nc" id="L615">                    String newBody = input.getText().toString().trim();</span>
+<span class="nc bnc" id="L616" title="All 2 branches missed.">                    if (newBody.isEmpty()) {</span>
+<span class="nc" id="L617">                        Toast.makeText(this, &quot;Comment cannot be empty&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L618">                        return;</span>
+                    }
+<span class="nc" id="L620">                    Log.d(&quot;PostDetail&quot;, &quot;Editing comment &quot; + comment.id);</span>
+<span class="nc" id="L621">                    editComment(comment.id, newBody);</span>
+<span class="nc" id="L622">                })</span>
+<span class="nc" id="L623">                .setNegativeButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L624">                .show();</span>
+<span class="nc" id="L625">    }</span>
+
+    private void editComment(int commentId, String newBody) {
+<span class="nc" id="L628">        String endpoint = &quot;/comments/&quot; + commentId + &quot;?authorId=&quot; + currentUserId;</span>
+
+<span class="nc" id="L630">        DTOmodels.CommentRequest request = new DTOmodels.CommentRequest(newBody);</span>
+
+<span class="nc" id="L632">        ApiClient.put(this, endpoint, request, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L635">                Log.d(&quot;PostDetail&quot;, &quot;Comment &quot; + commentId + &quot; updated&quot;);</span>
+<span class="nc" id="L636">                Toast.makeText(PostViewActivity.this, &quot;Comment updated!&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L637">                loadComments();</span>
+<span class="nc" id="L638">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L642">                Log.e(&quot;PostDetail&quot;, &quot;Comment edit failed: &quot; + message);</span>
+<span class="nc" id="L643">                Toast.makeText(PostViewActivity.this, &quot;Failed to edit comment&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L644">            }</span>
+        });
+<span class="nc" id="L646">    }</span>
+
+    private void deleteComment(DTOmodels.FeedComment comment) {
+<span class="nc" id="L649">        new AlertDialog.Builder(this)</span>
+<span class="nc" id="L650">                .setTitle(&quot;Delete comment&quot;)</span>
+<span class="nc" id="L651">                .setMessage(&quot;Are you sure?&quot;)</span>
+<span class="nc" id="L652">                .setPositiveButton(&quot;Delete&quot;, (dialog, which) -&gt; {</span>
+<span class="nc" id="L653">                    String endpoint = &quot;/comments/&quot; + comment.id + &quot;?requesterId=&quot; + currentUserId;</span>
+<span class="nc" id="L654">                    Log.d(&quot;PostDetail&quot;, &quot;Deleting comment &quot; + comment.id);</span>
+
+<span class="nc" id="L656">                    ApiClient.deleteString(this, endpoint, new Api_String_Interface() {</span>
+                        @Override
+                        public void onSuccess(String response) {
+<span class="nc" id="L659">                            Log.d(&quot;PostDetail&quot;, &quot;Comment &quot; + comment.id + &quot; deleted&quot;);</span>
+<span class="nc" id="L660">                            Toast.makeText(PostViewActivity.this, &quot;Comment deleted!&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L661">                            loadComments();</span>
+<span class="nc" id="L662">                        }</span>
+
+                        @Override
+                        public void onError(String message) {
+<span class="nc" id="L666">                            Log.e(&quot;PostDetail&quot;, &quot;Comment delete failed: &quot; + message);</span>
+<span class="nc" id="L667">                            Toast.makeText(PostViewActivity.this, &quot;Failed to delete comment&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L668">                        }</span>
+                    });
+<span class="nc" id="L670">                })</span>
+<span class="nc" id="L671">                .setNegativeButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L672">                .show();</span>
+<span class="nc" id="L673">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotificationAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">NotificationAdapter.java</span></div><h1>NotificationAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.List;
+
+public class NotificationAdapter extends RecyclerView.Adapter&lt;NotificationAdapter.ViewHolder&gt; {
+
+    public interface OnItemClickListener {
+        void onNotificationClick(DTOmodels.Notification notification);
+        void onNotificationLongClick(DTOmodels.Notification notification);
+    }
+
+    private Context context;
+    private List&lt;DTOmodels.Notification&gt; notifications;
+    private OnItemClickListener listener;
+
+<span class="nc" id="L25">    public NotificationAdapter(Context context, List&lt;DTOmodels.Notification&gt; notifications, OnItemClickListener listener) {</span>
+<span class="nc" id="L26">        this.context = context;</span>
+<span class="nc" id="L27">        this.notifications = notifications;</span>
+<span class="nc" id="L28">        this.listener = listener;</span>
+<span class="nc" id="L29">    }</span>
+
+    static class ViewHolder extends RecyclerView.ViewHolder {
+        View unreadIndicator;
+        TextView message, time, typeBadge;
+
+        ViewHolder(View itemView) {
+<span class="nc" id="L36">            super(itemView);</span>
+<span class="nc" id="L37">            unreadIndicator = itemView.findViewById(R.id.notif_unread_indicator);</span>
+<span class="nc" id="L38">            message = itemView.findViewById(R.id.notif_message);</span>
+<span class="nc" id="L39">            time = itemView.findViewById(R.id.notif_time);</span>
+<span class="nc" id="L40">            typeBadge = itemView.findViewById(R.id.notif_type_badge);</span>
+<span class="nc" id="L41">        }</span>
+    }
+
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+<span class="nc" id="L46">        View view = LayoutInflater.from(context).inflate(R.layout.item_notification, parent, false);</span>
+<span class="nc" id="L47">        return new ViewHolder(view);</span>
+    }
+
+    @Override
+    public void onBindViewHolder(ViewHolder holder, int position) {
+<span class="nc" id="L52">        DTOmodels.Notification notification = notifications.get(position);</span>
+
+<span class="nc" id="L54">        holder.message.setText(notification.message);</span>
+<span class="nc" id="L55">        holder.time.setText((RatingUtility.timeAgo(notification.createdAt)));</span>
+<span class="nc" id="L56">        holder.typeBadge.setText(notification.type);</span>
+
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        holder.unreadIndicator.setVisibility(notification.read ? View.GONE : View.VISIBLE);</span>
+
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if(!notification.read) {</span>
+<span class="nc" id="L61">            holder.message.setTypeface(null, android.graphics.Typeface.BOLD);</span>
+<span class="nc" id="L62">            holder.itemView.setBackgroundColor(android.graphics.Color.parseColor(&quot;#F5F5F5&quot;));</span>
+        } else {
+<span class="nc" id="L64">            holder.message.setTypeface(null, android.graphics.Typeface.NORMAL);</span>
+<span class="nc" id="L65">            holder.itemView.setBackgroundColor(android.graphics.Color.parseColor(&quot;#FFFFFF&quot;));</span>
+        }
+
+        int badgeColor;
+<span class="nc bnc" id="L69" title="All 6 branches missed.">        switch (notification.type != null ? notification.type : &quot;&quot;) {</span>
+<span class="nc" id="L70">            case&quot;COMMENT&quot;: badgeColor = android.graphics.Color.parseColor(&quot;#1E88E5&quot;); break;</span>
+<span class="nc" id="L71">            case&quot;LIKE&quot;: badgeColor = android.graphics.Color.parseColor(&quot;#E53935&quot;); break;</span>
+<span class="nc" id="L72">            case&quot;REVIEW&quot;: badgeColor = android.graphics.Color.parseColor(&quot;#43A047&quot;); break;</span>
+<span class="nc" id="L73">            default: badgeColor = android.graphics.Color.parseColor(&quot;#888888&quot;); break;</span>
+        }
+<span class="nc" id="L75">        holder.typeBadge.getBackground().setColorFilter(badgeColor, android.graphics.PorterDuff.Mode.SRC_IN);</span>
+
+<span class="nc" id="L77">        holder.itemView.setOnClickListener(view -&gt; listener.onNotificationClick(notification));</span>
+<span class="nc" id="L78">        holder.itemView.setOnLongClickListener(view -&gt; {</span>
+<span class="nc" id="L79">            listener.onNotificationLongClick(notification); return true;</span>
+        });
+<span class="nc" id="L81">    }</span>
+
+    @Override
+    public int getItemCount() {
+<span class="nc" id="L85">        return notifications.size();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

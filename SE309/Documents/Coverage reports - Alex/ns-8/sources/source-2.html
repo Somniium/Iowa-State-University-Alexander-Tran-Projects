@@ -1,0 +1,371 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > FollowerController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Followers</a>
+</div>
+
+<h1>Coverage Summary for Class: FollowerController (onetoone.Followers)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FollowerController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (11/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    54.5%
+  </span>
+  <span class="absValue">
+    (12/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    82%
+  </span>
+  <span class="absValue">
+    (41/50)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Followers;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Operation;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.responses.ApiResponse;
+&nbsp;import onetoone.Users.User;
+&nbsp;import onetoone.Users.UserRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@RestController
+<b class="fc">&nbsp;public class FollowerController {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    FollowerRepository followerRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    UserRepository userRepository;
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Return all followers&quot;,
+&nbsp;            description = &quot;Return all follower objects in DB&quot;,
+&nbsp;            responses = {
+&nbsp;                @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully returned all followers.&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(path = &quot;/followers&quot;)
+&nbsp;    List&lt;Follower&gt; getAllFollowers() {
+<b class="fc">&nbsp;        return followerRepository.findAll();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Get follower count&quot;,
+&nbsp;            description = &quot;Returns the follower count of a user using the ID of the user in the DB.&quot;,
+&nbsp;            parameters = {
+&nbsp;                @Parameter(name = &quot;followerUserId&quot;, description = &quot;ID of the user in the DB.&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully returned follower count.&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;User not found.&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(path = &quot;/follower/get-follower-count/{followerUserId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; getFollowerCount(@PathVariable int followerUserId) {
+<b class="fc">&nbsp;        User currUser = userRepository.findByUserId(followerUserId);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(currUser == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;User not found under ID&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(followerRepository.countByFollowingUserId(followerUserId), HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Get following count&quot;,
+&nbsp;            description = &quot;Returns the following count of a user using the ID of the user in the DB.&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;followingUserId&quot;, description = &quot;ID of the user in the DB.&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully returned following count.&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;User not found.&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(path = &quot;/follower/get-following-count/{followingUserId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; getFollowingCount(@PathVariable int followingUserId) {
+<b class="fc">&nbsp;        User currUser = userRepository.findByUserId(followingUserId);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(currUser == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;User not found under ID&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(followerRepository.countByFollowerUserId(followingUserId), HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Returns following&quot;,
+&nbsp;            description = &quot;Returns a list of all users given user is following.&quot;,
+&nbsp;            parameters = {
+&nbsp;                @Parameter(name = &quot;userId&quot;, description = &quot;ID of user in DB.&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully returned list of following.&quot;),
+&nbsp;                @ApiResponse(responseCode = &quot;404&quot;, description = &quot;User not found under ID.&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(path = &quot;/follower/get-following/{userId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; getFollowing(@PathVariable int userId) {
+<b class="fc">&nbsp;        User currUser = userRepository.findByUserId(userId);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(currUser == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;User not found under ID&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        List&lt;User&gt; following = followerRepository.findFollowingByUserId(userId);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(following, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Returns followers&quot;,
+&nbsp;            description = &quot;Returns a list of all followers of user.&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;userId&quot;, description = &quot;ID of user in DB.&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully returned list of followers.&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;User not found under ID.&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(path = &quot;/follower/get-followers/{userId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; getFollowers(@PathVariable int userId) {
+<b class="fc">&nbsp;        User currUser = userRepository.findByUserId(userId);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(currUser == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;User not found under ID&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        List&lt;User&gt; following = followerRepository.findFollowersByUserId(userId);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(following, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Returns block status&quot;,
+&nbsp;            description = &quot;Returns whether or not a follower is blocked.&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;followerId&quot;, description = &quot;ID of follower relationship in DB&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully returned blocked state.&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;One or both users not found.&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(path = &quot;/follower/block-status/{followerId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; blockedStatus(@PathVariable long followerId) {
+<b class="fc">&nbsp;        Follower exists = followerRepository.findById(followerId);</b>
+&nbsp;
+<b class="fc">&nbsp;        if(exists == null) {</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Follower not found.&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(exists.isBlocked, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Follow a user&quot;,
+&nbsp;            description = &quot;Follow a user using the ID of current user and user to follow in DB.&quot;,
+&nbsp;            parameters = {
+&nbsp;                @Parameter(name = &quot;userId&quot;, description = &quot;ID of current user in DB.&quot;),
+&nbsp;                @Parameter(name = &quot;followId&quot;, description = &quot;ID of user to follow in DB.&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                @ApiResponse(responseCode = &quot;201&quot;, description = &quot;Successfully followed user.&quot;),
+&nbsp;                @ApiResponse(responseCode = &quot;404&quot;, description = &quot;One or both users not found.&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PostMapping(path = &quot;/follower/follow-user/currUser/{userId}/followUser/{followId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; followUser(@PathVariable int userId, @PathVariable int followId) {
+<b class="fc">&nbsp;        User currUser = userRepository.findByUserId(userId);</b>
+<b class="fc">&nbsp;        User followUser = userRepository.findByUserId(followId);</b>
+&nbsp;
+<b class="pc">&nbsp;        if (currUser == null || followUser == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;One or both users not found&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Prevent duplicate follow relationships.
+<b class="pc">&nbsp;        if (followerRepository.findByFollowerUserIdAndFollowingUserId(userId, followId) != null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Already following this user&quot;, HttpStatus.CONFLICT);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        Follower follow = new Follower(currUser, followUser);</b>
+<b class="fc">&nbsp;        followerRepository.save(follow);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(follow, HttpStatus.CREATED);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Block a follower&quot;,
+&nbsp;            description = &quot;Block a follower using DB ID of follower relationship&quot;,
+&nbsp;            parameters = {
+&nbsp;                @Parameter(name = &quot;followerId&quot;, description = &quot;ID of follower relationship in DB&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully blocked follower&quot;),
+&nbsp;                @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Follower relationship not found&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PutMapping(path = &quot;/follower/block-follower/{followerId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; blockUser(@PathVariable long followerId) {
+<b class="fc">&nbsp;        Follower exists = followerRepository.findById(followerId);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(exists == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Follower not found.&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        exists.setBlocked(true);</b>
+<b class="fc">&nbsp;        followerRepository.save(exists);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(exists, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Unblock a follower&quot;,
+&nbsp;            description = &quot;Unblock a follower using DB ID of follower relationship&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;followerId&quot;, description = &quot;ID of follower relationship in DB&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully unblocked follower&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Follower relationship not found&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PutMapping(path = &quot;/follower/unblock-follower/{followerId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; unblockUser(@PathVariable long followerId) {
+<b class="fc">&nbsp;        Follower exists = followerRepository.findById(followerId);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(exists == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Follower not found.&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        exists.setBlocked(false);</b>
+<b class="fc">&nbsp;        followerRepository.save(exists);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(exists, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Remove a follower&quot;,
+&nbsp;            description = &quot;Removes a follower using the DB ID of the follower.&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;userId&quot;, description = &quot;ID of current user in DB&quot;),
+&nbsp;                    @Parameter(name = &quot;followId&quot;, description = &quot;ID of followed user in DB&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully removed follower&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Follower relationship not found&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @DeleteMapping(path = &quot;/follower/remove-follower/currUser/{userId}/followUser/{followId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; removeFollower(@PathVariable int userId, @PathVariable int followId) {
+<b class="fc">&nbsp;        Follower exists = followerRepository.findByFollowerUserIdAndFollowingUserId(userId, followId);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(exists == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Follower not found.&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        followerRepository.deleteByUsers(userId, followId);</b>
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(&quot;Successfully removed follower.&quot;, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-06 03:05</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfessorPanelActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">ProfessorPanelActivity.java</span></div><h1>ProfessorPanelActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+<span class="nc" id="L35">public class ProfessorPanelActivity extends AppCompatActivity {</span>
+
+    private TextView usernameText, professorIdText, userIdText, classesText;
+    private EditText nameEdit, classEdit;
+    private Button createButton, returnButton;
+    private ListView groupList;
+    private JSONObject professorData;
+<span class="nc" id="L42">    private ArrayList&lt;JSONObject&gt; professorGroups = new ArrayList&lt;JSONObject&gt;();</span>
+<span class="nc" id="L43">    String[] groupNames = {};</span>
+
+    private int userID;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L49">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L50">        setContentView(R.layout.activity_professor_panel);</span>
+
+        //Initalize all elements
+<span class="nc" id="L53">        usernameText = findViewById(R.id.username);</span>
+<span class="nc" id="L54">        professorIdText = findViewById(R.id.professor_id);</span>
+<span class="nc" id="L55">        userIdText = findViewById(R.id.user_id);</span>
+<span class="nc" id="L56">        classesText = findViewById(R.id.classes_text);</span>
+<span class="nc" id="L57">        nameEdit = findViewById(R.id.nameInput);</span>
+<span class="nc" id="L58">        classEdit = findViewById(R.id.classInput);</span>
+<span class="nc" id="L59">        createButton = findViewById(R.id.createButton);</span>
+<span class="nc" id="L60">        returnButton = findViewById(R.id.returnButton);</span>
+<span class="nc" id="L61">        groupList = findViewById(R.id.groupList);</span>
+
+        //Unpackage bundle
+<span class="nc" id="L64">        Bundle extras = getIntent().getExtras();</span>
+<span class="nc" id="L65">        int professorID = -1;</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (extras != null) {</span>
+<span class="nc" id="L67">            professorID = extras.getInt(&quot;PROFESSOR_ID&quot;);</span>
+<span class="nc" id="L68">            userID = extras.getInt(&quot;USER_ID&quot;);</span>
+        }
+
+        //Get professor information and update UI
+<span class="nc" id="L72">        ApiClient.get(ProfessorPanelActivity.this, &quot;/professor/id/&quot; + professorID, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L76">                    String stringedResponse = response.toString();</span>
+<span class="nc" id="L77">                    professorData = new JSONObject(stringedResponse);</span>
+<span class="nc" id="L78">                    professorIdText.setText(&quot;Professor ID: &quot; + professorData.getInt(&quot;id&quot;));</span>
+<span class="nc" id="L79">                    String classesString = professorData.getJSONArray(&quot;classes&quot;).toString();</span>
+<span class="nc" id="L80">                    classesText.setText(&quot;Classes: &quot; + classesString);</span>
+<span class="nc" id="L81">                } catch (JSONException e) {</span>
+<span class="nc" id="L82">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L83">                }</span>
+<span class="nc" id="L84">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L88">                Toast.makeText(ProfessorPanelActivity.this, &quot;Could not process Professor.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L89">            }</span>
+        });
+
+        //Get user information and update UI
+<span class="nc" id="L93">        ApiClient.get(ProfessorPanelActivity.this, &quot;/users/id/&quot; + userID, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L97">                    userID = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L98">                    usernameText.setText(response.getString(&quot;name&quot;));</span>
+<span class="nc" id="L99">                    userIdText.setText(&quot;User ID: &quot; + userID);</span>
+<span class="nc" id="L100">                } catch (JSONException e) {</span>
+<span class="nc" id="L101">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L102">                }</span>
+<span class="nc" id="L103">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L107">                Toast.makeText(ProfessorPanelActivity.this, &quot;Could not process User.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L108">            }</span>
+        });
+
+
+<span class="nc" id="L112">        JsonArrayRequest jsonArrReq = new JsonArrayRequest(</span>
+                Request.Method.GET, // HTTP method (GET request)
+                &quot;http://coms-3090-017.class.las.iastate.edu:8080/get-professor-groups/&quot; + professorID,
+                null, // Request body (null for GET request)
+<span class="nc" id="L116">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+<span class="nc" id="L119">                        groupNames = new String[response.length()];</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                        for (int i = 0; i &lt; response.length(); i++) {</span>
+                            try {
+<span class="nc" id="L122">                                String singleString = response.getJSONObject(i).toString();</span>
+<span class="nc" id="L123">                                JSONObject singleGroup = new JSONObject(singleString);</span>
+<span class="nc" id="L124">                                professorGroups.add(singleGroup);</span>
+<span class="nc" id="L125">                                groupNames[i] = professorGroups.get(i).getString(&quot;name&quot;);</span>
+<span class="nc" id="L126">                                Log.d(&quot;Test Strings&quot;, groupNames[i]);</span>
+<span class="nc" id="L127">                            } catch (JSONException e) {</span>
+<span class="nc" id="L128">                                throw new RuntimeException(e);</span>
+<span class="nc" id="L129">                            }</span>
+<span class="nc" id="L130">                            ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;String&gt;(ProfessorPanelActivity.this, android.R.layout.simple_list_item_1, groupNames);</span>
+<span class="nc" id="L131">                            groupList.setAdapter(adapter);</span>
+                        }
+<span class="nc" id="L133">                    }</span>
+                },
+<span class="nc" id="L135">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L138">                        Toast.makeText(ProfessorPanelActivity.this, &quot;Could not get groups.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L139">                    }</span>
+<span class="nc" id="L140">                }) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+                // Headers for the request (if needed)
+<span class="nc" id="L144">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                // Example headers (uncomment if needed)
+                // headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;);
+                // headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L148">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+                // Parameters for the request (if needed)
+<span class="nc" id="L154">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                // Example parameters (uncomment if needed)
+                // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L158">                return params;</span>
+            }
+        };
+
+        // Adding request to the Volley request queue
+<span class="nc" id="L163">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsonArrReq);</span>
+
+<span class="nc" id="L165">        groupList.setOnItemClickListener(new AdapterView.OnItemClickListener() {</span>
+            @Override
+            public void onItemClick(AdapterView&lt;?&gt; adapterView, View view, int i, long l) {
+<span class="nc" id="L168">                String group = adapterView.getItemAtPosition(i).toString();</span>
+<span class="nc" id="L169">                Toast.makeText(ProfessorPanelActivity.this, &quot;Going to &quot; + group, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L170">                Intent intent = new Intent(ProfessorPanelActivity.this, ProfessorGroupManageActivity.class);</span>
+                try {
+<span class="nc" id="L172">                    intent.putExtra(&quot;PROFESSOR_ID&quot;, professorData.getInt(&quot;id&quot;));</span>
+<span class="nc" id="L173">                } catch (JSONException e) {</span>
+<span class="nc" id="L174">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L175">                }</span>
+<span class="nc" id="L176">                intent.putExtra(&quot;USER_ID&quot;, userID);</span>
+<span class="nc" id="L177">                intent.putExtra(&quot;GROUP_NAME&quot;, group);</span>
+<span class="nc" id="L178">                startActivity(intent);</span>
+<span class="nc" id="L179">            }</span>
+        });
+
+<span class="nc" id="L182">        createButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+                String endpoint;
+                try {
+<span class="nc" id="L187">                    endpoint = String.format(&quot;/group/name/%s/professor/%d/class/%s&quot;, nameEdit.getText().toString(), professorData.getInt(&quot;id&quot;), classEdit.getText().toString());</span>
+<span class="nc" id="L188">                } catch (JSONException e) {</span>
+<span class="nc" id="L189">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L190">                }</span>
+<span class="nc" id="L191">                ApiClient.post(ProfessorPanelActivity.this, endpoint, null, new Api_Interface() {</span>
+                    @Override
+                    public void onSuccess(JSONObject response) {
+                        //TODO: Update Professor's group listView
+<span class="nc" id="L195">                        Toast.makeText(ProfessorPanelActivity.this, &quot;Group made.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L196">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L200">                        Toast.makeText(ProfessorPanelActivity.this, message, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L201">                    }</span>
+                });
+<span class="nc" id="L203">            }</span>
+        });
+
+<span class="nc" id="L206">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

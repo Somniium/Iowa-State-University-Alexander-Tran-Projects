@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserProfileFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">UserProfileFragment.java</span></div><h1>UserProfileFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
+import androidx.fragment.app.Fragment;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+<span class="nc" id="L21">public class UserProfileFragment extends Fragment {</span>
+
+    private TextView welcomeHeader;
+    private TextView profileNameText;
+    private TextView profileEmailText;
+    private TextView profileSeparatorText;
+    private TextView profileIdText;
+
+    private Button editProfileBtn;
+    private CardView reviewsCard, settingsCard, logoutCard, booksCard, albumsCard;
+    private TextView reviewsText, settingsText, logoutText, booksText, albumsText;
+
+    private int userId;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+<span class="nc" id="L38">        View view = inflater.inflate(R.layout.fragment_user_profile, container, false);</span>
+
+<span class="nc" id="L40">        userId = getActivity().getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+
+<span class="nc" id="L42">        welcomeHeader = view.findViewById(R.id.welcome_header);</span>
+<span class="nc" id="L43">        profileNameText = view.findViewById(R.id.profile_name);</span>
+<span class="nc" id="L44">        profileEmailText = view.findViewById(R.id.profile_email);</span>
+<span class="nc" id="L45">        profileSeparatorText = view.findViewById(R.id.profile_separator);</span>
+<span class="nc" id="L46">        profileIdText = view.findViewById(R.id.profile_id);</span>
+
+<span class="nc" id="L48">        editProfileBtn = view.findViewById(R.id.btn_edit_profile);</span>
+<span class="nc" id="L49">        reviewsCard = view.findViewById(R.id.card_reviews);</span>
+<span class="nc" id="L50">        reviewsText = view.findViewById(R.id.text_reviews);</span>
+<span class="nc" id="L51">        settingsCard = view.findViewById(R.id.card_settings);</span>
+<span class="nc" id="L52">        settingsText = view.findViewById(R.id.text_settings);</span>
+<span class="nc" id="L53">        logoutCard = view.findViewById(R.id.card_logout);</span>
+<span class="nc" id="L54">        logoutText = view.findViewById(R.id.text_logout);</span>
+<span class="nc" id="L55">        booksCard = view.findViewById(R.id.card_books);</span>
+<span class="nc" id="L56">        booksText = view.findViewById(R.id.text_books);</span>
+<span class="nc" id="L57">        albumsCard = view.findViewById(R.id.card_albums);</span>
+<span class="nc" id="L58">        albumsText = view.findViewById(R.id.text_albums);</span>
+
+<span class="nc" id="L60">        welcomeHeader.setText(&quot;Loading...&quot;);</span>
+<span class="nc" id="L61">        profileNameText.setText(&quot;Loading...&quot;);</span>
+<span class="nc" id="L62">        profileEmailText.setText(&quot;Loading...&quot;);</span>
+<span class="nc" id="L63">        profileSeparatorText.setText(&quot;  •  &quot;);</span>
+<span class="nc" id="L64">        profileIdText.setText(&quot;Loading...&quot;);</span>
+
+<span class="nc" id="L66">        editProfileBtn.setText(&quot;Edit Profile&quot;);</span>
+<span class="nc" id="L67">        reviewsText.setText(&quot;⭐  My Reviews&quot;);</span>
+<span class="nc" id="L68">        settingsText.setText(&quot;⚙ Account Settings&quot;);</span>
+<span class="nc" id="L69">        logoutText.setText(&quot;➜]  Log Out&quot;);</span>
+<span class="nc" id="L70">        booksText.setText(&quot;Browse Books&quot;);</span>
+<span class="nc" id="L71">        albumsText.setText(&quot;Browse Albums&quot;);</span>
+
+<span class="nc" id="L73">        editProfileBtn.setOnClickListener(v -&gt; {</span>
+            // TODO: edit profile
+<span class="nc" id="L75">        });</span>
+
+<span class="nc" id="L77">        reviewsCard.setOnClickListener(v -&gt; {</span>
+            // TODO: show user reviews
+<span class="nc" id="L79">        });</span>
+
+<span class="nc" id="L81">        settingsCard.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">            if (userId != -1) {</span>
+<span class="nc" id="L83">                Intent intent = new Intent(getContext(), SettingsActivity.class);</span>
+<span class="nc" id="L84">                intent.putExtra(&quot;USER_ID&quot;, userId);</span>
+<span class="nc" id="L85">                startActivity(intent);</span>
+<span class="nc" id="L86">            } else {</span>
+<span class="nc" id="L87">                Toast.makeText(getContext(), &quot;Error: Cannot open settings, User ID missing.&quot;, Toast.LENGTH_SHORT).show();</span>
+            }
+<span class="nc" id="L89">        });</span>
+
+<span class="nc" id="L91">        logoutCard.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L92">            Toast.makeText(getContext(), &quot;Logging out...&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L93">            getActivity().stopService(new Intent(getContext(), NotificationWebSocket.class));</span>
+<span class="nc" id="L94">            Intent intent = new Intent(getContext(), MainActivity.class);</span>
+<span class="nc" id="L95">            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);</span>
+<span class="nc" id="L96">            startActivity(intent);</span>
+<span class="nc" id="L97">            getActivity().finish();</span>
+<span class="nc" id="L98">        });</span>
+
+<span class="nc" id="L100">        booksCard.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L101">            Intent intent = new Intent(getContext(), SearchActivity.class);</span>
+<span class="nc" id="L102">            startActivity(intent);</span>
+<span class="nc" id="L103">        });</span>
+
+<span class="nc" id="L105">        albumsCard.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L106">            Intent intent = new Intent(getContext(), AlbumActivity.class);</span>
+<span class="nc" id="L107">            startActivity(intent);</span>
+<span class="nc" id="L108">        });</span>
+
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if (userId != -1) {</span>
+<span class="nc" id="L111">            fetchUserProfile(userId);</span>
+        } else {
+<span class="nc" id="L113">            Toast.makeText(getContext(), &quot;Error: User ID missing&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L114">            welcomeHeader.setText(&quot;Error loading profile&quot;);</span>
+        }
+
+<span class="nc" id="L117">        return view;</span>
+    }
+
+    private void fetchUserProfile(int userId) {
+<span class="nc" id="L121">        ApiClient.get(getContext(), &quot;/users/id/&quot; + userId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L125">                    String name = response.getString(&quot;name&quot;);</span>
+<span class="nc" id="L126">                    String email = response.getString(&quot;emailId&quot;);</span>
+<span class="nc" id="L127">                    int id = response.getInt(&quot;id&quot;);</span>
+
+<span class="nc" id="L129">                    welcomeHeader.setText(name + &quot;'s Profile&quot;);</span>
+<span class="nc" id="L130">                    profileNameText.setText(name);</span>
+<span class="nc" id="L131">                    profileEmailText.setText(email);</span>
+<span class="nc" id="L132">                    profileIdText.setText(&quot;ID: &quot; + id);</span>
+
+<span class="nc" id="L134">                    Log.d(&quot;ProfileFragment&quot;, &quot;Profile loaded: &quot; + name);</span>
+<span class="nc" id="L135">                } catch (JSONException e) {</span>
+<span class="nc" id="L136">                    e.printStackTrace();</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">                    if (getContext() != null) {</span>
+<span class="nc" id="L138">                        Toast.makeText(getContext(), &quot;Error parsing profile data&quot;, Toast.LENGTH_SHORT).show();</span>
+                    }
+<span class="nc" id="L140">                }</span>
+<span class="nc" id="L141">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L145">                Log.e(&quot;ProfileFragment&quot;, &quot;Profile load failed: &quot; + message);</span>
+<span class="nc" id="L146">                welcomeHeader.setText(&quot;Profile Unavailable&quot;);</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">                if (getContext() != null) {</span>
+<span class="nc" id="L148">                    Toast.makeText(getContext(), &quot;Error: &quot; + message, Toast.LENGTH_SHORT).show();</span>
+                }
+<span class="nc" id="L150">            }</span>
+        });
+<span class="nc" id="L152">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

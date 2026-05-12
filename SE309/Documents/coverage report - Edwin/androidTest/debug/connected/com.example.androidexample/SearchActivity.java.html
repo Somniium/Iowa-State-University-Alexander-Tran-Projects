@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SearchActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">SearchActivity.java</span></div><h1>SearchActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @author Edwin Cepeda
+ */
+<span class="nc" id="L38">public class SearchActivity extends AppCompatActivity {</span>
+
+    private EditText usernameEdit;  // define username edittext variable
+    private EditText passwordEdit;  // define password edittext variable
+    private EditText emailEdit; //define email edittext variable
+    //    private Button loginButton;         // define login button variable
+    private Button signupButton;        // define signup button variable
+    private Button returnButton;
+<span class="nc" id="L46">    private String url = &quot;http://coms-3090-017.class.las.iastate.edu:8080/&quot;;</span>
+<span class="nc" id="L47">    private String mode = null;</span>
+
+    private LinearLayout bookResult;
+    private LinearLayout albumResult;
+
+    private TextView bookTitle, bookAuthor, bookDate, bookHeader;
+    private Button bookButton;
+
+    private TextView albumTitle, albumAuthor, albumDate;
+    private Button albumButton;
+
+    //Determines whether or not all necessary operations were successful during requests.
+    private boolean success;
+
+<span class="nc" id="L61">    private String nameOfNeededItem = null;</span>
+<span class="nc" id="L62">    private String nameOfNeededAuthor = null;</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L66">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L67">        setContentView(R.layout.activity_search);</span>
+
+
+<span class="nc" id="L70">        Spinner mediaSelector = findViewById(R.id.media_selector);</span>
+<span class="nc" id="L71">        ImageButton searchButton = findViewById(R.id.search_button);</span>
+<span class="nc" id="L72">        EditText editMedia = findViewById(R.id.media_edt);</span>
+<span class="nc" id="L73">        bookResult = findViewById(R.id.book_results);</span>
+<span class="nc" id="L74">        bookHeader = findViewById(R.id.bookHeader);</span>
+<span class="nc" id="L75">        bookTitle = findViewById(R.id.bookTitle);</span>
+<span class="nc" id="L76">        bookAuthor = findViewById(R.id.bookAuthor);</span>
+<span class="nc" id="L77">        bookDate = findViewById(R.id.bookYear);</span>
+<span class="nc" id="L78">        bookButton = findViewById(R.id.bookButton);</span>
+<span class="nc" id="L79">        albumResult = findViewById(R.id.album_results);</span>
+<span class="nc" id="L80">        albumTitle = findViewById(R.id.albumTitle);</span>
+<span class="nc" id="L81">        albumAuthor = findViewById(R.id.albumAuthor);</span>
+<span class="nc" id="L82">        albumDate = findViewById(R.id.albumYear);</span>
+
+
+<span class="nc" id="L85">        mediaSelector.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {</span>
+            @Override
+            public void onItemSelected(AdapterView&lt;?&gt; adapterView, View view, int position, long l) {
+                /*This method uses the user's selection in mediaSelector to change the url for the request.*/
+
+                //Reset the result views
+<span class="nc" id="L91">                bookResult.setVisibility(View.GONE);</span>
+<span class="nc" id="L92">                albumResult.setVisibility(View.GONE);</span>
+
+                //Get the user's selection
+<span class="nc" id="L95">                mode = adapterView.getItemAtPosition(position).toString().toLowerCase();</span>
+<span class="nc" id="L96">            }</span>
+
+            @Override
+            public void onNothingSelected(AdapterView&lt;?&gt; adapterView) {
+<span class="nc" id="L100">                mode = null; //Ensures a safe failure at the null check in searchButton's onClick if nothing is selected.</span>
+<span class="nc" id="L101">            }</span>
+        });
+
+
+        //Create a list of options for media
+<span class="nc" id="L106">        ArrayList&lt;String&gt; mediaOptions = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L107">        mediaOptions.add(&quot;Books&quot;); //Add books</span>
+<span class="nc" id="L108">        mediaOptions.add(&quot;Albums&quot;); //Add albums</span>
+        //Turn all items in mediaOptions into spinner items using an adapter and set it as mediaSelector's adapter
+<span class="nc" id="L110">        ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;&gt;(this, android.R.layout.simple_spinner_item, mediaOptions);</span>
+<span class="nc" id="L111">        adapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);</span>
+<span class="nc" id="L112">        mediaSelector.setAdapter(adapter);</span>
+
+<span class="nc" id="L114">        searchButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+                //If no media type selected, alert user and safely exit method
+<span class="nc bnc" id="L118" title="All 2 branches missed.">                if (mode == null) {</span>
+<span class="nc" id="L119">                    Toast.makeText(getApplicationContext(), &quot;Please select a media type.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L120">                    return;</span>
+                }
+
+<span class="nc" id="L123">                nameOfNeededItem = null;</span>
+<span class="nc" id="L124">                nameOfNeededAuthor = null;</span>
+
+                //get media name from input box
+<span class="nc" id="L127">                String mediaTitle = editMedia.getText().toString();</span>
+
+<span class="nc" id="L129">                Log.d(&quot;Post Request: &quot;, mediaTitle);</span>
+<span class="nc bnc" id="L130" title="All 3 branches missed.">                switch (mode) {</span>
+                    case (&quot;books&quot;):
+<span class="nc" id="L132">                        bookSearchRepository(mediaTitle);</span>
+<span class="nc" id="L133">                        return;</span>
+                    case (&quot;albums&quot;):
+<span class="nc" id="L135">                        Toast.makeText(getApplicationContext(), &quot;This is not done yet!&quot;, Toast.LENGTH_LONG).show();</span>
+//                        albumSearch(mediaTitle);
+//                        return;
+                }
+
+<span class="nc" id="L140">            }</span>
+        });
+
+<span class="nc" id="L143">        bookButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+                //Null check
+<span class="nc bnc" id="L147" title="All 4 branches missed.">                if (nameOfNeededItem == null || nameOfNeededAuthor == null) {</span>
+<span class="nc" id="L148">                    Toast.makeText(getApplicationContext(), &quot;Can't view item.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L149">                    return;</span>
+                }
+
+<span class="nc" id="L152">                Intent intent = new Intent(SearchActivity.this, BookActivity.class);</span>
+<span class="nc" id="L153">                intent.putExtra(&quot;itemName&quot;, nameOfNeededItem);</span>
+<span class="nc" id="L154">                intent.putExtra(&quot;author&quot;, nameOfNeededAuthor);</span>
+
+<span class="nc" id="L156">                startActivity(intent);</span>
+
+<span class="nc" id="L158">            }</span>
+        });
+<span class="nc" id="L160">    }</span>
+
+    /**
+     * This helper method searches our database for saved books. This keeps lookup times short
+     * for items that have already been searched for. If the book is found, this method will
+     * update UI elements. If not, it calls the helper method bookSearchAPIAndSave to find the
+     * book in an external database.
+     *
+     * @param mediaTitle The title of the book to be searched for.
+     */
+    private void bookSearchRepository(String mediaTitle) {
+<span class="nc" id="L171">        url = String.format(&quot;http://coms-3090-017.class.las.iastate.edu:8080/book/name?title=%s&quot;, mediaTitle);</span>
+<span class="nc" id="L172">        JsonObjectRequest saveBookByVolumeId = new JsonObjectRequest(Request.Method.GET, // HTTP method (GET request)</span>
+                url, // API URL
+                null, // Request body (null for GET request)
+                response -&gt; {
+                    //extract information out of returned JSON book object
+                    String title;
+                    String author;
+                    String year;
+                    String volumeID;
+                    try {
+<span class="nc" id="L182">                        Log.d(&quot;Server response:&quot;, response.get(&quot;title&quot;).toString());</span>
+<span class="nc" id="L183">                        title = response.get(&quot;title&quot;).toString();</span>
+<span class="nc" id="L184">                        author = response.get(&quot;authors&quot;).toString();</span>
+<span class="nc" id="L185">                        year = response.get(&quot;publishedDate&quot;).toString();</span>
+<span class="nc" id="L186">                        volumeID = response.get(&quot;volumeId&quot;).toString();</span>
+<span class="nc" id="L187">                    } catch (JSONException e) {</span>
+<span class="nc" id="L188">                        throw new RuntimeException(e);</span>
+<span class="nc" id="L189">                    }</span>
+                    //display results page for books
+<span class="nc" id="L191">                    bookResult.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L192">                    bookHeader.setText(&quot;Book Found!&quot;);</span>
+<span class="nc" id="L193">                    bookTitle.setText(&quot;Title: &quot; + title);</span>
+<span class="nc" id="L194">                    bookAuthor.setText(&quot;Author: &quot; + author);</span>
+<span class="nc" id="L195">                    bookDate.setText(&quot;Year Published: &quot; + year);</span>
+<span class="nc" id="L196">                    bookButton.setText(&quot;View Book&quot;);</span>
+
+<span class="nc" id="L198">                    nameOfNeededItem = title;</span>
+<span class="nc" id="L199">                    nameOfNeededAuthor = author;</span>
+<span class="nc" id="L200">                },</span>
+                error -&gt; {
+<span class="nc" id="L202">                    int errorCode = error.networkResponse.statusCode;</span>
+
+<span class="nc bnc" id="L204" title="All 2 branches missed.">                    if (errorCode == 404) { //If book could not be found in repository (404 error), use API search (OpenLibrary)</span>
+<span class="nc" id="L205">                        Log.d(&quot;Search: &quot;, &quot;Book not found in repository, forwarding to API...&quot;);</span>
+                        //format mediaTitle to work in an APi queryparam
+<span class="nc" id="L207">                        String fixedTitle = mediaTitle.replace(&quot; &quot;, &quot;_&quot;);</span>
+<span class="nc" id="L208">                        bookSearchAPIAndSave(fixedTitle);</span>
+<span class="nc" id="L209">                    } else {</span>
+<span class="nc" id="L210">                        Toast.makeText(getApplicationContext(), &quot;Unknown error.&quot;, Toast.LENGTH_LONG).show();</span>
+                    }
+
+<span class="nc" id="L213">                }</span>
+<span class="nc" id="L214">        ) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() throws AuthFailureError {
+                // Define headers if needed
+<span class="nc" id="L218">                HashMap&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L219">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+                // Define parameters if needed
+<span class="nc" id="L225">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                // Example parameters (uncomment if needed)
+                // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L229">                return params;</span>
+            }
+        };
+
+        // Adding request to the Volley request queue
+<span class="nc" id="L234">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(saveBookByVolumeId);</span>
+<span class="nc" id="L235">    }</span>
+
+    /**
+     * This helper method is called if the book cannot be found in our database. This method will
+     * search an external database (currently, OpenLibrary) to try to find details on the book. Those
+     * details will then be saved and send to our database to log the book.
+     * &lt;p&gt;
+     * This method returns nothing, but will call the helper method bookSave.
+     *
+     * @param mediaTitle The title of the book to be searched for.
+     */
+    private void bookSearchAPIAndSave(String mediaTitle) {
+<span class="nc" id="L247">        url = String.format(&quot;http://coms-3090-017.class.las.iastate.edu:8080/search-book?q=%s&quot;, mediaTitle);</span>
+
+<span class="nc" id="L249">        JsonArrayRequest databaseRequest = new JsonArrayRequest(Request.Method.GET, // HTTP method (GET request)</span>
+                url, // API URL
+                null, // Request body (null for GET request)
+<span class="nc" id="L252">                new Response.Listener&lt;JSONArray&gt;() {</span>
+                    @Override
+                    public void onResponse(JSONArray response) {
+<span class="nc" id="L255">                        Log.d(&quot;Test:&quot;, response.toString());</span>
+
+<span class="nc bnc" id="L257" title="All 2 branches missed.">                        if (response.length() == 0) {</span>
+<span class="nc" id="L258">                            Toast.makeText(getApplicationContext(), &quot;Book \&quot;&quot; + mediaTitle + &quot;\&quot;could not be found.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L259">                            return;</span>
+                        }
+<span class="nc" id="L261">                        JSONObject item = null;</span>
+                        try {
+<span class="nc" id="L263">                            item = response.getJSONObject(0);</span>
+<span class="nc" id="L264">                        } catch (JSONException e) {</span>
+<span class="nc" id="L265">                            throw new RuntimeException(e);</span>
+<span class="nc" id="L266">                        }</span>
+
+                        //extract information out of returned JSON book object
+                        String title;
+                        String author;
+                        String year;
+                        String volumeID;
+                        try {
+<span class="nc" id="L274">                            Log.d(&quot;Server response:&quot;, item.get(&quot;title&quot;).toString());</span>
+<span class="nc" id="L275">                            title = item.get(&quot;title&quot;).toString();</span>
+<span class="nc" id="L276">                            author = item.get(&quot;authors&quot;).toString();</span>
+<span class="nc" id="L277">                            year = item.get(&quot;publishedDate&quot;).toString();</span>
+<span class="nc" id="L278">                            volumeID = item.get(&quot;volumeId&quot;).toString();</span>
+<span class="nc" id="L279">                        } catch (JSONException e) {</span>
+<span class="nc" id="L280">                            throw new RuntimeException(e);</span>
+<span class="nc" id="L281">                        }</span>
+
+                        //save book to database by volumeID for faster lookup next time
+<span class="nc" id="L284">                        bookSave(volumeID);</span>
+
+                        //display results page for books
+<span class="nc" id="L287">                        bookResult.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L288">                        bookHeader.setText(&quot;Book Found!&quot;);</span>
+<span class="nc" id="L289">                        bookTitle.setText(&quot;Title: &quot; + title);</span>
+<span class="nc" id="L290">                        bookAuthor.setText(&quot;Author: &quot; + author);</span>
+<span class="nc" id="L291">                        bookDate.setText(&quot;Year Published: &quot; + year);</span>
+<span class="nc" id="L292">                        bookButton.setText(&quot;View Book&quot;);</span>
+
+<span class="nc" id="L294">                        nameOfNeededItem = title;</span>
+<span class="nc" id="L295">                        nameOfNeededAuthor = author;</span>
+
+<span class="nc" id="L297">                    }</span>
+                },
+<span class="nc" id="L299">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L302">                        int errorCode = error.networkResponse.statusCode;</span>
+
+<span class="nc bnc" id="L304" title="All 2 branches missed.">                        if (errorCode == 404) {</span>
+<span class="nc" id="L305">                            Toast.makeText(getApplicationContext(), &quot;Book \&quot;&quot; + mediaTitle + &quot;\&quot;could not be found.&quot;, Toast.LENGTH_LONG).show();</span>
+                        } else {
+<span class="nc" id="L307">                            Toast.makeText(getApplicationContext(), &quot;Unknown error.&quot;, Toast.LENGTH_LONG).show();</span>
+                        }
+<span class="nc" id="L309">                    }</span>
+                }
+<span class="nc" id="L311">        ) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() throws AuthFailureError {
+                // Define headers if needed
+<span class="nc" id="L315">                HashMap&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L316">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+                // Define parameters if needed
+<span class="nc" id="L322">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                // Example parameters (uncomment if needed)
+                // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L326">                return params;</span>
+            }
+        };
+
+        // Adding request to the Volley request queue
+<span class="nc" id="L331">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(databaseRequest);</span>
+<span class="nc" id="L332">    }</span>
+
+    /**
+     * This helper method saves the book in our database by its volumeID in OpenLibrary.
+     *
+     * @param volumeId The OpenLibrary ID of the located book.
+     */
+    private void bookSave(String volumeId) {
+<span class="nc" id="L340">        url = String.format(&quot;http://coms-3090-017.class.las.iastate.edu:8080/books/saveByVolumeId?volumeId=%s&quot;, volumeId);</span>
+<span class="nc" id="L341">        JsonObjectRequest saveBookByVolumeId = new JsonObjectRequest(Request.Method.POST, // HTTP method (GET request)</span>
+                url, // API URL
+                null, // Request body (null for GET request)
+                response -&gt; {
+<span class="nc" id="L345">                    Log.d(&quot;Test: &quot;, &quot;Saving book with ID &quot; + volumeId);</span>
+<span class="nc" id="L346">                },</span>
+                error -&gt; {
+<span class="nc" id="L348">                    int errorCode = error.networkResponse.statusCode;</span>
+
+<span class="nc bnc" id="L350" title="All 2 branches missed.">                    if (errorCode == 404) {</span>
+<span class="nc" id="L351">                        Toast.makeText(getApplicationContext(), &quot;Error, could not sync with database...&quot;, Toast.LENGTH_LONG).show();</span>
+                    } else {
+<span class="nc" id="L353">                        Toast.makeText(getApplicationContext(), &quot;Unknown error.&quot;, Toast.LENGTH_LONG).show();</span>
+                    }
+
+<span class="nc" id="L356">                }</span>
+<span class="nc" id="L357">        ) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() throws AuthFailureError {
+                // Define headers if needed
+<span class="nc" id="L361">                HashMap&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L362">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+                // Define parameters if needed
+<span class="nc" id="L368">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                // Example parameters (uncomment if needed)
+                // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L372">                return params;</span>
+            }
+        };
+
+        // Adding request to the Volley request queue
+<span class="nc" id="L377">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(saveBookByVolumeId);</span>
+<span class="nc" id="L378">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

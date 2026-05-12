@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SignupActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">SignupActivity.java</span></div><h1>SignupActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.JsonReader;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+/**
+ * @author Edwin Cepeda
+ */
+<span class="nc" id="L36">public class SignupActivity extends AppCompatActivity {</span>
+
+    private EditText usernameEdit;  // define username edittext variable
+    private EditText passwordEdit;  // define password edittext variable
+    private EditText emailEdit; //define email edittext variable
+    //    private Button loginButton;         // define login button variable
+    private Button signupButton;        // define signup button variable
+    private Button returnButton;
+
+
+//    private LinearLayout idInput, passwordInput;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L50">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L51">        setContentView(R.layout.activity_signup);            // link to Login activity XML</span>
+
+        /* initialize UI elements */
+<span class="nc" id="L54">        usernameEdit = findViewById(R.id.username_edt);</span>
+<span class="nc" id="L55">        passwordEdit = findViewById(R.id.password_edt);</span>
+<span class="nc" id="L56">        emailEdit = findViewById(R.id.email_edt);</span>
+//        loginButton = findViewById(R.id.login_btn);    // link to login button in the Login activity XML
+<span class="nc" id="L58">        signupButton = findViewById(R.id.signup_btn);  // link to signup button in the Login activity XML</span>
+<span class="nc" id="L59">        returnButton = findViewById(R.id.return_btn);</span>
+//        idInput = findViewById(R.id.id_input);
+//        passwordInput = findViewById(R.id.password_input);
+
+        /* click listener on login button pressed */
+//        loginButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//                /* grab strings from user inputs */
+//                String username = usernameEdit.getText().toString();
+//                String password = passwordEdit.getText().toString();
+//
+//                /* when login button is pressed, use intent to switch to Login Activity */
+//                Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
+//                startActivity(intent);  // go to MainActivity with the key-value data
+//            }
+//        });
+
+        /* click listener on signup button pressed */
+<span class="nc" id="L79">        signupButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+                //Grab strings from inputs
+<span class="nc" id="L83">                String username = usernameEdit.getText().toString();</span>
+<span class="nc" id="L84">                String password = passwordEdit.getText().toString();</span>
+<span class="nc" id="L85">                String email = emailEdit.getText().toString();</span>
+
+
+<span class="nc bnc" id="L88" title="All 6 branches missed.">                if (username.isEmpty() || password.isEmpty() || email.isEmpty()) {</span>
+<span class="nc" id="L89">                    Toast.makeText(getApplicationContext(), &quot;Please fill out all fields.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L90">                    return;</span>
+                }
+
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                if (username.contains(&quot; &quot;)) {</span>
+<span class="nc" id="L94">                    Toast.makeText(getApplicationContext(), &quot;Usernames cannot have spaces.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L95">                    return;</span>
+                }
+
+<span class="nc bnc" id="L98" title="All 2 branches missed.">                if (!passwordValidation(password)) {</span>
+<span class="nc" id="L99">                    return;</span>
+                }
+<span class="nc" id="L101">                String newUserString = String.format(&quot;{\&quot;name\&quot;: \&quot;%s\&quot;, \&quot;emailId\&quot;: \&quot;%s\&quot;, \&quot;password\&quot;: \&quot;%s\&quot;}&quot;, username, email, password);</span>
+                JSONObject userObject;
+                try {
+<span class="nc" id="L104">                    userObject = new JSONObject(newUserString);</span>
+<span class="nc" id="L105">                } catch (JSONException e) {</span>
+<span class="nc" id="L106">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L107">                }</span>
+
+//                String url = &quot;http://10.0.2.2:8080/users&quot;;
+<span class="nc" id="L110">                String url = &quot;http://coms-3090-017.class.las.iastate.edu:8080/users&quot;;</span>
+
+<span class="nc" id="L112">                postRequest(userObject, url);</span>
+
+
+                /* when signup button is pressed, use intent to switch to Signup Activity */
+//                Intent intent = new Intent(LoginActivity.this, SignupActivity.class);
+//                startActivity(intent);  // go to SignupActivity
+
+<span class="nc" id="L119">            }</span>
+        });
+
+        /* click listener on signup button pressed */
+<span class="nc" id="L123">        returnButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+                /* on click, return to main activity */
+<span class="nc" id="L128">                Intent intent = new Intent(SignupActivity.this, MainActivity.class);</span>
+<span class="nc" id="L129">                startActivity(intent);</span>
+<span class="nc" id="L130">            }</span>
+        });
+
+
+<span class="nc" id="L134">    }</span>
+
+    private void postRequest(JSONObject userObject, String url) {
+<span class="nc" id="L137">        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, userObject,</span>
+                response -&gt; {
+                    // SUCCESS (HTTP 200 OK)
+<span class="nc" id="L140">                    Log.d(&quot;Post Request: &quot;, &quot;response: &quot; + response.toString());</span>
+                    String message;
+                    try {
+<span class="nc" id="L143">                        message = response.get(&quot;message&quot;).toString();</span>
+<span class="nc" id="L144">                    } catch (JSONException e) {</span>
+<span class="nc" id="L145">                        throw new RuntimeException(e);</span>
+<span class="nc" id="L146">                    }</span>
+
+<span class="nc bnc" id="L148" title="All 2 branches missed.">                    if (message.equals(&quot;success&quot;)) {</span>
+<span class="nc" id="L149">                        Toast.makeText(getApplicationContext(), &quot;Welcome to CyVal!&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L150">                        Intent intent = new Intent(SignupActivity.this, LoginActivity.class);</span>
+<span class="nc" id="L151">                        intent.putExtra(&quot;USERTYPE&quot;, &quot;STUDENT&quot;);</span>
+<span class="nc" id="L152">                        startActivity(intent);  // go to LoginActivity if signup successful</span>
+<span class="nc" id="L153">                    } else {</span>
+<span class="nc" id="L154">                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();</span>
+                    }
+
+<span class="nc" id="L157">                }, error -&gt; {</span>
+            // ERROR (HTTP 4xx or 5xx)
+<span class="nc" id="L159">            Log.e(&quot;PostRequest&quot;, &quot;Error response received&quot;, error);</span>
+//            final int errorCode = error.networkResponse.statusCode;
+<span class="nc bnc" id="L161" title="All 4 branches missed.">            if (error.networkResponse != null &amp;&amp; error.networkResponse.data != null) {</span>
+<span class="nc" id="L162">                String serverError = new String(error.networkResponse.data, StandardCharsets.UTF_8);</span>
+                // This will display &quot;Invalid username&quot;, &quot;Invalid password&quot;, etc.
+<span class="nc" id="L164">                Toast.makeText(SignupActivity.this, serverError, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L165">                Log.e(&quot;PostRequest&quot;, serverError, error);</span>
+<span class="nc" id="L166">            } else {</span>
+                // Fallback if the server is offline or unreachable
+<span class="nc" id="L168">                Toast.makeText(SignupActivity.this, &quot;Network Error: Could not reach server&quot;, Toast.LENGTH_LONG).show();</span>
+            }
+<span class="nc" id="L170">        }) {</span>
+            public Map&lt;String, String&gt; getHeaders() throws AuthFailureError {
+<span class="nc" id="L172">                HashMap&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L173">                headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;); // Set content type</span>
+<span class="nc" id="L174">                return headers;</span>
+            }
+        };
+
+<span class="nc" id="L178">        Volley.newRequestQueue(this).add(request);</span>
+<span class="nc" id="L179">    }</span>
+
+    private boolean passwordValidation(String password) {
+        //This string will check each pattern.
+        String currentPattern;
+
+        //null check
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        if (password == null) {</span>
+<span class="nc" id="L187">            Toast.makeText(getApplicationContext(), &quot;Error: Password not received.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L188">            return false;</span>
+        }
+
+        //length check
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        if (password.length() &lt; 8) {</span>
+<span class="nc" id="L193">            Toast.makeText(getApplicationContext(), &quot;Password must be 8 or more characters.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L194">            return false;</span>
+        }
+
+        //lowercase letter check
+<span class="nc" id="L198">        currentPattern = &quot;.*[a-z].*&quot;;</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        if (!(password.matches(currentPattern))) {</span>
+<span class="nc" id="L200">            Toast.makeText(getApplicationContext(), &quot;Password must contain a lowercase letter.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L201">            return false;</span>
+        }
+
+        //uppercase letter check
+<span class="nc" id="L205">        currentPattern = &quot;.*[A-Z].*&quot;;</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        if (!(password.matches(currentPattern))) {</span>
+<span class="nc" id="L207">            Toast.makeText(getApplicationContext(), &quot;Password must contain an uppercase letter.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L208">            return false;</span>
+        }
+
+        //number check
+<span class="nc" id="L212">        currentPattern = &quot;.*[0-9].*&quot;;</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">        if (!(password.matches(currentPattern))) {</span>
+<span class="nc" id="L214">            Toast.makeText(getApplicationContext(), &quot;Password must contain a number.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L215">            return false;</span>
+        }
+
+        //special char check
+<span class="nc" id="L219">        currentPattern = &quot;.*[!?@#$%^&amp;+=].*&quot;;</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">        if (!(password.matches(currentPattern))) {</span>
+<span class="nc" id="L221">            Toast.makeText(getApplicationContext(), &quot;Password must contain a special character (!?@#$%^&amp;+=).&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L222">            return false;</span>
+        }
+
+<span class="nc" id="L225">        return true;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

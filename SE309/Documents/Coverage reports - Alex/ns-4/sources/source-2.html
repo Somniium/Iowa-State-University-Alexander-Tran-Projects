@@ -1,0 +1,356 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ArtistController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Artists</a>
+</div>
+
+<h1>Coverage Summary for Class: ArtistController (onetoone.Artists)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ArtistController</td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (6/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    20.8%
+  </span>
+  <span class="absValue">
+    (5/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    33.3%
+  </span>
+  <span class="absValue">
+    (21/63)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ArtistController$$SpringCGLIB$$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (6/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    20.8%
+  </span>
+  <span class="absValue">
+    (5/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    33.3%
+  </span>
+  <span class="absValue">
+    (21/63)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Artists;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Operation;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.responses.ApiResponse;
+&nbsp;import io.swagger.v3.oas.annotations.tags.Tag;
+&nbsp;import onetoone.Albums.Album;
+&nbsp;import onetoone.Albums.AlbumRepository;
+&nbsp;import onetoone.Albums.SpotifyService;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;import jakarta.validation.Valid;
+&nbsp;import org.hibernate.validator.constraints.UniqueElements;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@Tag(name = &quot;Artists&quot;, description = &quot;Manage Artists using Spotify using database and SpotifyAPI&quot;)
+&nbsp;public class ArtistController {
+&nbsp;
+&nbsp;    private final SpotifyService spotifyService;
+&nbsp;
+<b class="fc">&nbsp;    public ArtistController(SpotifyService spotifyService) {</b>
+<b class="fc">&nbsp;        this.spotifyService = spotifyService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    ArtistRepository artistRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    AlbumRepository albumRepository;
+&nbsp;
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Returns all artists&quot;,
+&nbsp;            description = &quot;Returns all artists as JSON objects&quot;
+&nbsp;    )
+&nbsp;    @GetMapping(path = &quot;/artists&quot;)
+&nbsp;    List&lt;Artist&gt; getAllArtists() {
+<b class="fc">&nbsp;        return artistRepository.findAll();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Searches for an artist&quot;,
+&nbsp;            description = &quot;Searches for an artist. If found, the artist is saved to the DB&quot;
+&nbsp;    )
+&nbsp;    @GetMapping(path = &quot;/search-artist-and-save&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; searchForAndSaveArtist(
+&nbsp;            @Parameter(description = &quot;Name of the artist&quot;, example = &quot;Kanye West&quot;)
+&nbsp;            @RequestParam(name = &quot;artist_name&quot;) String artistName) {
+&nbsp;        try {
+<b class="fc">&nbsp;            spotifyService.authenticate();</b>
+<b class="fc">&nbsp;            var searchRequest = spotifyService.getApi().searchArtists(artistName).build();</b>
+<b class="fc">&nbsp;            var results = searchRequest.execute();</b>
+&nbsp;
+<b class="fc">&nbsp;            String spotifyId = results.getItems()[0].getId();</b>
+&nbsp;
+<b class="fc">&nbsp;            Artist existing = artistRepository.findBySpotifyId(spotifyId);</b>
+&nbsp;
+<b class="pc">&nbsp;            if(existing != null) {</b>
+<b class="fc">&nbsp;                return new ResponseEntity&lt;&gt;(existing, HttpStatus.OK);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            String name = results.getItems()[0].getName();</b>
+<b class="nc">&nbsp;            String photoURL = results.getItems()[0].getImages()[0].getUrl();</b>
+<b class="nc">&nbsp;            String genre = &quot;Unknown&quot;;</b>
+&nbsp;
+<b class="nc">&nbsp;            if(results.getItems()[0].getGenres() != null &amp;&amp; results.getItems()[0].getGenres().length &gt; 0) {</b>
+<b class="nc">&nbsp;                genre = results.getItems()[0].getGenres()[0];</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            Artist artist = new Artist(name, genre, photoURL, spotifyId);</b>
+&nbsp;
+<b class="nc">&nbsp;            artistRepository.save(artist);</b>
+&nbsp;
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(artist, HttpStatus.OK);</b>
+&nbsp;        } catch(Exception e) {
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Error: Artist already in database.&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Get artist&quot;,
+&nbsp;            description = &quot;Get an artist using its ID in the DB&quot;,
+&nbsp;            parameters = {
+&nbsp;                @Parameter(name = &quot;id&quot;, description = &quot;ID of artist in DB.&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully returned artist.&quot;),
+&nbsp;                @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Artist not found under ID.&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(path = &quot;/artist/get-artist/{id}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; getArtistById(@PathVariable long id) {
+<b class="fc">&nbsp;        Artist exists = artistRepository.findByArtistId(id);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(exists == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Artist not found under ID.&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(exists, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Adds all of artist&#39;s albums&quot;,
+&nbsp;            description = &quot;Retrieves all albums tied to an artist using artist&#39;s ID and adds them to the DB&quot;
+&nbsp;    )
+&nbsp;    @PostMapping(path = &quot;/add-artist-albums/id/{id}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; addArtistAlbumsById(
+&nbsp;            @Parameter(description = &quot;ID of artist in DB&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable Long id) {
+&nbsp;        try {
+<b class="nc">&nbsp;            Artist artist = artistRepository.findByArtistId(id);</b>
+&nbsp;
+<b class="nc">&nbsp;            String spotId = artist.getSpotifyId();</b>
+&nbsp;
+<b class="nc">&nbsp;            spotifyService.authenticate();</b>
+<b class="nc">&nbsp;            var searchRequest = spotifyService.getApi().getArtistsAlbums(spotId).build();</b>
+<b class="nc">&nbsp;            var results = searchRequest.execute();</b>
+&nbsp;
+<b class="nc">&nbsp;            for (int i = 0; i &lt; results.getItems().length; i++) {</b>
+<b class="nc">&nbsp;                String spotifyId = results.getItems()[i].getId();</b>
+<b class="nc">&nbsp;                String albumName = results.getItems()[i].getName();</b>
+<b class="nc">&nbsp;                String releaseDate = results.getItems()[i].getReleaseDate();</b>
+<b class="nc">&nbsp;                String coverURL = results.getItems()[i].getImages()[0].getUrl();</b>
+<b class="nc">&nbsp;                String genre = artist.getGenre();</b>
+&nbsp;
+<b class="nc">&nbsp;                Album album = new Album(albumName, releaseDate, coverURL, genre, spotifyId);</b>
+&nbsp;
+<b class="nc">&nbsp;                if(albumRepository.findBySpotifyId(spotifyId) != null) {</b>
+&nbsp;                    continue;
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                artist.addAlbum(album);</b>
+<b class="nc">&nbsp;                albumRepository.save(album);</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Artist albums saved.&quot;, HttpStatus.OK);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Error: Artist already in database.&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Updates artist rating&quot;,
+&nbsp;            description = &quot;Updates average rating of artists using ratings of albums&quot;
+&nbsp;    )
+&nbsp;    @PutMapping(path=&quot;/artist/update-rating/{id}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; updateArtistRating(
+&nbsp;            @Parameter(description = &quot;ID of artist in DB&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable Long id) {
+<b class="fc">&nbsp;        Artist existing = artistRepository.findByArtistId(id);</b>
+&nbsp;
+<b class="pc">&nbsp;        if (existing == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Artist not found under ID&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="pc">&nbsp;        if (existing.getAlbums() == null || existing.getAlbums().isEmpty()) {</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;No albums to average&quot;, HttpStatus.OK);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        int newRating = 0;</b>
+<b class="nc">&nbsp;        for (int i = 0; i &lt; existing.getAlbums().size(); i++) {</b>
+<b class="nc">&nbsp;            newRating += existing.getAlbums().get(i).getRating();</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        newRating = newRating / existing.getAlbums().size();</b>
+&nbsp;
+<b class="nc">&nbsp;        existing.setRating(newRating);</b>
+<b class="nc">&nbsp;        artistRepository.save(existing);</b>
+&nbsp;
+<b class="nc">&nbsp;        return new ResponseEntity&lt;&gt;(existing, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Update an artist&quot;,
+&nbsp;            description = &quot;Updates an artist using ID of artist and JSON object&quot;
+&nbsp;    )
+&nbsp;    @PutMapping(path = &quot;/artist/update/{id}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; updateArtist(
+&nbsp;            @Parameter(description = &quot;ID of artist in DB&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable Long id,
+&nbsp;            @RequestBody Artist request) {
+<b class="nc">&nbsp;        Artist existing = artistRepository.findByArtistId(id);</b>
+&nbsp;
+<b class="nc">&nbsp;        if(existing  == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Artist id does not exist&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (!request.getArtistId().equals(id)){</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Path variable id does not match Artist request id&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        existing = artistRepository.save(request);</b>
+<b class="nc">&nbsp;        return new ResponseEntity&lt;&gt;(existing, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Delete artist&quot;,
+&nbsp;            description = &quot;Deletes an artist from DB using ID of artist&quot;
+&nbsp;    )
+&nbsp;    @Transactional
+&nbsp;    @DeleteMapping(path=&quot;/artist/delete-artist/id/{id}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; deleteArtistById(
+&nbsp;            @Parameter(description = &quot;ID of artist in DB&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable Long id) {
+<b class="fc">&nbsp;        Artist existing = artistRepository.findByArtistId(id);</b>
+&nbsp;
+<b class="fc">&nbsp;        albumRepository.deleteAll(existing.getAlbums());</b>
+&nbsp;
+<b class="fc">&nbsp;        artistRepository.deleteByArtistId(id);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(&quot;Successfully removed artist&quot;, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-06 03:05</div>
+</div>
+</body>
+</html>

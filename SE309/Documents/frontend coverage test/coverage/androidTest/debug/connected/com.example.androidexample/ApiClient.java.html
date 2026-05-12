@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApiClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">ApiClient.java</span></div><h1>ApiClient.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Context;
+import android.util.Log;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.gson.Gson;
+
+import org.json.JSONObject;
+
+import java.nio.charset.StandardCharsets;
+
+import com.android.volley.toolbox.StringRequest;
+
+import okhttp3.OkHttpClient;
+import okhttp3.WebSocket;
+import okhttp3.WebSocketListener;
+
+/**
+ * @author Cristian Alvarez
+ * @version 1.2
+ * * A dedicated API Client that handles all Volley requests between
+ * Android studio in the Frontend and the Spring boot in the Backend.
+ * * This class uses Volley for network communication and Gson for
+ * robust data conversion of Data Transfer Objects (DTOs) to JSON.
+ * This class handles all 4 standard CRUD operations(POST, GET, PUT, and DELETE)
+ * in a single method.
+ */
+<span class="nc" id="L31">public class ApiClient {</span>
+
+    /**
+     * URL for the remote dataBase
+     */
+    private static final String Server_URL = &quot;http://coms-3090-017.class.las.iastate.edu:8080&quot;;
+//    private static final String Server_URL = &quot;http://10.0.2.2:3001&quot;;
+
+    /**
+     * sends a POST request to the server with the given endpoint and DTO
+     * to create new data on the remote database.
+     *
+     * @param context  The application/Activity that this method is called from.
+     * @param endpoint The endpoint to send the request to. (ex: /users/login)
+     * @param dto      The data transfer object that is being converted to JSON via Gson.
+     * @param result   an interface that handles the response or error from the server.
+     */
+    public static void post(Context context, String endpoint, Object dto, Api_Interface result) {
+<span class="fc" id="L49">        sendRequest(context, Request.Method.POST, endpoint, dto, result);</span>
+<span class="fc" id="L50">    }</span>
+
+    public static void postString(Context context, String endpoint, Api_String_Interface result) {
+<span class="nc" id="L53">        String url = Server_URL + endpoint;</span>
+<span class="nc" id="L54">        StringRequest request = new StringRequest(Request.Method.POST, url,</span>
+<span class="nc" id="L55">                response -&gt; result.onSuccess(response),</span>
+<span class="nc" id="L56">                error -&gt; result.onError(getError(error))</span>
+        );
+<span class="nc" id="L58">        VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="nc" id="L59">    }</span>
+
+    /**
+     * sends a GET request to the server with the given endpoint.
+     *
+     * @param context  The application/Activity that this method is called from.
+     * @param endpoint The endpoint to send the request to. (ex: /users/id/1)
+     * @param result   an interface that handles the response or error from the server.
+     */
+    public static void get(Context context, String endpoint, Api_Interface result) {
+<span class="fc" id="L69">        sendRequest(context, Request.Method.GET, endpoint, null, result);</span>
+<span class="fc" id="L70">    }</span>
+
+    /**
+     * sends a PUT request to the server with the given endpoint and DTO
+     * to update data on the remote database.
+     *
+     * @param context  The application/Activity that this method is called from.
+     * @param endpoint The endpoint to send the request to. (ex: /users)
+     * @param dto      The data transfer object that is being converted to JSON via Gson.
+     * @param result   an interface that handles the response or error from the server.
+     */
+    public static void put(Context context, String endpoint, Object dto, Api_Interface result) {
+<span class="fc" id="L82">        sendRequest(context, Request.Method.PUT, endpoint, dto, result);</span>
+<span class="fc" id="L83">    }</span>
+
+    /**
+     * Sends a PUT request to the server with the given endpoint and a String body
+     * to update data on the remote database. This method expects a String/Array response.
+     *
+     * @param context  The application/Activity that this method is called from.
+     * @param endpoint The endpoint to send the request to.
+     * @param Body     The raw string body to include in the PUT request.
+     * @param result   An interface that handles the response or error from the server.
+     */
+    public static void putString(Context context, String endpoint, String Body, Api_String_Interface result) {
+<span class="fc" id="L95">        String url = Server_URL + endpoint;</span>
+
+<span class="fc" id="L97">        StringRequest request = new StringRequest(Request.Method.PUT, url,</span>
+<span class="fc" id="L98">                response -&gt; result.onSuccess(response),</span>
+<span class="nc" id="L99">                error -&gt; result.onError(getError(error))</span>
+        );
+<span class="fc" id="L101">        VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="fc" id="L102">    }</span>
+
+    public static void postString(Context context, String endpoint, String Body, Api_String_Interface result) {
+<span class="fc" id="L105">        String url = Server_URL + endpoint;</span>
+
+<span class="fc" id="L107">        StringRequest request = new StringRequest(Request.Method.POST, url,</span>
+<span class="fc" id="L108">                response -&gt; result.onSuccess(response),</span>
+<span class="nc" id="L109">                error -&gt; result.onError(getError(error))</span>
+        );
+<span class="fc" id="L111">        VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="fc" id="L112">    }</span>
+
+    /**
+     * sends a DELETE request to the server with the given endpoint to
+     * delete data in the remote database.
+     *
+     * @param context  The application/Activity that this method is called from.
+     * @param endpoint The endpoint to send the request to. (ex: /users/email/test@iastate.edu)
+     * @param result   an interface that handles the response or error from the server.
+     */
+    public static void delete(Context context, String endpoint, Api_Interface result) {
+<span class="nc" id="L123">        sendRequest(context, Request.Method.DELETE, endpoint, null, result);</span>
+<span class="nc" id="L124">    }</span>
+
+    /**
+     * Sends a DELETE request to the server with the given endpoint to
+     * delete data in the remote database, handling a String/Array response.
+     *
+     * @param context  The application/Activity that this method is called from.
+     * @param endpoint The endpoint to send the request to.
+     * @param result   An interface that handles the response or error from the server.
+     */
+    public static void deleteString(Context context, String endpoint, Api_String_Interface result) {
+<span class="fc" id="L135">        String url = Server_URL + endpoint;</span>
+
+<span class="fc" id="L137">        StringRequest request = new StringRequest(Request.Method.DELETE, url,</span>
+<span class="fc" id="L138">                response -&gt; result.onSuccess(response),</span>
+<span class="fc" id="L139">                error -&gt; result.onError(getError(error))</span>
+        );
+<span class="fc" id="L141">        VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="fc" id="L142">    }</span>
+
+    /**
+     * Private helper method that packages the request and adds it to the volley queue.
+     */
+    private static void sendRequest(Context context, int method, String endpoint, Object dto, Api_Interface result) {
+<span class="fc" id="L148">        String url = Server_URL + endpoint;</span>
+<span class="fc" id="L149">        JSONObject body = null;</span>
+
+        //converts the DTO to JSON
+<span class="fc bfc" id="L152" title="All 2 branches covered.">        if (dto != null) {</span>
+            try {
+<span class="fc" id="L154">                String dtoString = new Gson().toJson(dto);</span>
+<span class="fc" id="L155">                body = new JSONObject(dtoString);</span>
+<span class="nc" id="L156">            } catch (Exception e) {</span>
+<span class="nc" id="L157">                Log.e(&quot;CrudApi&quot;, &quot;Error converting DTO to JSON&quot; + e.getMessage());</span>
+<span class="fc" id="L158">            }</span>
+        }
+
+<span class="fc" id="L161">        JsonObjectRequest request = new JsonObjectRequest(method, url, body,</span>
+<span class="fc" id="L162">                response -&gt; result.onSuccess(response),</span>
+<span class="fc" id="L163">                error -&gt; result.onError(getError(error))</span>
+        );
+<span class="fc" id="L165">        VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="fc" id="L166">    }</span>
+
+    /**
+     * Gets the error message sent from the remote server.
+     *
+     * @param error the VolleyError that was sent from the server.
+     * @return A string containing the error message.
+     */
+    private static String getError(com.android.volley.VolleyError error) {
+<span class="pc bpc" id="L175" title="2 of 4 branches missed.">        if (error.networkResponse != null &amp;&amp; error.networkResponse.data != null) {</span>
+<span class="fc" id="L176">            return new String(error.networkResponse.data, StandardCharsets.UTF_8);</span>
+        }
+<span class="nc" id="L178">        return &quot;Network Error: Could not reach server&quot;;</span>
+    }
+
+    /**
+     * Fetches an image from the provided URL and loads it into the given ImageView
+     * using Volley's ImageLoader. It handles displaying a placeholder while loading
+     * and a default error image if the URL is invalid or the network request fails.
+     *
+     * @param context   The application/Activity that this method is called from.
+     * @param url       The network URL string pointing to the image file.
+     * @param imageView The target ImageView widget where the image will be displayed.
+     */
+    public static void loadImage(Context context, String url, android.widget.ImageView imageView) {
+<span class="pc bpc" id="L191" title="1 of 4 branches missed.">        if (url == null || url.isEmpty()) {</span>
+<span class="fc" id="L192">            imageView.setImageResource(R.drawable.error_image);</span>
+<span class="fc" id="L193">            return;</span>
+        }
+
+<span class="fc" id="L196">        VolleySingleton.getInstance(context).getImageLoader().get(url,</span>
+<span class="fc" id="L197">                com.android.volley.toolbox.ImageLoader.getImageListener(</span>
+                        imageView,
+                        R.drawable.cyval_logo,
+                        R.drawable.error_image
+                )
+        );
+
+<span class="fc" id="L204">    }</span>
+
+    /**
+     * Sends a GET request to the server with the given endpoint specifically
+     * expecting a JSON Array in the response body.
+     *
+     * @param context  The application/Activity that this method is called from.
+     * @param endpoint The endpoint to send the request to. (ex: /users/all)
+     * @param result   An interface that handles the JSON Array response (converted to a String) or an error.
+     */
+    public static void getArray(Context context, String endpoint, Api_Array_Interface result) {
+<span class="fc" id="L215">        String url = Server_URL + endpoint;</span>
+
+        JsonArrayRequest request;
+<span class="fc" id="L218">        request = new JsonArrayRequest(Request.Method.GET, url, null,</span>
+<span class="fc" id="L219">                response -&gt; result.onSuccess(response),</span>
+<span class="nc" id="L220">                error -&gt; result.onError(getError(error))</span>
+        );
+<span class="fc" id="L222">        VolleySingleton.getInstance(context).addToRequestQueue(request);</span>
+<span class="fc" id="L223">    }</span>
+
+<span class="fc" id="L225">    private static OkHttpClient wsClient = new OkHttpClient();</span>
+
+    public static WebSocket connectWebSocket(String endPoint, WebSocketListener listener) {
+<span class="fc" id="L228">        String url = Server_URL.replace(&quot;http://&quot;, &quot;ws://&quot;) + endPoint;</span>
+<span class="fc" id="L229">        okhttp3.Request request = new okhttp3.Request.Builder().url(url).build();</span>
+<span class="fc" id="L230">        return wsClient.newWebSocket(request, listener);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

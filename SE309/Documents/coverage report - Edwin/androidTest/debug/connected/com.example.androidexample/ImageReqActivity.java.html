@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ImageReqActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">ImageReqActivity.java</span></div><h1>ImageReqActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.graphics.Bitmap;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
+
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageRequest;
+
+<span class="nc" id="L17">public class ImageReqActivity extends AppCompatActivity {</span>
+
+    // Define the URL of the image to be requested
+    public static final String URL_IMAGE = &quot;http://sharding.org/outgoing/temp/testimg3.jpg&quot;;
+    // Declare the Button and ImageView variables
+    private Button btnImageReq;
+    private ImageView imageView;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L27">        super.onCreate(savedInstanceState);</span>
+        // Set the layout for this activity
+<span class="nc" id="L29">        setContentView(R.layout.activity_image_req);</span>
+
+        // Initialize the button and image view using findViewById
+<span class="nc" id="L32">        btnImageReq = findViewById(R.id.btnImageReq);</span>
+<span class="nc" id="L33">        imageView = findViewById(R.id.imgView);</span>
+
+        // Set an OnClickListener for the button to trigger the image request when clicked
+<span class="nc" id="L36">        btnImageReq.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+                // Call method to make image request when the button is clicked
+<span class="nc" id="L40">                makeImageRequest();</span>
+<span class="nc" id="L41">            }</span>
+        });
+<span class="nc" id="L43">    }</span>
+
+    /**
+     * Method to make an image request using Volley
+     */
+    private void makeImageRequest() {
+        // Create a new ImageRequest object to request the image from the URL
+<span class="nc" id="L50">        ImageRequest imageRequest = new ImageRequest(</span>
+                URL_IMAGE, // URL of the image to fetch
+<span class="nc" id="L52">                new Response.Listener&lt;Bitmap&gt;() {</span>
+                    @Override
+                    public void onResponse(Bitmap response) {
+                        // Called when the image is successfully fetched
+                        // Set the fetched image (Bitmap) to the ImageView
+<span class="nc" id="L57">                        imageView.setImageBitmap(response);</span>
+                        // Log a success message
+<span class="nc" id="L59">                        Log.d(&quot;Image Request&quot;, &quot;Image loaded successfully.&quot;);</span>
+<span class="nc" id="L60">                    }</span>
+                },
+                0, // Width of the image (0 to use the original width)
+                0, // Height of the image (0 to use the original height)
+                ImageView.ScaleType.FIT_XY, // Scale type for the image (adjust to fit)
+                Bitmap.Config.RGB_565, // Bitmap configuration for better memory usage
+<span class="nc" id="L66">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Called when an error occurs during the image request
+                        // Log the error for debugging purposes
+<span class="nc" id="L71">                        Log.e(&quot;Volley Error&quot;, error.toString());</span>
+                        // Display a Toast message to the user about the error
+<span class="nc" id="L73">                        Toast.makeText(ImageReqActivity.this, &quot;Failed to load image&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L74">                    }</span>
+                }
+        );
+
+        // Add the ImageRequest to the Volley request queue for processing
+<span class="nc" id="L79">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(imageRequest);</span>
+<span class="nc" id="L80">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

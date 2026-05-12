@@ -1,0 +1,324 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > FriendController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Friends</a>
+</div>
+
+<h1>Coverage Summary for Class: FriendController (onetoone.Friends)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FriendController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (9/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    78.9%
+  </span>
+  <span class="absValue">
+    (30/38)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Friends;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.annotation.JsonIgnore;
+&nbsp;import io.swagger.v3.oas.annotations.Operation;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.responses.ApiResponse;
+&nbsp;import io.swagger.v3.oas.annotations.tags.Tag;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import lombok.Getter;
+&nbsp;import lombok.Setter;
+&nbsp;import onetoone.Users.User;
+&nbsp;import onetoone.Users.UserRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@Tag(name = &quot;Friends&quot;, description = &quot;Send and modify friend requests and check friendships.&quot;)
+<b class="fc">&nbsp;public class FriendController {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    FriendRepository friendRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    UserRepository userRepository;
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Return all friends&quot;,
+&nbsp;            description = &quot;Returns a list of all friends in DB&quot;,
+&nbsp;            responses = {
+&nbsp;                @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully returned all friends&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(path = &quot;/friends&quot;)
+&nbsp;    List&lt;Friend&gt; getAllFriends() {
+<b class="fc">&nbsp;        return friendRepository.findAll();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Get outgoing friend requests&quot;,
+&nbsp;            description = &quot;Returns all friend objects where the given user is the sender.&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;userId&quot;, description = &quot;ID of the user who sent the requests&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully returned sent requests&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;User not found&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(path = &quot;/friends/sent-by/{userId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; getFriendRequestsSentByUser(@PathVariable int userId) {
+<b class="pc">&nbsp;        if (userRepository.findByUserId(userId) == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;User not found&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(friendRepository.findByUserUserId(userId), HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Get incoming friend requests&quot;,
+&nbsp;            description = &quot;Returns all friend objects where the given user is the receiver.&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;userId&quot;, description = &quot;ID of the user who received the requests&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully returned received requests&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;User not found&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(path = &quot;/friends/received-by/{userId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; getFriendRequestsReceivedByUser(@PathVariable int userId) {
+<b class="pc">&nbsp;        if (userRepository.findByUserId(userId) == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;User not found&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(friendRepository.findByFriendUserId(userId), HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Check request status&quot;,
+&nbsp;            description = &quot;Check the status of a request between 2 users.&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;userId&quot;, description = &quot;User sending the request&quot;),
+&nbsp;                    @Parameter(name = &quot;friendId&quot;, description = &quot;User receiving the request&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully returned status&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Request not found&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(path = &quot;/friend/request-status/currUser/{userId}/friend/{friendId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; getFriendshipStatus(@PathVariable int userId, @PathVariable int friendId) {
+<b class="fc">&nbsp;        Friend request = friendRepository.findFriendBetweenUsers(userId, friendId);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(request == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Request not found&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(request.getFriendStatus(), HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Create a friend request&quot;,
+&nbsp;            description = &quot;Creates a friend request using the IDs of the sending and receiving users in the DB.&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;userId&quot;, description = &quot;User sending the request&quot;),
+&nbsp;                    @Parameter(name = &quot;friendId&quot;, description = &quot;User receiving the request&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;201&quot;, description = &quot;Successfully created request&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;One or both users not found&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PostMapping(path = &quot;/friend/send-request/currUser/{userId}/friend/{friendId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; sendFriendRequest(@PathVariable int userId, @PathVariable int friendId) {
+<b class="fc">&nbsp;        User currUser = userRepository.findByUserId(userId);</b>
+<b class="fc">&nbsp;        User friend = userRepository.findByUserId(friendId);</b>
+&nbsp;
+<b class="pc">&nbsp;        if (currUser == null || friend == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;User or friend not found&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Prevent duplicate requests / re-friending an existing relationship.
+<b class="pc">&nbsp;        if (friendRepository.findFriendBetweenUsers(userId, friendId) != null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Friend request or relationship already exists&quot;, HttpStatus.CONFLICT);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        Friend request = new Friend(currUser, friend, &quot;PENDING&quot;);</b>
+<b class="fc">&nbsp;        friendRepository.save(request);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(request, HttpStatus.CREATED);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Accept a friend request&quot;,
+&nbsp;            description = &quot;Changes the status of a friend request to accepted using ID of request in DB&quot;,
+&nbsp;            parameters = {
+&nbsp;                @Parameter(name = &quot;requestId&quot;, description = &quot;ID of request in DB.&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully accepted request.&quot;),
+&nbsp;                @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Request not found in DB.&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PutMapping(path = &quot;/friend/accept-request/{requestId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; acceptFriendRequest(@PathVariable Long requestId) {
+<b class="fc">&nbsp;        Friend request = friendRepository.findById(requestId).orElse(null);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(request == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Request not found&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        request.setFriendStatus(&quot;ACCEPTED&quot;);</b>
+<b class="fc">&nbsp;        friendRepository.save(request);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(request, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Decline a friend request&quot;,
+&nbsp;            description = &quot;Changes the status of a friend request to declined using ID of request in DB&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;requestId&quot;, description = &quot;ID of request in DB.&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully declined request.&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Request not found in DB.&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PutMapping(path = &quot;/friend/decline-request/{requestId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; declineFriendRequest(@PathVariable Long requestId) {
+<b class="fc">&nbsp;        Friend request = friendRepository.findById(requestId).orElse(null);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(request == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Request not found&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        request.setFriendStatus(&quot;DECLINED&quot;);</b>
+<b class="fc">&nbsp;        friendRepository.save(request);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(request, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Remove a friend or cancel request.&quot;,
+&nbsp;            description = &quot;Remove a friend or cancel request using its ID in the DB&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;requestId&quot;, description = &quot;ID of request in DB.&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Successfully removed friend or cancelled request.&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Request not found in DB.&quot;)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @DeleteMapping(path = &quot;/friend/remove-friend-or-cancel-request/{requestId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; removeFriend(@PathVariable Long requestId) {
+<b class="fc">&nbsp;        Friend exists = friendRepository.findById(requestId).orElse(null);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(exists == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Request not found&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        friendRepository.deleteById(requestId);</b>
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(&quot;Successfully removed friend or cancelled request&quot;, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-05 18:52</div>
+</div>
+</body>
+</html>

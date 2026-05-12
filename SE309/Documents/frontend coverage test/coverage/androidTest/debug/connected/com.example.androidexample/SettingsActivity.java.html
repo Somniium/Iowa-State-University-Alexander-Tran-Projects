@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SettingsActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">SettingsActivity.java</span></div><h1>SettingsActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.nio.charset.StandardCharsets;
+
+<span class="fc" id="L21">public class SettingsActivity extends AppCompatActivity {</span>
+
+    private TextView settingsHeader;
+    private EditText oldPasswordEditText;
+    private EditText newPasswordEditText;
+    private Button changePasswordBtn;
+    private Button deleteAccountBtn;
+    private TextView backToProfileText;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L32">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L33">        setContentView(R.layout.activity_settings);</span>
+
+        // Get the USER_ID passed from UserProfileActivity
+<span class="fc" id="L36">        int userId = getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+
+        // Initialize UI Elements
+<span class="fc" id="L39">        settingsHeader = findViewById(R.id.settings_header);</span>
+<span class="fc" id="L40">        oldPasswordEditText = findViewById(R.id.settings_old_password_edit);</span>
+<span class="fc" id="L41">        newPasswordEditText = findViewById(R.id.settings_new_password_edit);</span>
+<span class="fc" id="L42">        changePasswordBtn = findViewById(R.id.btn_change_password);</span>
+<span class="fc" id="L43">        deleteAccountBtn = findViewById(R.id.btn_delete_account);</span>
+<span class="fc" id="L44">        backToProfileText = findViewById(R.id.back_to_profile_text);</span>
+
+        // Set Text Programmatically
+<span class="fc" id="L47">        settingsHeader.setText(&quot;Change Password&quot;);</span>
+<span class="fc" id="L48">        oldPasswordEditText.setHint(&quot;Old Password&quot;);</span>
+<span class="fc" id="L49">        newPasswordEditText.setHint(&quot;New Password&quot;);</span>
+<span class="fc" id="L50">        changePasswordBtn.setText(&quot;Update Password&quot;);</span>
+<span class="fc" id="L51">        backToProfileText.setText(&quot;Back to Profile&quot;);</span>
+
+        // Back Button logic
+<span class="fc" id="L54">        backToProfileText.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L57">                finish(); // Closes this screen to go back to the profile</span>
+<span class="nc" id="L58">            }</span>
+        });
+
+        // Delete Button logic
+<span class="fc" id="L62">        deleteAccountBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L65">                Intent intent = new Intent(SettingsActivity.this, DeleteAccountActivity.class);</span>
+<span class="fc" id="L66">                startActivity(intent);</span>
+<span class="fc" id="L67">            }</span>
+        });
+
+        // Change Password Logic
+<span class="fc" id="L71">        changePasswordBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">                if (userId == -1) {</span>
+<span class="nc" id="L75">                    Toast.makeText(SettingsActivity.this, &quot;Error: Invalid User ID&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L76">                    return;</span>
+                }
+
+<span class="fc" id="L79">                String oldPasswordInput = oldPasswordEditText.getText().toString();</span>
+<span class="fc" id="L80">                String newPasswordInput = newPasswordEditText.getText().toString();</span>
+
+<span class="pc bpc" id="L82" title="2 of 4 branches missed.">                if (oldPasswordInput.isEmpty() || newPasswordInput.isEmpty()) {</span>
+<span class="nc" id="L83">                    Toast.makeText(SettingsActivity.this, &quot;Please fill out both fields&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L84">                    return;</span>
+                }
+
+                //Fetch current user data from the existing backend GET route
+<span class="fc" id="L88">                String getUrl = &quot;http://coms-3090-017.class.las.iastate.edu:8080/users/id/&quot; + userId;</span>
+
+<span class="fc" id="L90">                JsonObjectRequest getRequest = new JsonObjectRequest(</span>
+                        Request.Method.GET,
+                        getUrl,
+                        null,
+                        response -&gt; {
+                            try {
+                                // Extract current data
+<span class="fc" id="L97">                                String currentName = response.getString(&quot;name&quot;);</span>
+<span class="fc" id="L98">                                String currentEmail = response.getString(&quot;emailId&quot;);</span>
+<span class="fc" id="L99">                                boolean currentActive = response.getBoolean(&quot;active&quot;);</span>
+<span class="nc" id="L100">                                String currentDbPassword = response.getString(&quot;password&quot;);</span>
+
+                                //Password Verification
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                                if (!currentDbPassword.equals(oldPasswordInput)) {</span>
+<span class="nc" id="L104">                                    Toast.makeText(SettingsActivity.this, &quot;Incorrect old password!&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L105">                                    return; // Stop the process here</span>
+                                }
+
+                                //If it matches, package the old data with the NEW password
+<span class="nc" id="L109">                                updatePasswordInDatabase(userId, currentName, currentEmail, currentActive, newPasswordInput);</span>
+
+<span class="fc" id="L111">                            } catch (JSONException e) {</span>
+<span class="fc" id="L112">                                e.printStackTrace();</span>
+<span class="fc" id="L113">                                Toast.makeText(SettingsActivity.this, &quot;Error reading user data&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L114">                            }</span>
+<span class="fc" id="L115">                        },</span>
+<span class="nc" id="L116">                        error -&gt; Toast.makeText(SettingsActivity.this, &quot;Network Error: Could not fetch user&quot;, Toast.LENGTH_LONG).show()</span>
+                );
+
+<span class="fc" id="L119">                VolleySingleton.getInstance(SettingsActivity.this).addToRequestQueue(getRequest);</span>
+<span class="fc" id="L120">            }</span>
+        });
+<span class="fc" id="L122">    }</span>
+
+    //handle the PUT request using the generic update route
+    private void updatePasswordInDatabase(int userId, String name, String emailId, boolean active, String newPassword) {
+<span class="nc" id="L126">        String putUrl = &quot;http://coms-3090-017.class.las.iastate.edu:8080/users/&quot; + userId;</span>
+
+<span class="nc" id="L128">        JSONObject requestBody = new JSONObject();</span>
+        try {
+<span class="nc" id="L130">            requestBody.put(&quot;id&quot;, userId);</span>
+<span class="nc" id="L131">            requestBody.put(&quot;name&quot;, name);</span>
+<span class="nc" id="L132">            requestBody.put(&quot;emailId&quot;, emailId);</span>
+<span class="nc" id="L133">            requestBody.put(&quot;active&quot;, active);</span>
+<span class="nc" id="L134">            requestBody.put(&quot;password&quot;, newPassword); // Overwriting with the new password</span>
+<span class="nc" id="L135">        } catch (JSONException e) {</span>
+<span class="nc" id="L136">            e.printStackTrace();</span>
+<span class="nc" id="L137">        }</span>
+
+<span class="nc" id="L139">        JsonObjectRequest putRequest = new JsonObjectRequest(</span>
+                Request.Method.PUT,
+                putUrl,
+                requestBody,
+                response -&gt; {
+                    // SUCCESS: Route to Login and clear the stack
+<span class="nc" id="L145">                    Toast.makeText(SettingsActivity.this, &quot;Password Updated! Please log in again.&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L146">                    Intent intent = new Intent(SettingsActivity.this, LoginActivity.class);</span>
+<span class="nc" id="L147">                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);</span>
+<span class="nc" id="L148">                    startActivity(intent);</span>
+<span class="nc" id="L149">                    finish();</span>
+<span class="nc" id="L150">                },</span>
+                error -&gt; {
+                    // ERROR
+<span class="nc bnc" id="L153" title="All 4 branches missed.">                    if (error.networkResponse != null &amp;&amp; error.networkResponse.data != null) {</span>
+<span class="nc" id="L154">                        String serverError = new String(error.networkResponse.data, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L155">                        Toast.makeText(SettingsActivity.this, &quot;Error: &quot; + serverError, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L156">                    } else {</span>
+<span class="nc" id="L157">                        Toast.makeText(SettingsActivity.this, &quot;Update Error: Could not reach server&quot;, Toast.LENGTH_LONG).show();</span>
+                    }
+<span class="nc" id="L159">                }</span>
+        );
+
+<span class="nc" id="L162">        VolleySingleton.getInstance(this).addToRequestQueue(putRequest);</span>
+<span class="nc" id="L163">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

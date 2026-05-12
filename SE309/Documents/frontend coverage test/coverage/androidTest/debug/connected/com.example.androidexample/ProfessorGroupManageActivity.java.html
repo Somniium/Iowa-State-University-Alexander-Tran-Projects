@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfessorGroupManageActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">ProfessorGroupManageActivity.java</span></div><h1>ProfessorGroupManageActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @author Edwin Cepeda
+ */
+<span class="fc" id="L34">public class ProfessorGroupManageActivity extends AppCompatActivity {</span>
+
+    private TextView groupName, groupId, professorId;
+    private Button accessButton, studentAddButton, studentRemoveButton, updateGroupButton, deleteGroupButton, returnButton;
+    private EditText groupNameInput, groupClassInput, studentNameInput;
+    private ListView studentsList;
+
+    private int professorIdValue;
+    private int userIdValue, queuedUserId;
+    private String groupNameValue;
+    private JSONObject groupData;
+
+<span class="fc" id="L46">    private ArrayList&lt;JSONObject&gt; groupStudents = new ArrayList&lt;JSONObject&gt;();</span>
+<span class="fc" id="L47">    String[] groupStudentNames = {};</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L51">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L52">        setContentView(R.layout.activity_professor_group_manage); // Set the UI layout for the activity</span>
+
+<span class="fc" id="L54">        groupName = findViewById(R.id.group_name);</span>
+<span class="fc" id="L55">        groupId = findViewById(R.id.group_id);</span>
+<span class="fc" id="L56">        professorId = findViewById(R.id.professor_id);</span>
+
+<span class="fc" id="L58">        accessButton = findViewById(R.id.access_button);</span>
+<span class="fc" id="L59">        studentAddButton = findViewById(R.id.student_add_button);</span>
+<span class="fc" id="L60">        studentRemoveButton = findViewById(R.id.student_remove_button);</span>
+<span class="fc" id="L61">        updateGroupButton = findViewById(R.id.update_group_button);</span>
+<span class="fc" id="L62">        deleteGroupButton = findViewById(R.id.delete_group_button);</span>
+<span class="fc" id="L63">        returnButton = findViewById(R.id.return_button);</span>
+
+<span class="fc" id="L65">        groupNameInput = findViewById(R.id.group_name_input);</span>
+<span class="fc" id="L66">        groupClassInput = findViewById(R.id.group_class_input);</span>
+<span class="fc" id="L67">        studentNameInput = findViewById(R.id.student_name_input);</span>
+
+<span class="fc" id="L69">        studentsList = findViewById(R.id.students_list);</span>
+
+        //Get transferred data
+<span class="fc" id="L72">        Bundle extras = getIntent().getExtras();</span>
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        if (extras != null) {</span>
+<span class="fc" id="L74">            professorIdValue = extras.getInt(&quot;PROFESSOR_ID&quot;);</span>
+<span class="fc" id="L75">            userIdValue = extras.getInt(&quot;USER_ID&quot;);</span>
+<span class="fc" id="L76">            groupNameValue = extras.getString(&quot;GROUP_NAME&quot;);</span>
+        }
+
+        //Get bundle information and update UI
+<span class="fc" id="L80">        professorId.setText(&quot;Prof ID: &quot; + professorIdValue);</span>
+<span class="fc" id="L81">        groupName.setText(groupNameValue);</span>
+
+        //Get group information and update UI
+<span class="fc" id="L84">        ApiClient.get(ProfessorGroupManageActivity.this, &quot;/group/name/&quot; + groupNameValue, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="fc" id="L88">                    String stringedResponse = response.toString();</span>
+<span class="fc" id="L89">                    groupData = new JSONObject(stringedResponse);</span>
+<span class="fc" id="L90">                    groupId.setText(&quot;Group ID: &quot; + groupData.getInt(&quot;groupId&quot;));</span>
+<span class="fc" id="L91">                    groupNameInput.setText(groupData.getString(&quot;name&quot;));</span>
+<span class="fc" id="L92">                    groupClassInput.setText(groupData.getString(&quot;className&quot;));</span>
+<span class="nc" id="L93">                } catch (JSONException e) {</span>
+<span class="nc" id="L94">                    throw new RuntimeException(e);</span>
+<span class="fc" id="L95">                }</span>
+<span class="fc" id="L96">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="fc" id="L100">                Toast.makeText(ProfessorGroupManageActivity.this, &quot;Could not get Group Data.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L101">            }</span>
+        });
+
+<span class="fc" id="L104">        updateStudentList();</span>
+
+<span class="fc" id="L106">        studentAddButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+                //get user ID by username
+<span class="fc" id="L111">                String endpoint = String.format(&quot;/users/name/%s&quot;, studentNameInput.getText().toString());</span>
+<span class="fc" id="L112">                ApiClient.get(ProfessorGroupManageActivity.this, endpoint, new Api_Interface() {</span>
+                    @Override
+                    public void onSuccess(JSONObject response) {
+                        try {
+<span class="fc" id="L116">                            Log.d(&quot;Test:&quot;, String.valueOf(response.getInt(&quot;id&quot;)));</span>
+<span class="fc" id="L117">                            queuedUserId = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L118">                        } catch (JSONException e) {</span>
+<span class="nc" id="L119">                            throw new RuntimeException(e);</span>
+<span class="fc" id="L120">                        }</span>
+
+<span class="fc" id="L122">                        finishAdd();</span>
+<span class="fc" id="L123">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L127">                        Toast.makeText(ProfessorGroupManageActivity.this, &quot;Could not add student.&quot;, Toast.LENGTH_SHORT).show();</span>
+
+<span class="nc" id="L129">                    }</span>
+                });
+<span class="fc" id="L131">            }</span>
+        });
+
+<span class="fc" id="L134">        studentRemoveButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+                //get user ID by username
+<span class="fc" id="L139">                String endpoint = String.format(&quot;/users/name/%s&quot;, studentNameInput.getText().toString());</span>
+<span class="fc" id="L140">                ApiClient.get(ProfessorGroupManageActivity.this, endpoint, new Api_Interface() {</span>
+                    @Override
+                    public void onSuccess(JSONObject response) {
+                        try {
+<span class="fc" id="L144">                            Log.d(&quot;Test:&quot;, String.valueOf(response.getInt(&quot;id&quot;)));</span>
+<span class="fc" id="L145">                            queuedUserId = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L146">                        } catch (JSONException e) {</span>
+<span class="nc" id="L147">                            throw new RuntimeException(e);</span>
+<span class="fc" id="L148">                        }</span>
+
+<span class="fc" id="L150">                        finishRemove();</span>
+<span class="fc" id="L151">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L155">                        Toast.makeText(ProfessorGroupManageActivity.this, message, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L156">                    }</span>
+                });
+<span class="fc" id="L158">            }</span>
+        });
+
+<span class="fc" id="L161">        updateGroupButton.setOnClickListener(new View.OnClickListener() {</span>
+            //TODO: WAITING ON BACKEND FIX FOR THIS ENDPOINT
+            @Override
+            public void onClick(View v) {
+                try {
+<span class="fc" id="L166">                    groupData.put(&quot;name&quot;, groupNameInput.getText().toString());</span>
+<span class="fc" id="L167">                    groupData.put(&quot;className&quot;, groupClassInput.getText().toString());</span>
+<span class="nc" id="L168">                } catch (JSONException e) {</span>
+<span class="nc" id="L169">                    throw new RuntimeException(e);</span>
+<span class="fc" id="L170">                }</span>
+
+                String endpoint;
+                try {
+<span class="fc" id="L174">                    endpoint = &quot;http://coms-3090-017.class.las.iastate.edu:8080/update-group/&quot; + groupData.getInt(&quot;groupId&quot;);</span>
+<span class="nc" id="L175">                } catch (JSONException e) {</span>
+<span class="nc" id="L176">                    throw new RuntimeException(e);</span>
+<span class="fc" id="L177">                }</span>
+<span class="fc" id="L178">                Log.d(&quot;test&quot;, groupData.toString());</span>
+
+<span class="fc" id="L180">                JsonObjectRequest request = new JsonObjectRequest(</span>
+                        Request.Method.PUT,
+                        endpoint, // API URL
+<span class="fc" id="L183">                        groupData,</span>
+<span class="fc" id="L184">                        new Response.Listener&lt;JSONObject&gt;() {</span>
+                            @Override
+                            public void onResponse(JSONObject response) {
+<span class="fc" id="L187">                                Toast.makeText(ProfessorGroupManageActivity.this, &quot;Updated group.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L188">                            }</span>
+                        },
+<span class="fc" id="L190">                        new Response.ErrorListener() {</span>
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                // Log the error details
+<span class="nc" id="L194">                                Log.e(&quot;Volley Error&quot;, error.toString());</span>
+<span class="nc" id="L195">                                Toast.makeText(ProfessorGroupManageActivity.this, &quot;Could Not Update.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L196">                            }</span>
+<span class="fc" id="L197">                        }) {</span>
+                };
+
+                // Adding request to the Volley request queue
+<span class="fc" id="L201">                VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(request);</span>
+
+//                ApiClient.put(ProfessorGroupManageActivity.this, endpoint, groupData, new Api_Interface() {
+//                    @Override
+//                    public void onSuccess(JSONObject response) {
+//                        Toast.makeText(ProfessorGroupManageActivity.this, &quot;Group Info Updated&quot;, Toast.LENGTH_SHORT).show();
+//                    }
+//
+//                    @Override
+//                    public void onError(String message) {
+//                        Toast.makeText(ProfessorGroupManageActivity.this, message, Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+<span class="fc" id="L214">            }</span>
+        });
+
+<span class="fc" id="L217">        deleteGroupButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">                if (groupData == null) {</span>
+<span class="fc" id="L221">                    Toast.makeText(ProfessorGroupManageActivity.this, &quot;Group data not loaded yet.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L222">                    return;</span>
+                }
+                String endpoint;
+                try {
+<span class="nc" id="L226">                    endpoint = &quot;/delete-group/&quot; + String.valueOf(groupData.getInt(&quot;groupId&quot;));</span>
+<span class="nc" id="L227">                } catch (JSONException e) {</span>
+<span class="nc" id="L228">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L229">                }</span>
+<span class="nc" id="L230">                ApiClient.deleteString(ProfessorGroupManageActivity.this, endpoint, new Api_String_Interface() {</span>
+                    @Override
+                    public void onSuccess(String response) {
+<span class="nc" id="L233">                        Toast.makeText(ProfessorGroupManageActivity.this, &quot;Group deleted.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L234">                        returnToAdminDash();</span>
+<span class="nc" id="L235">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L239">                        Toast.makeText(ProfessorGroupManageActivity.this, message, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L240">                    }</span>
+                });
+<span class="nc" id="L242">            }</span>
+        });
+
+<span class="fc" id="L245">        returnButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L248">                returnToAdminDash();</span>
+<span class="fc" id="L249">            }</span>
+        });
+
+<span class="fc" id="L252">        accessButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L255">                Intent intent = new Intent(ProfessorGroupManageActivity.this, ChatActivity.class);</span>
+                try {
+<span class="nc" id="L257">                    intent.putExtra(&quot;GROUP_ID&quot;, groupData.getInt(&quot;groupId&quot;));</span>
+<span class="nc" id="L258">                    intent.putExtra(&quot;USER_ID&quot;, userIdValue);</span>
+<span class="nc" id="L259">                    intent.putExtra(&quot;GROUP_NAME&quot;, groupData.getString(&quot;name&quot;));</span>
+<span class="nc" id="L260">                } catch (JSONException e) {</span>
+<span class="nc" id="L261">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L262">                }</span>
+<span class="nc" id="L263">                startActivity(intent);</span>
+<span class="nc" id="L264">            }</span>
+        });
+
+<span class="fc" id="L267">    }</span>
+
+    protected void finishAdd() {
+        //add user to group
+        String endpoint;
+        try {
+<span class="fc" id="L273">            endpoint = String.format(&quot;/add-user-to-group/group/%d/user/%d&quot;, groupData.getInt(&quot;groupId&quot;), queuedUserId);</span>
+<span class="nc" id="L274">        } catch (JSONException e) {</span>
+<span class="nc" id="L275">            throw new RuntimeException(e);</span>
+<span class="fc" id="L276">        }</span>
+<span class="fc" id="L277">        ApiClient.postString(ProfessorGroupManageActivity.this, endpoint, null, new Api_String_Interface() {</span>
+            @Override
+            public void onSuccess(String response) {
+<span class="fc" id="L280">                Toast.makeText(ProfessorGroupManageActivity.this, &quot;Student added.&quot;, Toast.LENGTH_SHORT);</span>
+<span class="fc" id="L281">                updateStudentList();</span>
+<span class="fc" id="L282">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L286">                Toast.makeText(ProfessorGroupManageActivity.this, message, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L287">                updateStudentList();</span>
+<span class="nc" id="L288">            }</span>
+        });
+<span class="fc" id="L290">    }</span>
+
+    protected void finishRemove() {
+        //add user to group
+        String endpoint;
+        try {
+<span class="fc" id="L296">            endpoint = String.format(&quot;/remove-user-from-group/group/%d/user/%d&quot;, groupData.getInt(&quot;groupId&quot;), queuedUserId);</span>
+<span class="nc" id="L297">        } catch (JSONException e) {</span>
+<span class="nc" id="L298">            throw new RuntimeException(e);</span>
+<span class="fc" id="L299">        }</span>
+<span class="fc" id="L300">        ApiClient.deleteString(ProfessorGroupManageActivity.this, endpoint, new Api_String_Interface() {</span>
+            @Override
+            public void onSuccess(String response) {
+<span class="fc" id="L303">                Toast.makeText(ProfessorGroupManageActivity.this, &quot;Student removed.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L304">                updateStudentList();</span>
+<span class="fc" id="L305">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L309">                Toast.makeText(ProfessorGroupManageActivity.this, message, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L310">                updateStudentList();</span>
+<span class="nc" id="L311">            }</span>
+        });
+<span class="fc" id="L313">    }</span>
+    protected void updateStudentList() {
+
+        //Reobtain groupData to refresh students
+<span class="fc" id="L317">        ApiClient.get(ProfessorGroupManageActivity.this, &quot;/group/name/&quot; + groupNameValue, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="fc" id="L321">                    String stringedResponse = response.toString();</span>
+<span class="fc" id="L322">                    groupData = new JSONObject(stringedResponse);</span>
+<span class="fc" id="L323">                    groupStudentNames = new String[groupData.getJSONArray(&quot;members&quot;).length()];</span>
+<span class="fc bfc" id="L324" title="All 2 branches covered.">                    for (int i = 0; i &lt; groupStudentNames.length; i++) {</span>
+                        try {
+<span class="fc" id="L326">                            String singleString = groupData.getJSONArray(&quot;members&quot;).getJSONObject(i).toString();</span>
+<span class="fc" id="L327">                            JSONObject singleStudent = new JSONObject(singleString);</span>
+<span class="fc" id="L328">                            groupStudentNames[i] = singleStudent.getString(&quot;name&quot;);</span>
+<span class="fc" id="L329">                            Log.d(&quot;Test Strings&quot;, groupStudentNames[i]);</span>
+<span class="nc" id="L330">                        } catch (JSONException e) {</span>
+<span class="nc" id="L331">                            throw new RuntimeException(e);</span>
+<span class="fc" id="L332">                        }</span>
+                    }
+<span class="fc" id="L334">                    ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;String&gt;(ProfessorGroupManageActivity.this, android.R.layout.simple_list_item_1, groupStudentNames);</span>
+<span class="fc" id="L335">                    studentsList.setAdapter(adapter);</span>
+<span class="nc" id="L336">                } catch (JSONException e) {</span>
+<span class="nc" id="L337">                    throw new RuntimeException(e);</span>
+<span class="fc" id="L338">                }</span>
+<span class="fc" id="L339">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="fc" id="L343">                Toast.makeText(ProfessorGroupManageActivity.this, &quot;Could not get Group Data.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L344">            }</span>
+        });
+
+
+
+//        JsonArrayRequest jsonArrReq = new JsonArrayRequest(
+//                Request.Method.GET, // HTTP method (GET request)
+//                &quot;http://coms-3090-017.class.las.iastate.edu:8080/get-professor-groups/&quot; + professorID,
+//                null, // Request body (null for GET request)
+//                new Response.Listener&lt;JSONArray&gt;() {
+//                    @Override
+//                    public void onResponse(JSONArray response) {
+//
+//                    }
+//                },
+//                new Response.ErrorListener() {
+//                    @Override
+//                    public void onErrorResponse(VolleyError error) {
+//                        Toast.makeText(ProfessorPanelActivity.this, &quot;Could not get groups.&quot;, Toast.LENGTH_SHORT).show();
+//                    }
+//                }) {
+//            @Override
+//            public Map&lt;String, String&gt; getHeaders() {
+//                // Headers for the request (if needed)
+//                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();
+//                // Example headers (uncomment if needed)
+//                // headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;);
+//                // headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+//                return headers;
+//            }
+//
+//            @Override
+//            protected Map&lt;String, String&gt; getParams() {
+//                // Parameters for the request (if needed)
+//                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();
+//                // Example parameters (uncomment if needed)
+//                // params.put(&quot;param1&quot;, &quot;value1&quot;);
+//                // params.put(&quot;param2&quot;, &quot;value2&quot;);
+//                return params;
+//            }
+//        };
+//
+//        // Adding request to the Volley request queue
+//        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(jsonArrReq);
+<span class="fc" id="L388">    }</span>
+
+    protected void returnToAdminDash() {
+<span class="fc" id="L391">        Intent intent = new Intent(ProfessorGroupManageActivity.this, ProfessorPanelActivity.class);</span>
+<span class="fc" id="L392">        intent.putExtra(&quot;PROFESSOR_ID&quot;, professorIdValue);</span>
+<span class="fc" id="L393">        intent.putExtra(&quot;USER_ID&quot;, userIdValue);</span>
+<span class="fc" id="L394">        startActivity(intent);</span>
+<span class="fc" id="L395">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

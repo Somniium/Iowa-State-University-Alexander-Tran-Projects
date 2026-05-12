@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserProfileActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">UserProfileActivity.java</span></div><h1>UserProfileActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+<span class="nc" id="L16">public class UserProfileActivity extends AppCompatActivity {</span>
+
+    // Profile Data variables
+    private TextView welcomeHeader;
+    private TextView profileNameText;
+    private TextView profileEmailText;
+    private TextView profileSeparatorText;
+    private TextView profileIdText;
+    private TextView profileMajorText;
+    private TextView profileBioText;
+
+<span class="nc" id="L27">    private int currentProfileId = -1;</span>
+
+    // Interactive UI variables
+    private Button editProfileBtn;
+    private CardView reviewsCard;
+    private TextView reviewsText;
+    private CardView settingsCard;
+    private TextView settingsText;
+    private CardView logoutCard;
+    private TextView logoutText;
+
+    private CardView booksCard;
+    private TextView booksText;
+    private CardView albumsCard;
+    private TextView albumsText;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L45">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L46">        setContentView(R.layout.activity_user_profile);</span>
+
+        // Initialize Profile Data Text
+<span class="nc" id="L49">        welcomeHeader = findViewById(R.id.welcome_header);</span>
+<span class="nc" id="L50">        profileNameText = findViewById(R.id.profile_name);</span>
+<span class="nc" id="L51">        profileEmailText = findViewById(R.id.profile_email);</span>
+<span class="nc" id="L52">        profileSeparatorText = findViewById(R.id.profile_separator);</span>
+<span class="nc" id="L53">        profileIdText = findViewById(R.id.profile_id);</span>
+<span class="nc" id="L54">        profileMajorText = findViewById(R.id.profile_major);</span>
+<span class="nc" id="L55">        profileBioText = findViewById(R.id.profile_bio);</span>
+
+        // Initialize Interactive UI Elements
+<span class="nc" id="L58">        editProfileBtn = findViewById(R.id.btn_edit_profile);</span>
+
+<span class="nc" id="L60">        reviewsCard = findViewById(R.id.card_reviews);</span>
+<span class="nc" id="L61">        reviewsText = findViewById(R.id.text_reviews);</span>
+
+<span class="nc" id="L63">        settingsCard = findViewById(R.id.card_settings);</span>
+<span class="nc" id="L64">        settingsText = findViewById(R.id.text_settings);</span>
+
+<span class="nc" id="L66">        logoutCard = findViewById(R.id.card_logout);</span>
+<span class="nc" id="L67">        logoutText = findViewById(R.id.text_logout);</span>
+
+<span class="nc" id="L69">        booksCard = findViewById(R.id.card_books);</span>
+<span class="nc" id="L70">        booksText = findViewById(R.id.text_books);</span>
+
+<span class="nc" id="L72">        albumsCard = findViewById(R.id.card_albums);</span>
+<span class="nc" id="L73">        albumsText = findViewById(R.id.text_albums);</span>
+
+        // Set all static UI text here in Java
+<span class="nc" id="L76">        welcomeHeader.setText(&quot;Loading...&quot;);</span>
+<span class="nc" id="L77">        profileNameText.setText(&quot;Loading...&quot;);</span>
+<span class="nc" id="L78">        profileEmailText.setText(&quot;Loading...&quot;);</span>
+<span class="nc" id="L79">        profileSeparatorText.setText(&quot;  •  &quot;);</span>
+<span class="nc" id="L80">        profileIdText.setText(&quot;Loading...&quot;);</span>
+
+<span class="nc" id="L82">        editProfileBtn.setText(&quot;View Profile&quot;);</span>
+<span class="nc" id="L83">        reviewsText.setText(&quot;⭐  My Reviews&quot;);</span>
+<span class="nc" id="L84">        settingsText.setText(&quot;⚙ Account Settings&quot;);</span>
+<span class="nc" id="L85">        logoutText.setText(&quot;➜]  Log Out&quot;);</span>
+
+<span class="nc" id="L87">        booksText.setText(&quot;Friends&quot;);</span>
+<span class="nc" id="L88">        albumsText.setText(&quot;Following&quot;);</span>
+
+<span class="nc" id="L90">        editProfileBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L93">                int userId = getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">                if (userId != -1) {</span>
+<span class="nc" id="L95">                    Intent intent = new Intent(UserProfileActivity.this, MainFeedActivity.class);</span>
+<span class="nc" id="L96">                    intent.putExtra(&quot;USER_ID&quot;, userId);</span>
+<span class="nc" id="L97">                    intent.putExtra(&quot;openViewProfile&quot;, userId);</span>
+<span class="nc" id="L98">                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);</span>
+<span class="nc" id="L99">                    startActivity(intent);</span>
+                }
+<span class="nc" id="L101">            }</span>
+        });
+
+<span class="nc" id="L104">        reviewsCard.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+<span class="nc" id="L108">            }</span>
+        });
+
+<span class="nc" id="L111">        settingsCard.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+                // Grab the current user's ID
+<span class="nc" id="L115">                int userId = getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+
+<span class="nc bnc" id="L117" title="All 2 branches missed.">                if (userId != -1) {</span>
+                    // Route to the SettingsActivity and pass the ID along
+<span class="nc" id="L119">                    Intent intent = new Intent(UserProfileActivity.this, SettingsActivity.class);</span>
+<span class="nc" id="L120">                    intent.putExtra(&quot;USER_ID&quot;, userId);</span>
+<span class="nc" id="L121">                    startActivity(intent);</span>
+<span class="nc" id="L122">                } else {</span>
+<span class="nc" id="L123">                    Toast.makeText(UserProfileActivity.this, &quot;Error: Cannot open settings, User ID missing.&quot;, Toast.LENGTH_SHORT).show();</span>
+                }
+<span class="nc" id="L125">            }</span>
+        });
+
+<span class="nc" id="L128">        logoutCard.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L131">                Toast.makeText(UserProfileActivity.this, &quot;Logging out...&quot;, Toast.LENGTH_SHORT).show();</span>
+
+                // Route to MainActivity
+<span class="nc" id="L134">                Intent intent = new Intent(UserProfileActivity.this, MainActivity.class);</span>
+
+                // Clear the activity stack so the user can't press &quot;Back&quot; to return to the profile
+<span class="nc" id="L137">                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);</span>
+
+<span class="nc" id="L139">                startActivity(intent);</span>
+<span class="nc" id="L140">                finish();</span>
+<span class="nc" id="L141">            }</span>
+        });
+
+<span class="nc" id="L144">        booksCard.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L147">                int userId = getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+<span class="nc" id="L148">                Intent intent = new Intent(UserProfileActivity.this, MainFeedActivity.class);</span>
+<span class="nc" id="L149">                intent.putExtra(&quot;USER_ID&quot;, userId);</span>
+<span class="nc" id="L150">                intent.putExtra(&quot;openFriends&quot;, true);</span>
+<span class="nc" id="L151">                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);</span>
+<span class="nc" id="L152">                startActivity(intent);</span>
+<span class="nc" id="L153">            }</span>
+        });
+
+<span class="nc" id="L156">        albumsCard.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L159">                int userId = getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+<span class="nc" id="L160">                Intent intent = new Intent(UserProfileActivity.this, MainFeedActivity.class);</span>
+<span class="nc" id="L161">                intent.putExtra(&quot;USER_ID&quot;, userId);</span>
+<span class="nc" id="L162">                intent.putExtra(&quot;openFollowing&quot;, true);</span>
+<span class="nc" id="L163">                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);</span>
+<span class="nc" id="L164">                startActivity(intent);</span>
+<span class="nc" id="L165">            }</span>
+        });
+
+        // Get the USER_ID passed from LoginActivity
+<span class="nc" id="L169">        int userId = getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (userId != -1) {</span>
+<span class="nc" id="L172">            fetchUserProfile(userId);</span>
+<span class="nc" id="L173">            fetchProfileDetails(userId);</span>
+        } else {
+<span class="nc" id="L175">            Toast.makeText(this, &quot;Error: User ID missing&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L176">            welcomeHeader.setText(&quot;Error loading profile&quot;);</span>
+        }
+<span class="nc" id="L178">    }</span>
+
+    private void fetchProfileDetails(int userId) {
+<span class="nc" id="L181">        ApiClient.get(this, &quot;/profile/userId/&quot; + userId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L185">                    currentProfileId = response.getInt(&quot;profileId&quot;);</span>
+
+<span class="nc" id="L187">                    String major = response.optString(&quot;major&quot;, &quot;&quot;);</span>
+<span class="nc" id="L188">                    String bio = response.optString(&quot;bio&quot;, &quot;&quot;);</span>
+
+<span class="nc bnc" id="L190" title="All 2 branches missed.">                    if (!major.isEmpty()) {</span>
+<span class="nc" id="L191">                        profileMajorText.setText(major);</span>
+<span class="nc" id="L192">                        profileMajorText.setVisibility(View.VISIBLE);</span>
+                    }
+<span class="nc bnc" id="L194" title="All 2 branches missed.">                    if (!bio.isEmpty()) {</span>
+<span class="nc" id="L195">                        profileBioText.setText(bio);</span>
+<span class="nc" id="L196">                        profileBioText.setVisibility(View.VISIBLE);</span>
+                    }
+<span class="nc" id="L198">                } catch (JSONException e) {</span>
+<span class="nc" id="L199">                    e.printStackTrace();</span>
+<span class="nc" id="L200">                }</span>
+<span class="nc" id="L201">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L205">            }</span>
+        });
+<span class="nc" id="L207">    }</span>
+
+    private void fetchUserProfile(int userId) {
+<span class="nc" id="L210">        ApiClient.get(this, &quot;/users/id/&quot; + userId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L214">                    String name = response.getString(&quot;name&quot;);</span>
+<span class="nc" id="L215">                    String email = response.getString(&quot;emailId&quot;);</span>
+<span class="nc" id="L216">                    int id = response.getInt(&quot;id&quot;);</span>
+
+<span class="nc" id="L218">                    welcomeHeader.setText(name + &quot;'s Profile&quot;);</span>
+<span class="nc" id="L219">                    profileNameText.setText(name);</span>
+<span class="nc" id="L220">                    profileEmailText.setText(email);</span>
+<span class="nc" id="L221">                    profileIdText.setText(&quot;ID: &quot; + id);</span>
+<span class="nc" id="L222">                } catch (JSONException e) {</span>
+<span class="nc" id="L223">                    e.printStackTrace();</span>
+<span class="nc" id="L224">                    Toast.makeText(UserProfileActivity.this, &quot;Error parsing user data&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L225">                }</span>
+<span class="nc" id="L226">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L230">                Toast.makeText(UserProfileActivity.this, &quot;Error: &quot; + message, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L231">                welcomeHeader.setText(&quot;Profile Unavailable&quot;);</span>
+<span class="nc" id="L232">            }</span>
+        });
+<span class="nc" id="L234">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

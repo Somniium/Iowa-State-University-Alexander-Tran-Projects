@@ -1,0 +1,297 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > LikeController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Likes</a>
+</div>
+
+<h1>Coverage Summary for Class: LikeController (onetoone.Likes)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LikeController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (7/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (12/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81.6%
+  </span>
+  <span class="absValue">
+    (31/38)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Likes;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Operation;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.ArraySchema;
+&nbsp;import io.swagger.v3.oas.annotations.media.Content;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import io.swagger.v3.oas.annotations.responses.ApiResponse;
+&nbsp;import io.swagger.v3.oas.annotations.tags.Tag;
+&nbsp;import onetoone.Notifications.NotificationService;
+&nbsp;import onetoone.Posts.Post;
+&nbsp;import onetoone.Posts.PostRepository;
+&nbsp;import onetoone.Users.User;
+&nbsp;import onetoone.Users.UserRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@Tag(name = &quot;Likes&quot;, description = &quot;Like/upvote posts. POST toggles the like on and off.&quot;)
+<b class="fc">&nbsp;public class LikeController {</b>
+&nbsp;
+&nbsp;    @Autowired private LikeRepository     likeRepository;
+&nbsp;    @Autowired private PostRepository     postRepository;
+&nbsp;    @Autowired private UserRepository     userRepository;
+&nbsp;    @Autowired private NotificationService notificationService;
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Toggle like on a post&quot;,
+&nbsp;            description = &quot;Liked → unliked, unliked → liked. Fires a WebSocket notification to the post author on a new like.&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;postId&quot;, description = &quot;ID of the post&quot;, required = true, example = &quot;1&quot;),
+&nbsp;                    @Parameter(name = &quot;userId&quot;, description = &quot;ID of the user liking/unliking&quot;, required = true, example = &quot;42&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;201&quot;, description = &quot;Like added&quot;,
+&nbsp;                            content = @Content(schema = @Schema(example = &quot;{\&quot;liked\&quot;:true,\&quot;count\&quot;:12}&quot;))),
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Like removed (toggled off)&quot;,
+&nbsp;                            content = @Content(schema = @Schema(example = &quot;{\&quot;liked\&quot;:false,\&quot;count\&quot;:11}&quot;))),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Post or user not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PostMapping(&quot;/posts/{postId}/likes&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; toggleLike(
+&nbsp;            @PathVariable int postId,
+&nbsp;            @RequestParam int userId) {
+&nbsp;
+<b class="fc">&nbsp;        Post post = postRepository.findById(postId).orElse(null);</b>
+<b class="fc">&nbsp;        if (post == null)</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;Post not found&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;        User user = userRepository.findByUserId(userId);</b>
+<b class="fc">&nbsp;        if (user == null)</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;User not found&quot;);</b>
+&nbsp;
+<b class="pc">&nbsp;        if (likeRepository.existsByUser_IdAndPost_Id(userId, postId)) {</b>
+<b class="nc">&nbsp;            likeRepository.deleteByUser_IdAndPost_Id(userId, postId);</b>
+<b class="nc">&nbsp;            long count = likeRepository.countByPost_Id(postId);</b>
+<b class="nc">&nbsp;            return ResponseEntity.ok(&quot;{\&quot;liked\&quot;:false,\&quot;count\&quot;:&quot; + count + &quot;}&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        likeRepository.save(new Like(user, post));</b>
+<b class="fc">&nbsp;        long count = likeRepository.countByPost_Id(postId);</b>
+&nbsp;
+&nbsp;        // Notify the post author (unless they liked their own post)
+<b class="fc">&nbsp;        User postAuthor = post.getAuthor();</b>
+<b class="pc">&nbsp;        if (postAuthor != null &amp;&amp; postAuthor.getId() != userId) {</b>
+<b class="nc">&nbsp;            String mediaTitle = post.getMediaTitle() != null ? post.getMediaTitle() : &quot;your post&quot;;</b>
+<b class="nc">&nbsp;            notificationService.notify(postAuthor, &quot;LIKE&quot;,</b>
+<b class="nc">&nbsp;                    user.getName() + &quot; liked your post about \&quot;&quot; + mediaTitle + &quot;\&quot;&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return ResponseEntity.status(HttpStatus.CREATED)</b>
+<b class="fc">&nbsp;                .body(&quot;{\&quot;liked\&quot;:true,\&quot;count\&quot;:&quot; + count + &quot;}&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Unlike a post (explicit)&quot;,
+&nbsp;            description = &quot;Explicitly removes a like. Returns 404 if the user had not liked the post.&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;postId&quot;, description = &quot;ID of the post&quot;, required = true, example = &quot;1&quot;),
+&nbsp;                    @Parameter(name = &quot;userId&quot;, description = &quot;ID of the user&quot;, required = true, example = &quot;42&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Unliked&quot;,
+&nbsp;                            content = @Content(schema = @Schema(example = &quot;{\&quot;liked\&quot;:false,\&quot;count\&quot;:11}&quot;))),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Like not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @DeleteMapping(&quot;/posts/{postId}/likes&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; unlike(
+&nbsp;            @PathVariable int postId,
+&nbsp;            @RequestParam int userId) {
+&nbsp;
+&nbsp;        // Single DELETE — its return value tells us whether anything matched, so we
+&nbsp;        // skip the previous existsBy + deleteBy two-query dance. Also fixes a stale-count
+&nbsp;        // bug: see deleteByUser_IdAndPost_Id docs for why @Modifying flush+clear matters here.
+<b class="fc">&nbsp;        int deleted = likeRepository.deleteByUser_IdAndPost_Id(userId, postId);</b>
+<b class="fc">&nbsp;        if (deleted == 0)</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;Like not found&quot;);</b>
+&nbsp;
+<b class="fc">&nbsp;        long count = likeRepository.countByPost_Id(postId);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(&quot;{\&quot;liked\&quot;:false,\&quot;count\&quot;:&quot; + count + &quot;}&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Get total like count for a post&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;postId&quot;, description = &quot;ID of the post&quot;, required = true, example = &quot;1&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;JSON count&quot;,
+&nbsp;                            content = @Content(schema = @Schema(example = &quot;{\&quot;count\&quot;:42}&quot;)))
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;/posts/{postId}/likes/count&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; getLikeCount(@PathVariable int postId) {
+<b class="fc">&nbsp;        long count = likeRepository.countByPost_Id(postId);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(&quot;{\&quot;count\&quot;:&quot; + count + &quot;}&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;List all likes on a post&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;postId&quot;, description = &quot;ID of the post&quot;, required = true, example = &quot;1&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;List of likes&quot;,
+&nbsp;                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = Like.class)))),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Post not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;/posts/{postId}/likes&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; getLikes(@PathVariable int postId) {
+<b class="fc">&nbsp;        Post post = postRepository.findById(postId).orElse(null);</b>
+<b class="pc">&nbsp;        if (post == null)</b>
+<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;Post not found&quot;);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(likeRepository.findByPost_Id(postId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Check if a user has liked a post&quot;,
+&nbsp;            description = &quot;Returns the like status for this user plus the current total count.&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;postId&quot;, description = &quot;ID of the post&quot;,           required = true, example = &quot;1&quot;),
+&nbsp;                    @Parameter(name = &quot;userId&quot;, description = &quot;ID of the user to check&quot;,  required = true, example = &quot;42&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Status and count&quot;,
+&nbsp;                            content = @Content(schema = @Schema(example = &quot;{\&quot;liked\&quot;:true,\&quot;count\&quot;:12}&quot;)))
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;/posts/{postId}/likes/status&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; getLikeStatus(
+&nbsp;            @PathVariable int postId,
+&nbsp;            @RequestParam int userId) {
+<b class="fc">&nbsp;        boolean liked = likeRepository.existsByUser_IdAndPost_Id(userId, postId);</b>
+<b class="fc">&nbsp;        long count    = likeRepository.countByPost_Id(postId);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(&quot;{\&quot;liked\&quot;:&quot; + liked + &quot;,\&quot;count\&quot;:&quot; + count + &quot;}&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Get all posts a user has liked&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;userId&quot;, description = &quot;ID of the user&quot;, required = true, example = &quot;42&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;List of Like objects&quot;,
+&nbsp;                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = Like.class)))),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;User not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;/users/{userId}/likes&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; getUserLikes(@PathVariable int userId) {
+<b class="fc">&nbsp;        User user = userRepository.findByUserId(userId);</b>
+<b class="fc">&nbsp;        if (user == null)</b>
+<b class="fc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;User not found&quot;);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(likeRepository.findByUser_Id(userId));</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-06 03:05</div>
+</div>
+</body>
+</html>

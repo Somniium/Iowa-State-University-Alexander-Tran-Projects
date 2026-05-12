@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StringReqActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">StringReqActivity.java</span></div><h1>StringReqActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.StringRequest;
+
+import java.util.HashMap;
+import java.util.Map;
+
+<span class="nc" id="L20">public class StringReqActivity extends AppCompatActivity {</span>
+
+    // API URL for fetching string response
+    // private static final String URL_STRING_REQ = &quot;https://jsonplaceholder.typicode.com/users/1&quot;;
+    // Alternative URLs for testing purposes
+    public static final String URL_STRING_REQ = &quot;https://2aa87adf-ff7c-45c8-89bc-f3fbfaa16d15.mock.pstmn.io/users/1&quot;;
+    // UI components
+    private Button btnStringReq;
+    private TextView msgResponse;
+    // public static final String URL_STRING_REQ = &quot;http://10.0.2.2:8080/users/1&quot;;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L33">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L34">        setContentView(R.layout.activity_string_req);</span>
+
+        // Initializing UI components
+<span class="nc" id="L37">        btnStringReq = findViewById(R.id.btnStringReq);</span>
+<span class="nc" id="L38">        msgResponse = findViewById(R.id.msgResponse);</span>
+
+        // Setting click listener on the button to trigger the string request
+<span class="nc" id="L41">        btnStringReq.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L44">                makeStringReq();</span>
+<span class="nc" id="L45">            }</span>
+        });
+<span class="nc" id="L47">    }</span>
+
+    /**
+     * Makes a string request using Volley library
+     **/
+    private void makeStringReq() {
+        // Creating a new String request
+<span class="nc" id="L54">        StringRequest stringRequest = new StringRequest(</span>
+                Request.Method.GET, // HTTP method (GET request)
+                URL_STRING_REQ, // API URL
+<span class="nc" id="L57">                new Response.Listener&lt;String&gt;() {</span>
+                    @Override
+                    public void onResponse(String response) {
+                        // Log the response for debugging purposes
+<span class="nc" id="L61">                        Log.d(&quot;Volley Response&quot;, response);</span>
+
+                        // Display response in the TextView
+<span class="nc" id="L64">                        msgResponse.setText(response);</span>
+<span class="nc" id="L65">                    }</span>
+                },
+<span class="nc" id="L67">                new Response.ErrorListener() {</span>
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Log the error details
+<span class="nc" id="L71">                        Log.e(&quot;Volley Error&quot;, error.toString());</span>
+
+                        // Show an error message in the UI
+<span class="nc" id="L74">                        msgResponse.setText(&quot;Failed to load data. Please try again.&quot;);</span>
+<span class="nc" id="L75">                    }</span>
+                }
+<span class="nc" id="L77">        ) {</span>
+            @Override
+            public Map&lt;String, String&gt; getHeaders() {
+                // Headers for the request (if needed)
+<span class="nc" id="L81">                Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                // Example headers (uncomment if needed)
+                // headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;);
+                // headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L85">                return headers;</span>
+            }
+
+            @Override
+            protected Map&lt;String, String&gt; getParams() {
+                // Parameters for the request (if needed)
+<span class="nc" id="L91">                Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                // Example parameters (uncomment if needed)
+                // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L95">                return params;</span>
+            }
+        };
+
+        // Adding request to the Volley request queue
+<span class="nc" id="L100">        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);</span>
+<span class="nc" id="L101">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

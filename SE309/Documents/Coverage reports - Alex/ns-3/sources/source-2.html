@@ -1,0 +1,397 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AlbumController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Albums</a>
+</div>
+
+<h1>Coverage Summary for Class: AlbumController (onetoone.Albums)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AlbumController</td>
+<td class="coverageStat">
+  <span class="percent">
+    90%
+  </span>
+  <span class="absValue">
+    (9/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    47.1%
+  </span>
+  <span class="absValue">
+    (16/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    61.4%
+  </span>
+  <span class="absValue">
+    (51/83)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AlbumController$$SpringCGLIB$$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    90%
+  </span>
+  <span class="absValue">
+    (9/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    47.1%
+  </span>
+  <span class="absValue">
+    (16/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    61.4%
+  </span>
+  <span class="absValue">
+    (51/83)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Albums;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Operation;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.tags.Tag;
+&nbsp;import jakarta.validation.Valid;
+&nbsp;import onetoone.Artists.Artist;
+&nbsp;import onetoone.Artists.ArtistRepository;
+&nbsp;import org.hibernate.validator.constraints.UniqueElements;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import onetoone.Reviews.Review;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@Tag(name = &quot;Albums&quot;, description = &quot;Manage Albums using SpotifyAPI and database tools&quot;)
+&nbsp;public class AlbumController {
+&nbsp;
+&nbsp;    private final SpotifyService spotifyService;
+&nbsp;
+<b class="fc">&nbsp;    public AlbumController(SpotifyService spotifyService) {</b>
+<b class="fc">&nbsp;        this.spotifyService = spotifyService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    AlbumRepository albumRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    ArtistRepository artistRepository;
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Returns all albums&quot;,
+&nbsp;            description = &quot;Returns all albums as JSON objects&quot;
+&nbsp;    )
+&nbsp;    @GetMapping(path=&quot;/albums&quot;)
+&nbsp;    List&lt;Album&gt; getAllAlbums() {
+<b class="fc">&nbsp;        return albumRepository.findAll();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Searches and adds album to DB&quot;,
+&nbsp;            description = &quot;Uses the SpotifyAPI to search for an album. Once found, it is saved to the DB and returned&quot;
+&nbsp;    )
+&nbsp;    @GetMapping(path=&quot;/search-albums-and-save&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; searchForAndSaveAlbum(
+&nbsp;            @Parameter(description = &quot;Name of album to search for&quot;)
+&nbsp;            @RequestParam(name = &quot;album_name&quot;) String albumName) {
+&nbsp;        try {
+<b class="fc">&nbsp;            spotifyService.authenticate();</b>
+<b class="fc">&nbsp;            var searchRequest = spotifyService.getApi().searchAlbums(albumName).build();</b>
+<b class="fc">&nbsp;            var results = searchRequest.execute();</b>
+&nbsp;
+<b class="pc">&nbsp;            if (results.getItems() == null || results.getItems().length == 0) {</b>
+<b class="nc">&nbsp;                return new ResponseEntity&lt;&gt;(&quot;No album found matching: &quot; + albumName, HttpStatus.NOT_FOUND);</b>
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            String spotifyId = results.getItems()[0].getId();</b>
+&nbsp;
+<b class="fc">&nbsp;            Album existing = albumRepository.findBySpotifyId(spotifyId);</b>
+<b class="pc">&nbsp;            if (existing != null) {</b>
+<b class="nc">&nbsp;                return new ResponseEntity&lt;&gt;(existing, HttpStatus.OK);</b>
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            String name = results.getItems()[0].getName();</b>
+<b class="fc">&nbsp;            String releaseDate = results.getItems()[0].getReleaseDate();</b>
+<b class="fc">&nbsp;            String coverURL = results.getItems()[0].getImages()[0].getUrl();</b>
+&nbsp;
+&nbsp;            // logic for extracting genre
+<b class="fc">&nbsp;            String artistId = results.getItems()[0].getArtists()[0].getId();</b>
+&nbsp;
+<b class="fc">&nbsp;            Artist artist = artistRepository.findBySpotifyId(artistId);</b>
+<b class="fc">&nbsp;            if (artist == null) {</b>
+<b class="fc">&nbsp;                var artistRequest = spotifyService.getApi().getArtist(artistId).build().execute();</b>
+&nbsp;
+<b class="fc">&nbsp;                String artistName = artistRequest.getName();</b>
+<b class="pc">&nbsp;                String artistGenre = (artistRequest.getGenres().length &gt; 0) ? artistRequest.getGenres()[0] : &quot;Unknown&quot;;</b>
+<b class="pc">&nbsp;                String artistURL = (artistRequest.getImages().length &gt; 0) ? artistRequest.getImages()[0].getUrl() : null;</b>
+&nbsp;
+<b class="fc">&nbsp;                artist = new Artist(artistName, artistGenre, artistURL, artistId);</b>
+&nbsp;
+<b class="fc">&nbsp;                artist = artistRepository.save(artist);</b>
+&nbsp;            }
+&nbsp;
+<b class="fc">&nbsp;            Album album = new Album(name, releaseDate, coverURL, artist.getGenre(), spotifyId);</b>
+&nbsp;
+<b class="fc">&nbsp;            artist.addAlbum(album);</b>
+&nbsp;
+<b class="fc">&nbsp;            albumRepository.save(album);</b>
+&nbsp;
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(album, HttpStatus.OK);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Error searching Spotify: &quot; + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Returns album from DB&quot;,
+&nbsp;            description = &quot;Returns an album from the DB using the ID for the album&quot;
+&nbsp;    )
+&nbsp;    @GetMapping(path=&quot;/album/{albumId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; getAlbum(
+&nbsp;            @Parameter(description = &quot;ID of album in DB&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable Long albumId) {
+<b class="fc">&nbsp;        Album album = albumRepository.findByAlbumId(albumId);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(album == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Album not found under ID&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(album, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Returns artist from album from DB&quot;,
+&nbsp;            description = &quot;Returns an album from the DB using the ID for the album&quot;
+&nbsp;    )
+&nbsp;    @GetMapping(path=&quot;/album/get-artist/{albumId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; getAlbumArtist(
+&nbsp;            @Parameter(name = &quot;albumId&quot;, description = &quot;ID of album in DB&quot;)
+&nbsp;            @PathVariable long albumId) {
+<b class="fc">&nbsp;        Album album = albumRepository.findByAlbumId(albumId);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(album == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Album not found under ID&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        Artist artist = album.getArtist();</b>
+&nbsp;
+<b class="pc">&nbsp;        if(artist == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Artist not found under ID&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(artist, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Returns album by name&quot;,
+&nbsp;            description = &quot;Returns an album from the DB using the name of the album&quot;
+&nbsp;    )
+&nbsp;    @GetMapping(path=&quot;/album/name&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; getAlbumByName(
+&nbsp;            @Parameter(description = &quot;Name of the album&quot;, example = &quot;Flex Musix&quot;)
+&nbsp;            @RequestParam(name=&quot;name&quot;) String name) {
+<b class="fc">&nbsp;        Album album = albumRepository.findByName(name);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(album == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Album not found under name&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(album, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Adds album to DB&quot;,
+&nbsp;            description = &quot;Manually search for an add album to DB without returning&quot;
+&nbsp;    )
+&nbsp;    @PostMapping(path=&quot;/add-album&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; addAlbum(
+&nbsp;            @Parameter(description = &quot;Name of the album&quot;, example = &quot;Flex Musix&quot;)
+&nbsp;            @RequestParam(name=&quot;album_name&quot;) String albumName) {
+&nbsp;        try {
+<b class="nc">&nbsp;            spotifyService.authenticate();</b>
+<b class="nc">&nbsp;            var searchRequest = spotifyService.getApi().searchAlbums(albumName).build();</b>
+<b class="nc">&nbsp;            var results = searchRequest.execute();</b>
+&nbsp;
+<b class="nc">&nbsp;            String spotifyId = results.getItems()[0].getId();</b>
+<b class="nc">&nbsp;            String name = results.getItems()[0].getName();</b>
+<b class="nc">&nbsp;            String artist = results.getItems()[0].getArtists()[0].getName();</b>
+<b class="nc">&nbsp;            String releaseDate = results.getItems()[0].getReleaseDate();</b>
+<b class="nc">&nbsp;            String coverURL = results.getItems()[0].getImages()[0].getUrl();</b>
+&nbsp;
+&nbsp;            // logic for extracting genre
+<b class="nc">&nbsp;            String artistId = results.getItems()[0].getArtists()[0].getId();</b>
+<b class="nc">&nbsp;            var artistRequest = spotifyService.getApi().getArtist(artistId).build().execute();</b>
+&nbsp;
+<b class="nc">&nbsp;            String genre = &quot;Unknown&quot;;</b>
+&nbsp;
+<b class="nc">&nbsp;            if (artistRequest.getGenres() != null &amp;&amp; artistRequest.getGenres().length &gt; 0) {</b>
+<b class="nc">&nbsp;                genre = artistRequest.getGenres()[0];</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            Album album = new Album(name, releaseDate, coverURL, genre, spotifyId);</b>
+&nbsp;
+<b class="nc">&nbsp;            albumRepository.save(album);</b>
+&nbsp;
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Album saved.&quot;, HttpStatus.OK);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Error: Album not found.&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Delete album from DB&quot;,
+&nbsp;            description = &quot;Deletes the album from the DB using the ID of the album&quot;
+&nbsp;    )
+&nbsp;    @Transactional
+&nbsp;    @DeleteMapping(path=&quot;/album/{albumId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; deleteAlbumById(
+&nbsp;            @Parameter(description = &quot;ID of album in DB&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable Long albumId) {
+<b class="fc">&nbsp;        albumRepository.deleteByAlbumId(albumId);</b>
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(&quot;Successfully deleted album.&quot;, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Update an album&quot;,
+&nbsp;            description = &quot;Updates the album in the DB using the ID of the album and a JSON object&quot;
+&nbsp;    )
+&nbsp;    @PutMapping(path=&quot;/album/{albumId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; updateAlbum(
+&nbsp;            @Parameter(description = &quot;ID of album in DB&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable Long albumId,
+&nbsp;            @RequestBody Album request) {
+<b class="fc">&nbsp;        Album existing = albumRepository.findByAlbumId(albumId);</b>
+&nbsp;
+<b class="pc">&nbsp;        if(existing  == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Album id does not exist&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+<b class="pc">&nbsp;        if (!request.getAlbumId().equals(albumId)){</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Path variable id does not match Album request id&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        Album req = albumRepository.save(request);</b>
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(req, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Update rating of album&quot;,
+&nbsp;            description = &quot;Updates the average rating of the album using ID of album&quot;
+&nbsp;    )
+&nbsp;    @PutMapping(path=&quot;/album/update-average-rating/{albumId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; updateAlbumRating(
+&nbsp;            @Parameter(description = &quot;ID of album in DB&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable long albumId) {
+<b class="fc">&nbsp;        Album album = albumRepository.findByAlbumId(albumId);</b>
+&nbsp;
+<b class="pc">&nbsp;        if (album == null) {</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Album not found under ID&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        int numRatings = 0;</b>
+<b class="fc">&nbsp;        int sum = 0;</b>
+&nbsp;
+<b class="pc">&nbsp;        for (Review r : album.getAlbumReviews()) {</b>
+<b class="nc">&nbsp;            sum += r.getRating();</b>
+<b class="nc">&nbsp;            numRatings++;</b>
+&nbsp;        }
+&nbsp;
+<b class="pc">&nbsp;        if (numRatings == 0) {</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;No reviews to average&quot;, HttpStatus.OK);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        album.setRating(sum / numRatings);</b>
+<b class="nc">&nbsp;        album = albumRepository.save(album);</b>
+&nbsp;
+<b class="nc">&nbsp;        return new ResponseEntity&lt;&gt;(album, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-06 03:05</div>
+</div>
+</body>
+</html>

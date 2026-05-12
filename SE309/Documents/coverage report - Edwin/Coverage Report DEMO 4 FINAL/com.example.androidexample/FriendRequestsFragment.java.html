@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FriendRequestsFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">FriendRequestsFragment.java</span></div><h1>FriendRequestsFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+
+<span class="nc" id="L27">public class FriendRequestsFragment extends Fragment {</span>
+    int groupId;
+    int userId;
+    ListView incomingList;
+    ListView outgoingList;
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+<span class="nc" id="L35">        View view = inflater.inflate(R.layout.fragment_friend_requests, container, false);</span>
+<span class="nc" id="L36">        userId = getActivity().getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+<span class="nc" id="L37">        incomingList = view.findViewById(R.id.incoming_request_list);</span>
+<span class="nc" id="L38">        outgoingList = view.findViewById(R.id.outgoing_request_list);</span>
+<span class="nc" id="L39">        Button newRequestButton = view.findViewById(R.id.new_request_button);</span>
+<span class="nc" id="L40">        EditText friendIdEdit = view.findViewById(R.id.friend_id_edit);</span>
+<span class="nc" id="L41">        Button backButton = view.findViewById(R.id.return_button);</span>
+
+        // Get all incoming friend requests and display them
+<span class="nc" id="L44">        updateRequestList(incomingList, &quot;/friends/received-by/&quot; + userId);</span>
+<span class="nc" id="L45">        updateRequestList(outgoingList, &quot;/friends/sent-by/&quot; + userId);</span>
+
+//        ArrayList&lt;String&gt; incomingRequestStrings = new ArrayList&lt;String&gt;();
+//        ApiClient.getArray(FriendRequestsFragment.this.getContext(), &quot;/friends/received-by/&quot; + userId, new Api_Array_Interface() {
+//            @Override
+//            public void onSuccess(JSONArray response) {
+//                try {
+//                    String stringedResponse = response.toString();
+//                    JSONArray incomingRequestData = new JSONArray(stringedResponse);
+//                    for (int i = 0; i &lt; incomingRequestData.length(); i++) {
+//                        try {
+//                            String incomingNameToken = incomingRequestData.getJSONObject(i).getString(&quot;name&quot;);
+//                            String statusToken = incomingRequestData.getJSONObject(i).getString(&quot;friendStatus&quot;);
+//                            if (!statusToken.equals(&quot;ACCEPTED&quot;)) { //ACCEPTED friend requests show up only in Friends page, not as requests
+//                                String fullRequestString = &quot;[&quot; + statusToken + &quot;] &quot; + incomingNameToken;
+//                                incomingRequestStrings.add(incomingNameToken);
+//                                Log.d(&quot;test: &quot;, incomingRequestStrings.get(i));
+//                            }
+//                        } catch (JSONException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                    }
+//
+//                    String[] incomingRequestsArray = new String[incomingRequestStrings.size()];
+//                    for (int i = 0; i &lt; incomingRequestStrings.size(); i++) {
+//                        incomingRequestsArray[i] = incomingRequestStrings.get(i);
+//                        Log.d(&quot;test2: &quot;, incomingRequestsArray[i]);
+//                    }
+//
+//                    ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;String&gt;(getContext(), android.R.layout.simple_list_item_1, incomingRequestsArray);
+//                    incomingList.setAdapter(adapter);
+//
+//                } catch (JSONException e) {
+//                    throw new RuntimeException(e);
+//                }
+//
+//            }
+//
+//            @Override
+//            public void onError(String message) {
+//            }
+//        });
+//
+//        // Get all outgoing friend requests and display them
+//        ArrayList&lt;String&gt; outgoingRequestStrings = new ArrayList&lt;String&gt;();
+//        ApiClient.getArray(FriendRequestsFragment.this.getContext(), &quot;/friends/sent-by/&quot; + userId, new Api_Array_Interface() {
+//            @Override
+//            public void onSuccess(JSONArray response) {
+//                try {
+//                    String stringedResponse = response.toString();
+//                    JSONArray outgoingRequestData = new JSONArray(stringedResponse);
+//                    for (int i = 0; i &lt; outgoingRequestData.length(); i++) {
+//                        try {
+//                            String outgoingNameToken = outgoingRequestData.getJSONObject(i).getString(&quot;name&quot;);
+//                            String statusToken = outgoingRequestData.getJSONObject(i).getString(&quot;friendStatus&quot;);
+//                            if (!statusToken.equals(&quot;ACCEPTED&quot;)) { //ACCEPTED friend requests show up only in Friends page, not as requests
+//                                String fullRequestString = &quot;[&quot; + statusToken + &quot;] &quot; + outgoingNameToken;
+//                                outgoingRequestStrings.add(outgoingNameToken);
+//                                Log.d(&quot;test: &quot;, outgoingRequestStrings.get(i));
+//                            }
+//                        } catch (JSONException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                    }
+//
+//                    String[] outgoingRequestsArray = new String[outgoingRequestStrings.size()];
+//                    for (int i = 0; i &lt; outgoingRequestStrings.size(); i++) {
+//                        outgoingRequestsArray[i] = outgoingRequestStrings.get(i);
+//                        Log.d(&quot;test2: &quot;, outgoingRequestsArray[i]);
+//                    }
+//
+//                    ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;String&gt;(getContext(), android.R.layout.simple_list_item_1, outgoingRequestsArray);
+//                    outgoingList.setAdapter(adapter);
+//
+//                } catch (JSONException e) {
+//                    throw new RuntimeException(e);
+//                }
+//
+//            }
+//
+//            @Override
+//            public void onError(String message) {
+//            }
+//        });
+
+<span class="nc" id="L130">        newRequestButton.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L131">            int friendId = Integer.parseInt(friendIdEdit.getText().toString());</span>
+<span class="nc" id="L132">            String endpoint = String.format(&quot;/friend/send-request/currUser/%d/friend/%d&quot;, userId, friendId);</span>
+<span class="nc" id="L133">            ApiClient.post(getContext(), endpoint, null, new Api_Interface() {</span>
+                @Override
+                public void onSuccess(JSONObject response) {
+<span class="nc" id="L136">                    Toast.makeText(getContext(), &quot;Friend request sent to user&quot; + friendId + &quot;!&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L137">                    updateRequestList(outgoingList, &quot;/friends/sent-by/&quot; + userId);</span>
+<span class="nc" id="L138">                }</span>
+
+                @Override
+                public void onError(String message) {
+<span class="nc" id="L142">                    Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L143">                    Log.e(&quot;Send Request Error&quot;, message);</span>
+<span class="nc" id="L144">                }</span>
+            });
+<span class="nc" id="L146">        });</span>
+
+<span class="nc" id="L148">        backButton.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L149">            ((MainFeedActivity) getActivity()).loadFragment(new FriendsFragment());</span>
+<span class="nc" id="L150">        });</span>
+
+
+
+<span class="nc" id="L154">        incomingList.setOnItemClickListener(new AdapterView.OnItemClickListener() {</span>
+            @Override
+            public void onItemClick(AdapterView&lt;?&gt; adapterView, View view, int i, long l) {
+<span class="nc" id="L157">                String requestString = adapterView.getItemAtPosition(i).toString();</span>
+                //Split requestString into tokens. 0 is status, 1 is target's name, 2 is unneeded, 3 is requestID
+<span class="nc" id="L159">                String[] requestTokens = requestString.split(&quot; &quot;);</span>
+<span class="nc" id="L160">                new AlertDialog.Builder(getActivity())</span>
+<span class="nc" id="L161">                        .setTitle(&quot;This request is &quot; + requestTokens[0])</span>
+<span class="nc" id="L162">                        .setMessage(requestTokens[1] + &quot; has send you a friend request.\nAvaiable options:&quot;)</span>
+<span class="nc" id="L163">                        .setNegativeButton(&quot;Decline&quot;, (dialog, which) -&gt; {</span>
+<span class="nc" id="L164">                            rejectRequest(Integer.parseInt(requestTokens[3]), incomingList);</span>
+<span class="nc" id="L165">                        })</span>
+<span class="nc" id="L166">                        .setNeutralButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L167">                        .setPositiveButton(&quot;Accept&quot;, (dialog, which) -&gt; {</span>
+<span class="nc" id="L168">                            acceptRequest(Integer.parseInt(requestTokens[3]), incomingList);</span>
+<span class="nc" id="L169">                        })</span>
+<span class="nc" id="L170">                        .setIconAttribute(android.R.attr.alertDialogIcon)</span>
+<span class="nc" id="L171">                        .show();</span>
+<span class="nc" id="L172">            }</span>
+        });
+
+<span class="nc" id="L175">        outgoingList.setOnItemClickListener(new AdapterView.OnItemClickListener() {</span>
+            @Override
+            public void onItemClick(AdapterView&lt;?&gt; adapterView, View view, int i, long l) {
+<span class="nc" id="L178">                String requestString = adapterView.getItemAtPosition(i).toString();</span>
+                //Split requestString into tokens. 0 is status, 1 is target's name, 2 is unneeded, 3 is requestID
+<span class="nc" id="L180">                String[] requestTokens = requestString.split(&quot; &quot;);</span>
+
+<span class="nc bnc" id="L182" title="All 2 branches missed.">                if (requestTokens[0].equals(&quot;[PENDING]&quot;)) {</span>
+<span class="nc" id="L183">                    new AlertDialog.Builder(getActivity())</span>
+<span class="nc" id="L184">                            .setTitle(&quot;Your request is pending.&quot;)</span>
+<span class="nc" id="L185">                            .setMessage(requestTokens[1] + &quot; has not responded yet.\nAvailable options:&quot;)</span>
+<span class="nc" id="L186">                            .setNegativeButton(&quot;Unsend Request&quot;, (dialog, which) -&gt; {</span>
+<span class="nc" id="L187">                                deleteRequest(Integer.parseInt(requestTokens[3]), outgoingList);</span>
+<span class="nc" id="L188">                            })</span>
+<span class="nc" id="L189">                            .setNeutralButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L190">                            .setIconAttribute(android.R.attr.alertDialogIcon)</span>
+<span class="nc" id="L191">                            .show();</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">                } else if (requestTokens[0].equals(&quot;[DECLINED]&quot;)) {</span>
+<span class="nc" id="L193">                    new AlertDialog.Builder(getActivity())</span>
+<span class="nc" id="L194">                            .setTitle(&quot;Your request has been declined.&quot;)</span>
+<span class="nc" id="L195">                            .setMessage(requestTokens[1] + &quot; has declined your friend request.&quot;)</span>
+<span class="nc" id="L196">                            .setNegativeButton(&quot;Close Request&quot;, (dialog, which) -&gt; {</span>
+<span class="nc" id="L197">                                deleteRequest(Integer.parseInt(requestTokens[3]), outgoingList);</span>
+<span class="nc" id="L198">                            })</span>
+<span class="nc" id="L199">                            .setIconAttribute(android.R.attr.alertDialogIcon)</span>
+<span class="nc" id="L200">                            .show();</span>
+                }
+
+<span class="nc" id="L203">            }</span>
+        });
+
+<span class="nc" id="L206">        return view;</span>
+    }
+
+    private void rejectRequest(int requestId, ListView requestList) {
+<span class="nc" id="L210">        String endpoint = &quot;/friend/decline-request/&quot; + requestId;</span>
+<span class="nc" id="L211">        ApiClient.put(FriendRequestsFragment.this.getContext(), endpoint, null, new Api_Interface () {</span>
+
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L215">                updateRequestList(requestList, &quot;/friends/received-by/&quot; + userId);</span>
+<span class="nc" id="L216">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L220">                Toast.makeText(FriendRequestsFragment.this.getContext(), &quot;Could not reject.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L221">                Log.e(&quot;Reject error&quot;, message);</span>
+<span class="nc" id="L222">            }</span>
+        });
+<span class="nc" id="L224">    }</span>
+
+    private void acceptRequest(int requestId, ListView requestList) {
+<span class="nc" id="L227">        String endpoint = &quot;/friend/accept-request/&quot; + requestId;</span>
+<span class="nc" id="L228">        ApiClient.put(FriendRequestsFragment.this.getContext(), endpoint, null, new Api_Interface () {</span>
+
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L232">                updateRequestList(requestList, &quot;/friends/received-by/&quot; + userId);</span>
+<span class="nc" id="L233">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L237">                Toast.makeText(FriendRequestsFragment.this.getContext(), &quot;Could not reject.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L238">                Log.e(&quot;Reject error&quot;, message);</span>
+<span class="nc" id="L239">            }</span>
+        });
+<span class="nc" id="L241">    }</span>
+
+    private void deleteRequest(int requestId, ListView requestList) {
+<span class="nc" id="L244">        String endpoint = &quot;/friend/remove-friend-or-cancel-request/&quot; + requestId;</span>
+<span class="nc" id="L245">        ApiClient.deleteString(FriendRequestsFragment.this.getContext(), endpoint, new Api_String_Interface () {</span>
+
+            @Override
+            public void onSuccess(String response) {
+<span class="nc" id="L249">                updateRequestList(requestList, &quot;/friends/sent-by/&quot; + userId);</span>
+<span class="nc" id="L250">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L254">                Toast.makeText(FriendRequestsFragment.this.getContext(), &quot;Could not delete.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L255">                Log.e(&quot;Delete error&quot;, message);</span>
+<span class="nc" id="L256">            }</span>
+        });
+<span class="nc" id="L258">    }</span>
+
+    private void updateRequestList(ListView requestList, String endpoint) {
+<span class="nc" id="L261">        ArrayList&lt;String&gt; RequestStrings = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L262">        ApiClient.getArray(FriendRequestsFragment.this.getContext(), endpoint, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L266">                    String stringedResponse = response.toString();</span>
+<span class="nc" id="L267">                    JSONArray RequestData = new JSONArray(stringedResponse);</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">                    for (int i = 0; i &lt; RequestData.length(); i++) {</span>
+                        try {
+<span class="nc" id="L270">                            JSONObject userObject = null;</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">                            if (requestList.equals(incomingList)) {</span>
+<span class="nc" id="L272">                                userObject = RequestData.getJSONObject(i).getJSONObject(&quot;user&quot;);</span>
+                            } else {
+<span class="nc" id="L274">                                userObject = RequestData.getJSONObject(i).getJSONObject(&quot;friend&quot;);</span>
+                            }
+
+<span class="nc" id="L277">                            String nameToken = userObject.getString(&quot;name&quot;);</span>
+<span class="nc" id="L278">                            String statusToken = RequestData.getJSONObject(i).getString(&quot;friendStatus&quot;);</span>
+<span class="nc" id="L279">                            int requestIdToken = RequestData.getJSONObject(i).getInt(&quot;id&quot;);</span>
+<span class="nc bnc" id="L280" title="All 2 branches missed.">                            if (!statusToken.equals(&quot;ACCEPTED&quot;)) { //ACCEPTED friend requests show up only in Friends page, not as requests</span>
+<span class="nc" id="L281">                                String fullRequestString = &quot;[&quot; + statusToken + &quot;] &quot; + nameToken + &quot; RequestID: &quot; + requestIdToken;</span>
+<span class="nc" id="L282">                                RequestStrings.add(fullRequestString);</span>
+<span class="nc" id="L283">                                Log.d(&quot;test: &quot;, RequestStrings.get(i));</span>
+                            }
+<span class="nc" id="L285">                        } catch (JSONException e) {</span>
+<span class="nc" id="L286">                            throw new RuntimeException(e);</span>
+<span class="nc" id="L287">                        }</span>
+                    }
+
+<span class="nc" id="L290">                    String[] requestsArray = new String[RequestStrings.size()];</span>
+<span class="nc bnc" id="L291" title="All 2 branches missed.">                    for (int i = 0; i &lt; RequestStrings.size(); i++) {</span>
+<span class="nc" id="L292">                        requestsArray[i] = RequestStrings.get(i);</span>
+<span class="nc" id="L293">                        Log.d(&quot;test2: &quot;, requestsArray[i]);</span>
+                    }
+
+<span class="nc" id="L296">                    ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;String&gt;(getContext(), android.R.layout.simple_list_item_1, requestsArray);</span>
+<span class="nc" id="L297">                    requestList.setAdapter(adapter);</span>
+
+<span class="nc" id="L299">                } catch (JSONException e) {</span>
+<span class="nc" id="L300">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L301">                }</span>
+
+<span class="nc" id="L303">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L307">                Toast.makeText(FriendRequestsFragment.this.getContext(), &quot;Could not pull friend data.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L308">                Log.e(&quot;Pull friend data error&quot;, message);</span>
+<span class="nc" id="L309">            }</span>
+        });
+<span class="nc" id="L311">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

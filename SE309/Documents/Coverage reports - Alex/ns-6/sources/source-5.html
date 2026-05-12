@@ -1,0 +1,249 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CyvalContextBuilder</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Chat</a>
+</div>
+
+<h1>Coverage Summary for Class: CyvalContextBuilder (onetoone.Chat)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CyvalContextBuilder</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    20%
+  </span>
+  <span class="absValue">
+    (2/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/44)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    5.1%
+  </span>
+  <span class="absValue">
+    (3/59)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Chat;
+&nbsp;
+&nbsp;import onetoone.Books.Book;
+&nbsp;import onetoone.Books.BookRepository;
+&nbsp;import onetoone.Games.Game;
+&nbsp;import onetoone.Games.GameRepository;
+&nbsp;import onetoone.Movies.Movie;
+&nbsp;import onetoone.Movies.MovieRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.data.domain.PageRequest;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.domain.Sort;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;/**
+&nbsp; * Builds a CyVal-aware system prompt for the chatbot.
+&nbsp; *
+&nbsp; * Pulls top-rated items from the catalog and stuffs them into the system prompt
+&nbsp; * when the user&#39;s intent suggests recommendations are wanted. For everything else,
+&nbsp; * a smaller catalog summary keeps token usage reasonable.
+&nbsp; */
+&nbsp;@Component
+<b class="fc">&nbsp;public class CyvalContextBuilder {</b>
+&nbsp;
+&nbsp;    @Autowired private MovieRepository movieRepository;
+&nbsp;    @Autowired private GameRepository gameRepository;
+&nbsp;    @Autowired private BookRepository bookRepository;
+&nbsp;
+&nbsp;    private static final int TOP_N = 5;
+&nbsp;
+&nbsp;    /** Reused PageRequest for &quot;top 5 by rating descending&quot; — sort + LIMIT pushed to SQL. */
+<b class="fc">&nbsp;    private static final Pageable TOP_BY_RATING =</b>
+<b class="fc">&nbsp;            PageRequest.of(0, TOP_N, Sort.by(Sort.Direction.DESC, &quot;rating&quot;));</b>
+&nbsp;
+&nbsp;    public String buildSystemPrompt(Long userId, String userText) {
+<b class="nc">&nbsp;        StringBuilder sb = new StringBuilder();</b>
+&nbsp;
+<b class="nc">&nbsp;        sb.append(&quot;You are CyVal&#39;s assistant, helping Iowa State students discover and review games, movies, TV shows, and books. &quot;);</b>
+<b class="nc">&nbsp;        sb.append(&quot;Ratings on CyVal use a 0-100 scale (higher is better). &quot;);</b>
+<b class="nc">&nbsp;        sb.append(&quot;Never use emojis in your responses, just text. &quot;);</b>
+<b class="nc">&nbsp;        sb.append(&quot;You can: (1) recommend media from CyVal&#39;s catalog, (2) chat generally about media, &quot;);</b>
+<b class="nc">&nbsp;        sb.append(&quot;(3) help users write and improve their reviews. &quot;);</b>
+<b class="nc">&nbsp;        sb.append(&quot;Keep responses concise and friendly. When you reference a title, prefer items from the CyVal catalog below.\n\n&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        boolean wantsRecs = looksLikeRecommendationRequest(userText);</b>
+<b class="nc">&nbsp;        boolean wantsReviewHelp = looksLikeReviewHelp(userText);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (wantsRecs) {</b>
+<b class="nc">&nbsp;            appendTopMovies(sb);</b>
+<b class="nc">&nbsp;            appendTopShows(sb);</b>
+<b class="nc">&nbsp;            appendTopGames(sb);</b>
+<b class="nc">&nbsp;            appendTopBooks(sb);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (wantsReviewHelp) {</b>
+<b class="nc">&nbsp;            sb.append(&quot;\nWhen helping with reviews: keep tone constructive, suggest concrete improvements &quot;);</b>
+<b class="nc">&nbsp;            sb.append(&quot;(specific examples, balanced pros/cons, avoid spoilers without warning), and never write the review for them — guide them.\n&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        return sb.toString();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // INTENT DETECTION
+&nbsp;
+&nbsp;    private boolean looksLikeRecommendationRequest(String text) {
+<b class="nc">&nbsp;        if (text == null) return false;</b>
+<b class="nc">&nbsp;        String t = text.toLowerCase();</b>
+<b class="nc">&nbsp;        return t.contains(&quot;recommend&quot;) || t.contains(&quot;suggest&quot;) || t.contains(&quot;what should i&quot;)</b>
+<b class="nc">&nbsp;                || t.contains(&quot;any good&quot;) || t.contains(&quot;similar to&quot;) || t.contains(&quot;like &quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private boolean looksLikeReviewHelp(String text) {
+<b class="nc">&nbsp;        if (text == null) return false;</b>
+<b class="nc">&nbsp;        String t = text.toLowerCase();</b>
+<b class="nc">&nbsp;        return t.contains(&quot;my review&quot;) || t.contains(&quot;rewrite&quot;) || t.contains(&quot;improve&quot;)</b>
+<b class="nc">&nbsp;                || t.contains(&quot;edit&quot;) || t.contains(&quot;polish&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    // CATALOG INJECTION
+&nbsp;
+&nbsp;    private void appendTopMovies(StringBuilder sb) {
+&nbsp;        // SQL does the ORDER BY + LIMIT — we never load the full movie catalog into memory.
+<b class="nc">&nbsp;        List&lt;Movie&gt; movies = movieRepository.findByMediaTypeIgnoreCaseOrderByRatingDesc(&quot;MOVIE&quot;, TOP_BY_RATING);</b>
+<b class="nc">&nbsp;        if (movies.isEmpty()) return;</b>
+<b class="nc">&nbsp;        sb.append(&quot;Top-rated MOVIES on CyVal:\n&quot;);</b>
+<b class="nc">&nbsp;        for (Movie m : movies) {</b>
+<b class="nc">&nbsp;            sb.append(&quot;  - &quot;).append(m.getTitle())</b>
+<b class="nc">&nbsp;                    .append(&quot; (&quot;).append(safe(m.getGenre())).append(&quot;, &quot;).append(m.getRating()).append(&quot;/100)\n&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        sb.append(&quot;\n&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void appendTopShows(StringBuilder sb) {
+<b class="nc">&nbsp;        List&lt;Movie&gt; shows = movieRepository.findByMediaTypeIgnoreCaseOrderByRatingDesc(&quot;SHOW&quot;, TOP_BY_RATING);</b>
+<b class="nc">&nbsp;        if (shows.isEmpty()) return;</b>
+<b class="nc">&nbsp;        sb.append(&quot;Top-rated TV SHOWS on CyVal:\n&quot;);</b>
+<b class="nc">&nbsp;        for (Movie s : shows) {</b>
+<b class="nc">&nbsp;            sb.append(&quot;  - &quot;).append(s.getTitle())</b>
+<b class="nc">&nbsp;                    .append(&quot; (&quot;).append(safe(s.getGenre())).append(&quot;, &quot;).append(s.getRating()).append(&quot;/100)\n&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        sb.append(&quot;\n&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void appendTopGames(StringBuilder sb) {
+&nbsp;        // findAll(Pageable) issues a single ORDER BY rating DESC LIMIT 5 query.
+<b class="nc">&nbsp;        List&lt;Game&gt; games = gameRepository.findAll(TOP_BY_RATING).getContent();</b>
+<b class="nc">&nbsp;        if (games.isEmpty()) return;</b>
+<b class="nc">&nbsp;        sb.append(&quot;Top-rated GAMES on CyVal:\n&quot;);</b>
+<b class="nc">&nbsp;        for (Game g : games) {</b>
+<b class="nc">&nbsp;            sb.append(&quot;  - &quot;).append(g.getTitle())</b>
+<b class="nc">&nbsp;                    .append(&quot; (&quot;).append(safe(g.getGenre())).append(&quot;, &quot;).append(g.getRating()).append(&quot;/100)\n&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        sb.append(&quot;\n&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private void appendTopBooks(StringBuilder sb) {
+<b class="nc">&nbsp;        List&lt;Book&gt; books = bookRepository.findAll(TOP_BY_RATING).getContent();</b>
+<b class="nc">&nbsp;        if (books.isEmpty()) return;</b>
+<b class="nc">&nbsp;        sb.append(&quot;Top-rated BOOKS on CyVal:\n&quot;);</b>
+<b class="nc">&nbsp;        for (Book b : books) {</b>
+<b class="nc">&nbsp;            sb.append(&quot;  - &quot;).append(b.getTitle())</b>
+<b class="nc">&nbsp;                    .append(&quot; by &quot;).append(safe(b.getAuthors()))</b>
+<b class="nc">&nbsp;                    .append(&quot; (&quot;).append(b.getRating()).append(&quot;/100)\n&quot;);</b>
+&nbsp;        }
+<b class="nc">&nbsp;        sb.append(&quot;\n&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private String safe(String s) {
+<b class="nc">&nbsp;        return s == null ? &quot;Unknown&quot; : s;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-06 03:05</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChatActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">ChatActivity.java</span></div><h1>ChatActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+
+/**
+ * ChatActivity handles the chat interface where users can send and receive messages
+ * using a WebSocket connection.
+ */
+<span class="nc" id="L29">public class ChatActivity extends AppCompatActivity /*implements WebSocketListener*/ {</span>
+
+    private Button sendButton, returnButton;
+    private EditText messageEdit;
+    private RecyclerView messageDisplay;
+    private WebSocketClient client;
+    private TextView groupId, userId, groupName;
+    private int groupIdValue, userIdValue;
+    private String groupNameValue;
+<span class="nc" id="L38">    private ArrayList&lt;String&gt; sessionMessages = new ArrayList&lt;String&gt;();</span>
+    private MessageAdapter adapter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L43">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L44">        setContentView(R.layout.activity_chat_interface);</span>
+
+
+        /* initialize UI elements */
+<span class="nc" id="L48">        sendButton = (Button) findViewById(R.id.send_button);</span>
+<span class="nc" id="L49">        messageEdit = (EditText) findViewById(R.id.message_edit);</span>
+<span class="nc" id="L50">        messageDisplay = (RecyclerView) findViewById(R.id.message_display);</span>
+<span class="nc" id="L51">        returnButton = findViewById(R.id.return_button);</span>
+<span class="nc" id="L52">        groupId = findViewById(R.id.group_id);</span>
+<span class="nc" id="L53">        userId = findViewById(R.id.user_id);</span>
+<span class="nc" id="L54">        groupName = findViewById(R.id.group_name);</span>
+
+<span class="nc" id="L56">        Bundle extras = getIntent().getExtras();</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (extras != null) {</span>
+<span class="nc" id="L58">            groupIdValue = extras.getInt(&quot;GROUP_ID&quot;);</span>
+<span class="nc" id="L59">            userIdValue = extras.getInt(&quot;USER_ID&quot;);</span>
+<span class="nc" id="L60">            groupNameValue = extras.getString(&quot;GROUP_NAME&quot;);</span>
+<span class="nc" id="L61">            groupId.setText(&quot;Group ID: &quot; + groupIdValue);</span>
+<span class="nc" id="L62">            userId.setText(&quot;User ID: &quot; + userIdValue);</span>
+<span class="nc" id="L63">            groupName.setText(groupNameValue);</span>
+        }
+
+<span class="nc" id="L66">        String serverUrl = String.format(&quot;http://coms-3090-017.class.las.iastate.edu:8080/chat/group/%d/user/%d&quot;, groupIdValue, userIdValue);</span>
+<span class="nc" id="L67">        connectWebSocket(serverUrl);</span>
+
+<span class="nc" id="L69">        adapter = new MessageAdapter(sessionMessages);</span>
+<span class="nc" id="L70">        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);</span>
+<span class="nc" id="L71">        layoutManager.setStackFromEnd(true);</span>
+<span class="nc" id="L72">        messageDisplay.setLayoutManager(layoutManager);</span>
+<span class="nc" id="L73">        messageDisplay.setAdapter(adapter);</span>
+
+        /* send button listener */
+<span class="nc" id="L76">        sendButton.setOnClickListener(v -&gt; {</span>
+            try {
+                // send message
+//                Log.d(&quot;Sending: &quot;, msgEtx.getText().toString());
+//                WebSocketManager.getInstance().sendMessage(msgEtx.getText().toString());
+//                //clear text box once the msg is sent
+//                msgEtx.setText(&quot;&quot;);
+<span class="nc" id="L83">                String message = messageEdit.getText().toString();</span>
+<span class="nc bnc" id="L84" title="All 4 branches missed.">                if (message != null &amp;&amp; message.length() &gt; 0){</span>
+<span class="nc" id="L85">                   client.send(message);</span>
+                }
+<span class="nc" id="L87">                messageEdit.setText(&quot;&quot;);</span>
+<span class="nc" id="L88">            } catch (Exception e) {</span>
+
+<span class="nc" id="L90">            }</span>
+<span class="nc" id="L91">        });</span>
+
+<span class="nc" id="L93">        returnButton.setOnClickListener(new View.OnClickListener() {</span>
+
+            @Override
+            public void onClick(View view) {
+<span class="nc" id="L97">                client.close();</span>
+<span class="nc" id="L98">                checkProfessor();</span>
+<span class="nc" id="L99">            }</span>
+        });
+<span class="nc" id="L101">    }</span>
+
+    private void connectWebSocket(String serverUrl) {
+        URI uri;
+        try {
+<span class="nc" id="L106">            uri = new URI(serverUrl);</span>
+<span class="nc" id="L107">        } catch (URISyntaxException e) {</span>
+<span class="nc" id="L108">            throw new RuntimeException(e);</span>
+<span class="nc" id="L109">        }</span>
+<span class="nc" id="L110">        Log.d(&quot;Status:&quot;, &quot;got this far.&quot;);</span>
+<span class="nc" id="L111">        client = new WebSocketClient(uri) {</span>
+
+            @Override
+            public void onOpen(ServerHandshake handshakedata) {
+//                Toast.makeText(ChatActivity.this, &quot;You're connected.&quot;, Toast.LENGTH_SHORT).show();
+<span class="nc" id="L116">                Log.d(&quot;Status:&quot;, &quot;Connected.&quot;);</span>
+<span class="nc" id="L117">                messageDisplay.smoothScrollToPosition(sessionMessages.size()-1);</span>
+<span class="nc" id="L118">            }</span>
+
+            @Override
+            public void onMessage(String message) {
+<span class="nc" id="L122">                runOnUiThread(() -&gt; {</span>
+<span class="nc" id="L123">                    Log.d(&quot;Server response: &quot;, message);</span>
+<span class="nc" id="L124">                    sessionMessages.add(message);</span>
+<span class="nc" id="L125">                    adapter.notifyDataSetChanged();</span>
+<span class="nc" id="L126">                    messageDisplay.smoothScrollToPosition(sessionMessages.size()-1);</span>
+<span class="nc" id="L127">                });</span>
+<span class="nc" id="L128">            }</span>
+
+            @Override
+            public void onClose(int code, String reason, boolean remote) {
+<span class="nc" id="L132">                Log.i(&quot;Websocket&quot;, &quot;Closed: &quot; + reason);</span>
+<span class="nc" id="L133">            }</span>
+
+            @Override
+            public void onError(Exception ex) {
+<span class="nc" id="L137">                Log.d(&quot;Status:&quot;, &quot;Force disconnect.&quot; + ex.getMessage());</span>
+<span class="nc" id="L138">            }</span>
+        };
+
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (!client.isOpen()) {</span>
+<span class="nc" id="L142">            client.connect();</span>
+        }
+
+<span class="nc" id="L145">    }</span>
+
+    protected void checkProfessor() {
+<span class="nc" id="L148">        ApiClient.get(ChatActivity.this, &quot;/professor/user/&quot; + userIdValue, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L151">                Intent intent = new Intent(ChatActivity.this, ProfessorGroupManageActivity.class);</span>
+<span class="nc" id="L152">                intent.putExtra(&quot;GROUP_NAME&quot;, groupNameValue);</span>
+                try {
+<span class="nc" id="L154">                    intent.putExtra(&quot;PROFESSOR_ID&quot;, response.getInt(&quot;id&quot;));</span>
+<span class="nc" id="L155">                } catch (JSONException e) {</span>
+<span class="nc" id="L156">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L157">                }</span>
+<span class="nc" id="L158">                intent.putExtra(&quot;USER_ID&quot;, userIdValue);</span>
+<span class="nc" id="L159">                startActivity(intent);</span>
+<span class="nc" id="L160">            }</span>
+
+            @Override
+            public void onError(String message) {
+                //If not a professor, reroute to student exit
+<span class="nc" id="L165">                studentLeave();</span>
+<span class="nc" id="L166">            }</span>
+        });
+<span class="nc" id="L168">    }</span>
+
+    protected void studentLeave() {
+<span class="nc" id="L171">        Intent intent = new Intent(ChatActivity.this, MainFeedActivity.class);</span>
+<span class="nc" id="L172">        intent.putExtra(&quot;USER_ID&quot;, userIdValue);</span>
+<span class="nc" id="L173">        startActivity(intent);</span>
+<span class="nc" id="L174">    }</span>
+
+//    /**
+//     * Called when a message is received from the WebSocket.
+//     * This method ensures that UI updates happen on the main thread.
+//     */
+//    @Override
+//    public void onWebSocketMessage(String message) {
+//        /**
+//         * In Android, all UI-related operations must be performed on the main UI thread
+//         * to ensure smooth and responsive user interfaces. The 'runOnUiThread' method
+//         * is used to post a runnable to the UI thread's message queue, allowing UI updates
+//         * to occur safely from a background or non-UI thread.
+//         */
+//        runOnUiThread(() -&gt; {
+//            Log.d(&quot;Server Response: &quot;, message);
+//            String s = msgTv.getText().toString();
+//            msgTv.setText(s + &quot;\n&quot;+message);
+//        });
+//    }
+//
+//    /**
+//     * Called when the WebSocket connection is closed.
+//     * Displays the closure reason in the TextView.
+//     *
+//     * @param code   The status code of the closure
+//     * @param reason The reason provided for closure
+//     */
+//    @Override
+//    public void onWebSocketClose(int code, String reason, boolean remote) {
+//        String closedBy = remote ? &quot;server&quot; : &quot;local&quot;;
+//        runOnUiThread(() -&gt; {
+////            String s = msgTv.getText().toString();
+////            msgTv.setText(s + &quot;---\nconnection closed by &quot; + closedBy + &quot;\nreason: &quot; + reason);
+//        });
+//    }
+//
+//    @Override
+//    public void onWebSocketOpen(ServerHandshake handshakedata) {}
+//
+//
+//    @Override
+//    public void onWebSocketError(Exception ex) {}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

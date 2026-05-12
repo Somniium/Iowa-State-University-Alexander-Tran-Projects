@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ManageAdminsActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">ManageAdminsActivity.java</span></div><h1>ManageAdminsActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @author Edwin Cepeda
+ */
+<span class="fc" id="L29">public class ManageAdminsActivity extends AppCompatActivity {</span>
+
+    // Declare button variables
+    private Button queryAddBtn, queryManageBtn, addBtn, promoteBtn, deleteBtn, returnBtn;
+    private ImageButton searchBtn;
+
+    // Declare layout variables
+    private LinearLayout queryInterface, addInterface, manageInterface;
+
+    //Declare edit variables
+    private EditText searchEdt, addEdt;
+
+    //Declare textview variables
+    private TextView adminIdText, userIdText, masterText;
+<span class="fc" id="L43">    private int adminID = -1;</span>
+<span class="fc" id="L44">    private int userID = -1;</span>
+    private boolean isMaster;
+<span class="fc" id="L46">    private int yourUserID = -1;</span>
+<span class="fc" id="L47">    private int yourAdminID = -1;</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L51">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L52">        setContentView(R.layout.activity_manage_admins); // Set the UI layout for the activity</span>
+
+        // Initialize buttons by finding them using their IDs from XML layout
+<span class="fc" id="L55">        queryAddBtn = findViewById(R.id.queryAddBtn);</span>
+<span class="fc" id="L56">        queryManageBtn = findViewById(R.id.queryManageBtn);</span>
+<span class="fc" id="L57">        addBtn = findViewById(R.id.addBtn);</span>
+<span class="fc" id="L58">        searchBtn = findViewById(R.id.searchBtn);</span>
+<span class="fc" id="L59">        promoteBtn = findViewById(R.id.promoteBtn);</span>
+<span class="fc" id="L60">        deleteBtn = findViewById(R.id.deleteBtn);</span>
+<span class="fc" id="L61">        returnBtn = findViewById(R.id.returnBtn);</span>
+
+<span class="fc" id="L63">        queryInterface = findViewById(R.id.queryInterface);</span>
+<span class="fc" id="L64">        addInterface = findViewById(R.id.addInterface);</span>
+<span class="fc" id="L65">        manageInterface = findViewById(R.id.manageInterface);</span>
+
+<span class="fc" id="L67">        searchEdt = findViewById(R.id.userEdt);</span>
+<span class="fc" id="L68">        addEdt = findViewById(R.id.userAddEdt);</span>
+
+<span class="fc" id="L70">        adminIdText = findViewById(R.id.adminIdText);</span>
+<span class="fc" id="L71">        userIdText = findViewById(R.id.userIdText);</span>
+<span class="fc" id="L72">        masterText = findViewById(R.id.masterText);</span>
+
+<span class="fc" id="L74">        Bundle extras = getIntent().getExtras();</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        if (extras != null) {</span>
+<span class="fc" id="L76">            yourAdminID = extras.getInt(&quot;ADMIN_ID&quot;, -1);</span>
+<span class="fc" id="L77">            yourUserID = extras.getInt(&quot;USER_ID&quot;, -1);</span>
+        }
+
+<span class="fc" id="L80">        queryAddBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L83">                queryInterface.setVisibility(View.GONE);</span>
+<span class="nc" id="L84">                addInterface.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L85">            }</span>
+        });
+
+<span class="fc" id="L88">        addBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L91">                userID = Integer.parseInt(addEdt.getText().toString());</span>
+<span class="nc" id="L92">                ApiClient.get(ManageAdminsActivity.this, &quot;/admin/user/&quot; + userID, new Api_Interface() {</span>
+                    @Override
+                    public void onSuccess(JSONObject response) {
+<span class="nc" id="L95">                        Toast.makeText(ManageAdminsActivity.this, &quot;Admin already exists for this user.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L96">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L100">                        addAdmin(userID);</span>
+<span class="nc" id="L101">                    }</span>
+                });
+<span class="nc" id="L103">            }</span>
+        });
+
+<span class="fc" id="L106">        queryManageBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L109">                queryInterface.setVisibility(View.GONE);</span>
+<span class="nc" id="L110">                manageInterface.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L111">            }</span>
+        });
+
+
+<span class="fc" id="L115">        searchBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+<span class="nc" id="L119">                ApiClient.get(ManageAdminsActivity.this, &quot;/admin/id/&quot; + Integer.parseInt(searchEdt.getText().toString()), new Api_Interface() {</span>
+                    @Override
+                    public void onSuccess(JSONObject response) {
+                        try {
+<span class="nc" id="L123">                            adminID = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L124">                            isMaster = response.getBoolean(&quot;master&quot;);</span>
+<span class="nc" id="L125">                            getUserIdAndUpdateUI(adminID);</span>
+<span class="nc" id="L126">                        } catch (JSONException e) {</span>
+<span class="nc" id="L127">                            throw new RuntimeException(e);</span>
+<span class="nc" id="L128">                        }</span>
+<span class="nc" id="L129">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L133">                        Toast.makeText(ManageAdminsActivity.this, &quot;Not a valid admin.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L134">                    }</span>
+                });
+<span class="nc" id="L136">            }</span>
+        });
+
+<span class="fc" id="L139">        deleteBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                if (isMaster) {</span>
+<span class="nc" id="L143">                    Toast.makeText(ManageAdminsActivity.this, &quot;You cannot delete another master admin.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L144">                    return;</span>
+                }
+<span class="nc" id="L146">                ApiClient.delete(ManageAdminsActivity.this, &quot;/remove-admin/id/&quot; + adminID, new Api_Interface() {</span>
+                    @Override
+                    public void onSuccess(JSONObject response) {
+<span class="nc" id="L149">                        Toast.makeText(ManageAdminsActivity.this, &quot;Admin (ID: &quot; + adminID + &quot;) deleted.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L150">                        Intent intent = new Intent(ManageAdminsActivity.this, AdminPanelActivity.class);</span>
+<span class="nc" id="L151">                        startActivity(intent);</span>
+<span class="nc" id="L152">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L156">                        Log.d(&quot;oh my god just work for the love of god&quot;, String.valueOf(adminID));</span>
+<span class="nc" id="L157">                        Toast.makeText(ManageAdminsActivity.this, &quot;Could not find admin.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L158">                    }</span>
+                });
+
+<span class="nc" id="L161">            }</span>
+        });
+
+<span class="fc" id="L164">        returnBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L167">                Intent intent = new Intent(ManageAdminsActivity.this, AdminPanelActivity.class);</span>
+<span class="fc" id="L168">                intent.putExtra(&quot;ADMIN_ID&quot;, yourAdminID);</span>
+<span class="fc" id="L169">                intent.putExtra(&quot;USER_ID&quot;, yourUserID);</span>
+<span class="fc" id="L170">                startActivity(intent);</span>
+<span class="fc" id="L171">            }</span>
+        });
+
+<span class="fc" id="L174">        promoteBtn.setOnClickListener(new View.OnClickListener() {</span>
+
+            @Override
+            public void onClick(View v) {
+//                JSONObject updatedAdmin = new JSONObject();
+//                try {
+//                    updatedAdmin.put(&quot;id&quot;, adminID);
+//                    updatedAdmin.put(&quot;is_master&quot;, false);
+//                    updatedAdmin.put(&quot;user_id&quot;, userID);
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+
+<span class="nc" id="L187">                String url = String.format(&quot;http://coms-3090-017.class.las.iastate.edu:8080/admin-make-master/%d&quot;, adminID);</span>
+<span class="nc" id="L188">                JsonObjectRequest update = new JsonObjectRequest(Request.Method.PUT,</span>
+                        url,
+                        null,
+                        response -&gt; {
+<span class="nc" id="L192">                            Toast.makeText(ManageAdminsActivity.this, &quot;Admin (ID: &quot; + adminID + &quot;) promoted to master.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L193">                            Intent intent = new Intent(ManageAdminsActivity.this, AdminPanelActivity.class);</span>
+<span class="nc" id="L194">                            intent.putExtra(&quot;ADMIN_ID&quot;, yourAdminID);</span>
+<span class="nc" id="L195">                            intent.putExtra(&quot;USER_ID&quot;, yourUserID);</span>
+<span class="nc" id="L196">                            startActivity(intent);</span>
+<span class="nc" id="L197">                        },</span>
+
+                        error -&gt; {
+<span class="nc" id="L200">                            Toast.makeText(ManageAdminsActivity.this, &quot;Could not promote Admin.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L201">                        }</span>
+<span class="nc" id="L202">                ) {</span>
+                    @Override
+                    public Map&lt;String, String&gt; getHeaders() throws AuthFailureError {
+                        // Define headers if needed
+<span class="nc" id="L206">                        HashMap&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L207">                        return headers;</span>
+                    }
+
+                    @Override
+                    protected Map&lt;String, String&gt; getParams() {
+                        // Define parameters if needed
+<span class="nc" id="L213">                        Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                        // Example parameters (uncomment if needed)
+                        // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                        // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L217">                        return params;</span>
+                    }
+                };
+
+                // Adding request to the Volley request queue
+<span class="nc" id="L222">                VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(update);</span>
+<span class="nc" id="L223">            }</span>
+        });
+
+<span class="fc" id="L226">    }</span>
+
+    protected void addAdmin(int userID) {
+<span class="nc" id="L229">        ApiClient.post(ManageAdminsActivity.this, &quot;/admin/&quot; + userID, null, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L232">                Toast.makeText(ManageAdminsActivity.this, &quot;Admin created for User ID &quot; + userID + &quot;.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L233">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L237">                addAdmin(userID);</span>
+<span class="nc" id="L238">            }</span>
+        });
+<span class="nc" id="L240">    }</span>
+
+    protected void getUserIdAndUpdateUI(int adminsID) {
+<span class="nc" id="L243">        ApiClient.get(ManageAdminsActivity.this, &quot;/admin/get-user/&quot; + adminsID, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L247">                    userID = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L248">                    adminIdText.setText(&quot;Admin ID: &quot; + adminID);</span>
+<span class="nc" id="L249">                    userIdText.setText(&quot;User ID: &quot; + userID);</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">                    if (isMaster) {</span>
+<span class="nc" id="L251">                        masterText.setText(&quot;Master: true&quot;);</span>
+<span class="nc" id="L252">                        promoteBtn.setVisibility(View.INVISIBLE);</span>
+                    } else {
+<span class="nc" id="L254">                        masterText.setText(&quot;Master: false&quot;);</span>
+<span class="nc" id="L255">                        promoteBtn.setVisibility(View.VISIBLE);</span>
+                    }
+<span class="nc" id="L257">                } catch (JSONException e) {</span>
+<span class="nc" id="L258">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L259">                }</span>
+<span class="nc" id="L260">            }</span>
+
+            @Override
+            public void onError(String message) {
+//                addAdmin(userID);
+<span class="nc" id="L265">            }</span>
+        });
+<span class="nc" id="L267">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

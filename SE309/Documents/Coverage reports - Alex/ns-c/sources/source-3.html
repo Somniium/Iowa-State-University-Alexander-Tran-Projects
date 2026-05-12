@@ -1,0 +1,94 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > FriendRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Friends</a>
+</div>
+
+<h1>Coverage Summary for Class: FriendRepository (onetoone.Friends)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">FriendRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Friends;
+&nbsp;
+&nbsp;import jakarta.transaction.Transactional;
+&nbsp;import onetoone.Users.User;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Modifying;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;public interface FriendRepository extends JpaRepository&lt;Friend, Long&gt; {
+&nbsp;    @Query(&quot;SELECT f FROM Friend f WHERE &quot; +
+&nbsp;           &quot;(f.user.userId = :userId AND f.friend.userId = :friendId) OR &quot; +
+&nbsp;           &quot;(f.user.userId = :friendId AND f.friend.userId = :userId)&quot;)
+&nbsp;    Friend findFriendBetweenUsers(@Param(&quot;userId&quot;) int userId, @Param(&quot;friendId&quot;) int friendId);
+&nbsp;
+&nbsp;    List&lt;Friend&gt; findByUserUserId(int userId);
+&nbsp;
+&nbsp;    List&lt;Friend&gt; findByFriendUserId(int userId);
+&nbsp;
+&nbsp;    @Transactional
+&nbsp;    @Modifying(clearAutomatically = true, flushAutomatically = true)
+&nbsp;    @Query(&quot;DELETE FROM Friend f WHERE f.user.userId = :userId OR f.friend.userId = :userId&quot;)
+&nbsp;    int deleteByUserId(@Param(&quot;userId&quot;) int userId);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-06 02:09</div>
+</div>
+</body>
+</html>

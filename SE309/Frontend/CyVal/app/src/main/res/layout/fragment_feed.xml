@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  fragment_feed.xml — Root layout for FeedFragment.
+
+  Filter state is managed entirely in FeedFragment — no filter UI lives here.
+  Tapping the hamburger opens dialog_feed_filter.xml as a BottomSheetDialog.
+-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F6F8">
+
+    <!-- ── Header bar ────────────────────────────────────────────────────── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#E53935"
+        android:padding="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CyVal"
+            android:textSize="20sp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginEnd="12dp" />
+
+        <!-- Rounded search bar — pressing the keyboard Search action calls searchFeed() -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:cardCornerRadius="25dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardElevation="2dp">
+
+            <EditText
+                android:id="@+id/feed_search_bar"
+                android:layout_width="match_parent"
+                android:layout_height="42dp"
+                android:background="@android:color/transparent"
+                android:hint="Search posts..."
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:textColor="#000000"
+                android:textColorHint="#888888"
+                android:textSize="14sp" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Hamburger menu button — opens the filter BottomSheetDialog.
+             Tinted yellow by FeedFragment.updateMenuBtnIndicator() when
+             a non-default filter is active. -->
+        <ImageView
+            android:id="@+id/feed_menu_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_menu"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Open filter menu" />
+
+    </LinearLayout>
+
+    <!-- ── Feed list ─────────────────────────────────────────────────────── -->
+    <!-- Pull-to-refresh wrapper — calls FeedFragment.loadFeed() on swipe -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Items are FeedItem instances bound by FeedAdapter -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/feed_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</LinearLayout>

@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ManageProfessorsActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">ManageProfessorsActivity.java</span></div><h1>ManageProfessorsActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * @author Edwin Cepeda
+ */
+<span class="fc" id="L32">public class ManageProfessorsActivity extends AppCompatActivity {</span>
+
+    // Declare button variables
+    private Button queryAddBtn, queryManageBtn, addBtn, addClassBtn, removeClassBtn, deleteBtn, returnBtn;
+    private ImageButton searchBtn;
+
+    // Declare layout variables
+    private LinearLayout queryInterface, addInterface, manageInterface;
+
+    //Declare edit variables
+    private EditText searchEdt, addEdt, addClassEdt;
+
+    //Declare textview variables
+    private TextView professorIdText, userIdText, classesListText;
+<span class="fc" id="L46">    private int professorID = -1;</span>
+<span class="fc" id="L47">    private int userID = -1;</span>
+
+<span class="fc" id="L49">    private int adminID = -1;</span>
+<span class="fc" id="L50">    private int adminUserID = -1;</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L54">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L55">        setContentView(R.layout.activity_manage_professors); // Set the UI layout for the activity</span>
+
+        // Initialize buttons by finding them using their IDs from XML layout
+<span class="fc" id="L58">        queryAddBtn = findViewById(R.id.queryAddBtn);</span>
+<span class="fc" id="L59">        queryManageBtn = findViewById(R.id.queryManageBtn);</span>
+<span class="fc" id="L60">        addBtn = findViewById(R.id.addBtn);</span>
+<span class="fc" id="L61">        searchBtn = findViewById(R.id.searchBtn);</span>
+<span class="fc" id="L62">        addClassBtn = findViewById(R.id.addClassBtn);</span>
+<span class="fc" id="L63">        removeClassBtn = findViewById(R.id.removeClassBtn);</span>
+<span class="fc" id="L64">        deleteBtn = findViewById(R.id.deleteBtn);</span>
+<span class="fc" id="L65">        returnBtn = findViewById(R.id.returnBtn);</span>
+
+<span class="fc" id="L67">        queryInterface = findViewById(R.id.queryInterface);</span>
+<span class="fc" id="L68">        addInterface = findViewById(R.id.addInterface);</span>
+<span class="fc" id="L69">        manageInterface = findViewById(R.id.manageInterface);</span>
+
+<span class="fc" id="L71">        searchEdt = findViewById(R.id.userEdt);</span>
+<span class="fc" id="L72">        addEdt = findViewById(R.id.userAddEdt);</span>
+<span class="fc" id="L73">        addClassEdt = findViewById(R.id.classesAddEdt);</span>
+
+<span class="fc" id="L75">        professorIdText = findViewById(R.id.professorIdText);</span>
+<span class="fc" id="L76">        userIdText = findViewById(R.id.userIdText);</span>
+<span class="fc" id="L77">        classesListText = findViewById(R.id.classesText);</span>
+
+<span class="fc" id="L79">        Bundle extras = getIntent().getExtras();</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (extras != null) {</span>
+<span class="fc" id="L81">            adminID = extras.getInt(&quot;ADMIN_ID&quot;, -1);</span>
+<span class="fc" id="L82">            adminUserID = extras.getInt(&quot;USER_ID&quot;, -1);</span>
+        }
+
+<span class="fc" id="L85">        queryAddBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L88">                queryInterface.setVisibility(View.GONE);</span>
+<span class="nc" id="L89">                addInterface.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L90">            }</span>
+        });
+
+<span class="fc" id="L93">        queryManageBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L96">                queryInterface.setVisibility(View.GONE);</span>
+<span class="fc" id="L97">                manageInterface.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L98">            }</span>
+        });
+
+<span class="fc" id="L101">        addBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L104">                userID = Integer.parseInt(addEdt.getText().toString());</span>
+<span class="nc" id="L105">                ApiClient.get(ManageProfessorsActivity.this, &quot;/professor/user/&quot; + userID, new Api_Interface() {</span>
+                    @Override
+                    public void onSuccess(JSONObject response) {
+<span class="nc" id="L108">                        Toast.makeText(ManageProfessorsActivity.this, &quot;Professor already exists for this user.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L109">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L113">                        addProfessor(userID);</span>
+<span class="nc" id="L114">                    }</span>
+                });
+<span class="nc" id="L116">            }</span>
+        });
+
+<span class="fc" id="L119">        searchBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+
+<span class="fc" id="L123">                ApiClient.get(ManageProfessorsActivity.this, &quot;/professor/id/&quot; + Integer.parseInt(searchEdt.getText().toString()), new Api_Interface() {</span>
+                    @Override
+                    public void onSuccess(JSONObject response) {
+                        try {
+<span class="fc" id="L127">                            professorID = response.getInt(&quot;id&quot;);</span>
+<span class="fc" id="L128">                            getUserID(professorID);</span>
+<span class="fc" id="L129">                            professorIdText.setText(&quot;Professor ID: &quot; + professorID);</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">                            if (response.getJSONArray(&quot;classes&quot;) != null) {</span>
+<span class="fc" id="L131">                                classesListText.setText(&quot;Classes: &quot; + response.getJSONArray(&quot;classes&quot;));</span>
+                            } else {
+<span class="nc" id="L133">                                classesListText.setText(&quot;Classes: None&quot;);</span>
+                            }
+<span class="nc" id="L135">                        } catch (JSONException e) {</span>
+<span class="nc" id="L136">                            throw new RuntimeException(e);</span>
+<span class="fc" id="L137">                        }</span>
+<span class="fc" id="L138">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L142">                        Toast.makeText(ManageProfessorsActivity.this, &quot;Not a valid professor.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L143">                    }</span>
+                });
+<span class="fc" id="L145">            }</span>
+        });
+
+<span class="fc" id="L148">        deleteBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L151">                StringRequest stringRequest = new StringRequest(</span>
+                        Request.Method.DELETE, // HTTP method (GET request)
+<span class="nc" id="L153">                        String.format(&quot;http://coms-3090-017.class.las.iastate.edu:8080/professor/remove-professor/id/%d&quot;, professorID), // API URL</span>
+<span class="nc" id="L154">                        new Response.Listener&lt;String&gt;() {</span>
+                            @Override
+                            public void onResponse(String response) {
+<span class="nc" id="L157">                                Toast.makeText(ManageProfessorsActivity.this, &quot;Professor (ID: &quot; + professorID + &quot;) deleted.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L158">                                Intent intent = new Intent(ManageProfessorsActivity.this, AdminPanelActivity.class);</span>
+<span class="nc" id="L159">                                intent.putExtra(&quot;ADMIN_ID&quot;, adminID);</span>
+<span class="nc" id="L160">                                intent.putExtra(&quot;USER_ID&quot;, adminUserID);</span>
+<span class="nc" id="L161">                                startActivity(intent);</span>
+<span class="nc" id="L162">                            }</span>
+                        },
+<span class="nc" id="L164">                        new Response.ErrorListener() {</span>
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+<span class="nc" id="L167">                                Toast.makeText(ManageProfessorsActivity.this, &quot;Could not find professor.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L168">                            }</span>
+                        }
+<span class="nc" id="L170">                ) {</span>
+                    @Override
+                    public Map&lt;String, String&gt; getHeaders() {
+                        // Headers for the request (if needed)
+<span class="nc" id="L174">                        Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+                        // Example headers (uncomment if needed)
+                        // headers.put(&quot;Authorization&quot;, &quot;Bearer YOUR_ACCESS_TOKEN&quot;);
+                        // headers.put(&quot;Content-Type&quot;, &quot;application/json&quot;);
+<span class="nc" id="L178">                        return headers;</span>
+                    }
+
+                    @Override
+                    protected Map&lt;String, String&gt; getParams() {
+                        // Parameters for the request (if needed)
+<span class="nc" id="L184">                        Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                        // Example parameters (uncomment if needed)
+                        // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                        // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L188">                        return params;</span>
+                    }
+                };
+
+                // Adding request to the Volley request queue
+<span class="nc" id="L193">                VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(stringRequest);</span>
+//                ApiClient.delete(ManageProfessorsActivity.this, &quot;/professor/remove-professor/id/&quot; + professorID, new Api_Interface() {
+//                    @Override
+//                    public void onSuccess(JSONObject response) {
+//                        Toast.makeText(ManageProfessorsActivity.this, &quot;Professor (ID: &quot; + professorID + &quot;) deleted.&quot;, Toast.LENGTH_SHORT).show();
+//                        Intent intent = new Intent(ManageProfessorsActivity.this, AdminPanelActivity.class);
+//                        startActivity(intent);
+//                    }
+//
+//                    @Override
+//                    public void onError(String message) {
+//                        Log.d(&quot;oh my god just work for the love of god&quot;, String.valueOf(professorID));
+//                        Toast.makeText(ManageProfessorsActivity.this, &quot;Could not find professor.&quot;, Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+
+<span class="nc" id="L209">            }</span>
+        });
+
+<span class="fc" id="L212">        returnBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L215">                Intent intent = new Intent(ManageProfessorsActivity.this, AdminPanelActivity.class);</span>
+<span class="fc" id="L216">                intent.putExtra(&quot;ADMIN_ID&quot;, adminID);</span>
+<span class="fc" id="L217">                intent.putExtra(&quot;USER_ID&quot;, adminUserID);</span>
+<span class="fc" id="L218">                startActivity(intent);</span>
+<span class="fc" id="L219">            }</span>
+        });
+
+<span class="fc" id="L222">        addClassBtn.setOnClickListener(new View.OnClickListener() {</span>
+
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L226">                String url = String.format(&quot;http://coms-3090-017.class.las.iastate.edu:8080/professor/add-class/%d/%s&quot;, professorID, addClassEdt.getText().toString());</span>
+<span class="fc" id="L227">                JsonObjectRequest update = new JsonObjectRequest(Request.Method.PUT,</span>
+                        url,
+                        null,
+                        response -&gt; {
+<span class="fc" id="L231">                            updateClassesUI();</span>
+<span class="fc" id="L232">                            Toast.makeText(ManageProfessorsActivity.this, &quot;Class &quot; + addClassEdt.getText().toString() + &quot;added for Professor &quot; + professorID + &quot;.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L233">                        },</span>
+
+                        error -&gt; {
+<span class="nc" id="L236">                            Toast.makeText(ManageProfessorsActivity.this, &quot;Could not add class.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L237">                        }</span>
+<span class="fc" id="L238">                ) {</span>
+                    @Override
+                    public Map&lt;String, String&gt; getHeaders() throws AuthFailureError {
+                        // Define headers if needed
+<span class="fc" id="L242">                        HashMap&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L243">                        return headers;</span>
+                    }
+
+                    @Override
+                    protected Map&lt;String, String&gt; getParams() {
+                        // Define parameters if needed
+<span class="nc" id="L249">                        Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                        // Example parameters (uncomment if needed)
+                        // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                        // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L253">                        return params;</span>
+                    }
+                };
+
+                // Adding request to the Volley request queue
+<span class="fc" id="L258">                VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(update);</span>
+<span class="fc" id="L259">            }</span>
+        });
+
+<span class="fc" id="L262">        removeClassBtn.setOnClickListener(new View.OnClickListener() {</span>
+
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L266">                String url = String.format(&quot;http://coms-3090-017.class.las.iastate.edu:8080/professor/remove-class/%d/%s&quot;, professorID, addClassEdt.getText().toString());</span>
+<span class="fc" id="L267">                JsonObjectRequest update = new JsonObjectRequest(Request.Method.PUT,</span>
+                        url,
+                        null,
+                        response -&gt; {
+<span class="fc" id="L271">                            updateClassesUI();</span>
+<span class="fc" id="L272">                            Toast.makeText(ManageProfessorsActivity.this, &quot;Class &quot; + addClassEdt.getText().toString() + &quot;removed for Professor &quot; + professorID + &quot;.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L273">                        },</span>
+
+                        error -&gt; {
+<span class="nc" id="L276">                            Toast.makeText(ManageProfessorsActivity.this, &quot;Could not find class &quot; + addClassEdt.getText().toString() + &quot;.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L277">                        }</span>
+<span class="fc" id="L278">                ) {</span>
+                    @Override
+                    public Map&lt;String, String&gt; getHeaders() throws AuthFailureError {
+                        // Define headers if needed
+<span class="fc" id="L282">                        HashMap&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L283">                        return headers;</span>
+                    }
+
+                    @Override
+                    protected Map&lt;String, String&gt; getParams() {
+                        // Define parameters if needed
+<span class="nc" id="L289">                        Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                        // Example parameters (uncomment if needed)
+                        // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                        // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L293">                        return params;</span>
+                    }
+                };
+
+                // Adding request to the Volley request queue
+<span class="fc" id="L298">                VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(update);</span>
+<span class="fc" id="L299">            }</span>
+        });
+
+<span class="fc" id="L302">    }</span>
+
+    protected void addProfessor(int userID) {
+<span class="nc" id="L305">        ApiClient.post(ManageProfessorsActivity.this, &quot;/professor/&quot; + userID, null, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L308">                Toast.makeText(ManageProfessorsActivity.this, &quot;Professor created for User ID &quot; + userID + &quot;.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L309">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L313">                Toast.makeText(ManageProfessorsActivity.this, &quot;Professor not created.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L314">            }</span>
+        });
+<span class="nc" id="L316">    }</span>
+
+    protected void getUserID(int professorID) {
+<span class="fc" id="L319">        ApiClient.get(ManageProfessorsActivity.this, &quot;/professor/get-user/&quot; + professorID, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="fc" id="L323">                    userID = response.getInt(&quot;id&quot;);</span>
+<span class="fc" id="L324">                    userIdText.setText(&quot;User ID: &quot; + userID);</span>
+<span class="nc" id="L325">                } catch (JSONException e) {</span>
+<span class="nc" id="L326">                    throw new RuntimeException(e);</span>
+<span class="fc" id="L327">                }</span>
+<span class="fc" id="L328">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L332">                Toast.makeText(ManageProfessorsActivity.this, &quot;Couldn't get ID.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L333">            }</span>
+        });
+<span class="fc" id="L335">    }</span>
+
+    protected void updateClassesUI() {
+<span class="fc" id="L338">        ApiClient.get(ManageProfessorsActivity.this, &quot;/professor/id/&quot; + Integer.parseInt(searchEdt.getText().toString()), new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="pc bpc" id="L342" title="1 of 2 branches missed.">                    if (response.getJSONArray(&quot;classes&quot;) != null) {</span>
+<span class="fc" id="L343">                        classesListText.setText(&quot;Classes: &quot; + response.getJSONArray(&quot;classes&quot;));</span>
+                    } else {
+<span class="nc" id="L345">                        classesListText.setText(&quot;Classes: None&quot;);</span>
+                    }
+<span class="nc" id="L347">                } catch (JSONException e) {</span>
+<span class="nc" id="L348">                    throw new RuntimeException(e);</span>
+<span class="fc" id="L349">                }</span>
+<span class="fc" id="L350">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L354">                Toast.makeText(ManageProfessorsActivity.this, &quot;Not a valid professor.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L355">            }</span>
+        });
+<span class="fc" id="L357">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

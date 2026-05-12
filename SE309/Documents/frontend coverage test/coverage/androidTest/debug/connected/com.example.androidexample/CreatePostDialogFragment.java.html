@@ -1,0 +1,1053 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CreatePostDialogFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">CreatePostDialogFragment.java</span></div><h1>CreatePostDialogFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.app.Dialog;
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * CreatePostDialogFragment — two-phase dialog for creating a new post.
+ *
+ * &lt;p&gt;&lt;b&gt;Phase 1 – Search:&lt;/b&gt; the user picks a media item from the local database
+ * or searches external APIs (RAWG, TMDB, Hardcover). Seven chip buttons filter by
+ * media type; a search bar narrows results by title.
+ *
+ * &lt;p&gt;&lt;b&gt;Phase 2 – Review:&lt;/b&gt; the user fills in a rating (0–100), an optional
+ * review body, and a required caption, then taps Publish.
+ *
+ * &lt;p&gt;&lt;b&gt;Publish flow (sequential steps):&lt;/b&gt;
+ * &lt;ol&gt;
+ *   &lt;li&gt;If the selected item came from an external API (externalId ≠ null, id == 0),
+ *       save it to the database first — {@link #saveMediaThenPublish}.&lt;/li&gt;
+ *   &lt;li&gt;{@link #createReview} — POST /reviews; reads the returned {@code id} field
+ *       directly, falling back to {@link #findReviewByTitle} if absent.&lt;/li&gt;
+ *   &lt;li&gt;{@link #linkReviewToUser} — PUT /reviews/{id}/user/{userId}&lt;/li&gt;
+ *   &lt;li&gt;{@link #linkReviewToMedia} — PUT /reviews/{id}/{mediaType}/{mediaId}&lt;/li&gt;
+ *   &lt;li&gt;{@link #publishPost} — POST /reviews/{id}/publish&lt;/li&gt;
+ *   &lt;li&gt;{@link #updateMediaRating} — fire-and-forget rating recalculation&lt;/li&gt;
+ * &lt;/ol&gt;
+ *
+ * &lt;p&gt;&lt;b&gt;Thread safety:&lt;/b&gt; Volley callbacks in this app run on a background thread.
+ * All RecyclerView adapter updates and Toast calls are wrapped in
+ * {@code requireActivity().runOnUiThread()}. {@link #pendingCalls} uses
+ * {@link AtomicInteger} so it is safe to decrement from multiple callbacks.
+ */
+<span class="fc" id="L60">public class CreatePostDialogFragment extends DialogFragment {</span>
+
+    private static final String TAG = &quot;CreatePost&quot;;
+
+    // =========================================================================
+    // Fields
+    // =========================================================================
+
+    /** Full set of media items loaded from the local database on dialog open. */
+<span class="fc" id="L69">    private final List&lt;DTOmodels.SearchResult&gt; allMediaResults = new ArrayList&lt;&gt;();</span>
+
+    // Shared header controls
+    private TextView headerText;
+    private ImageView backBtn, closeBtn;
+
+    // Phase containers (only one visible at a time)
+    private View searchPhase, reviewPhase;
+
+    // Search phase views
+    private EditText searchInput;
+    private RecyclerView resultsRecycler;
+    private SearchResultAdapter resultAdapter;
+    private List&lt;DTOmodels.SearchResult&gt; searchResults;
+
+    // Review phase views
+    private ImageView selectedCover;
+    private TextView selectedTitle, selectedSubtitle;
+    private EditText ratingInput, bodyInput, captionInput;
+    private Button publishBtn;
+
+    // Media-type filter chips (TextViews styled as pills in dialog_create_post.xml)
+    private TextView chipAll, chipMusic, chipGames, chipMovies, chipShows, chipBooks;
+
+    // State
+<span class="fc" id="L94">    private String selectedChip = &quot;ALL&quot;;  // active chip value</span>
+    private DTOmodels.SearchResult selectedMedia;
+    private int currentUserId;
+
+    /**
+     * Tracks how many async calls are still outstanding.
+     * Used in two separate contexts:
+     * &lt;ul&gt;
+     *   &lt;li&gt;{@link #loadAllMedia} — set to 5 (one per media type), decremented per callback&lt;/li&gt;
+     *   &lt;li&gt;{@link #searchMedia} — set to the number of chip-active external API calls&lt;/li&gt;
+     * &lt;/ul&gt;
+     */
+<span class="fc" id="L106">    private final AtomicInteger pendingCalls = new AtomicInteger(0);</span>
+
+    // Callbacks wired by the host fragment/activity
+    private OnPostPublishedListener publishListener;
+    private OnDismissListener dismissListener;
+
+    // =========================================================================
+    // Listener interfaces
+    // =========================================================================
+
+    /** Notified when the review is published successfully. */
+    public interface OnPostPublishedListener {
+        void onPostPublished();
+    }
+
+    /** Notified when the dialog is dismissed (success or cancel). */
+    public interface OnDismissListener {
+        void onDismissed();
+    }
+
+    // =========================================================================
+    // Lifecycle
+    // =========================================================================
+
+    public void setOnPostPublishedListener(OnPostPublishedListener listener) {
+<span class="fc" id="L131">        this.publishListener = listener;</span>
+<span class="fc" id="L132">    }</span>
+
+    public void setOnDismissListener(OnDismissListener listener) {
+<span class="fc" id="L135">        this.dismissListener = listener;</span>
+<span class="fc" id="L136">    }</span>
+
+    @Override
+    public void onDismiss(@NonNull DialogInterface dialog) {
+<span class="fc" id="L140">        super.onDismiss(dialog);</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">        if (dismissListener != null) {</span>
+<span class="fc" id="L142">            dismissListener.onDismissed();</span>
+        }
+<span class="fc" id="L144">    }</span>
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+<span class="fc" id="L148">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L149">        setStyle(DialogFragment.STYLE_NO_FRAME, android.R.style.Theme_DeviceDefault_Light_Dialog_MinWidth);</span>
+<span class="fc" id="L150">    }</span>
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+<span class="fc" id="L155">        Dialog dialog = super.onCreateDialog(savedInstanceState);</span>
+<span class="fc" id="L156">        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);</span>
+<span class="fc" id="L157">        return dialog;</span>
+    }
+
+    @Override
+    public void onStart() {
+<span class="fc" id="L162">        super.onStart();</span>
+<span class="pc bpc" id="L163" title="2 of 4 branches missed.">        if (getDialog() != null &amp;&amp; getDialog().getWindow() != null) {</span>
+<span class="fc" id="L164">            getDialog().getWindow().setLayout(</span>
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+<span class="fc" id="L166">                    (int) (getResources().getDisplayMetrics().heightPixels * 0.85));</span>
+<span class="fc" id="L167">            getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);</span>
+        }
+<span class="fc" id="L169">    }</span>
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+<span class="fc" id="L175">        View view = inflater.inflate(R.layout.dialog_create_post, container, false);</span>
+
+        // Read USER_ID from the hosting activity's intent
+<span class="pc bpc" id="L178" title="2 of 4 branches missed.">        if (getActivity() != null &amp;&amp; getActivity().getIntent() != null) {</span>
+<span class="fc" id="L179">            currentUserId = getActivity().getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+        } else {
+<span class="nc" id="L181">            currentUserId = -1;</span>
+        }
+
+        // Shared header controls
+<span class="fc" id="L185">        headerText = view.findViewById(R.id.create_post_header);</span>
+<span class="fc" id="L186">        backBtn    = view.findViewById(R.id.create_post_back);</span>
+<span class="fc" id="L187">        closeBtn   = view.findViewById(R.id.create_post_close);</span>
+
+        // Phase containers
+<span class="fc" id="L190">        searchPhase = view.findViewById(R.id.search_phase);</span>
+<span class="fc" id="L191">        reviewPhase = view.findViewById(R.id.review_phase);</span>
+
+        // Search phase
+<span class="fc" id="L194">        searchInput      = view.findViewById(R.id.search_input);</span>
+<span class="fc" id="L195">        resultsRecycler  = view.findViewById(R.id.search_results_recycler);</span>
+
+        // Review phase
+<span class="fc" id="L198">        selectedCover    = view.findViewById(R.id.selected_media_cover);</span>
+<span class="fc" id="L199">        selectedTitle    = view.findViewById(R.id.selected_media_title);</span>
+<span class="fc" id="L200">        selectedSubtitle = view.findViewById(R.id.selected_media_subtitle);</span>
+<span class="fc" id="L201">        ratingInput      = view.findViewById(R.id.review_rating);</span>
+<span class="fc" id="L202">        bodyInput        = view.findViewById(R.id.review_body);</span>
+<span class="fc" id="L203">        captionInput     = view.findViewById(R.id.review_caption);</span>
+<span class="fc" id="L204">        publishBtn       = view.findViewById(R.id.btn_publish);</span>
+
+        // Media-type filter chips
+<span class="fc" id="L207">        chipAll    = view.findViewById(R.id.chip_all);</span>
+<span class="fc" id="L208">        chipMusic  = view.findViewById(R.id.chip_music);</span>
+<span class="fc" id="L209">        chipGames  = view.findViewById(R.id.chip_games);</span>
+<span class="fc" id="L210">        chipMovies = view.findViewById(R.id.chip_movies);</span>
+<span class="fc" id="L211">        chipShows  = view.findViewById(R.id.chip_shows);</span>
+<span class="fc" id="L212">        chipBooks  = view.findViewById(R.id.chip_books);</span>
+
+        // Search results list — tapping a result advances to the review phase
+<span class="fc" id="L215">        searchResults = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L216">        resultAdapter = new SearchResultAdapter(getContext(), searchResults, result -&gt; {</span>
+<span class="fc" id="L217">            selectedMedia = result;</span>
+<span class="fc" id="L218">            showReviewPhase();</span>
+<span class="fc" id="L219">        });</span>
+<span class="fc" id="L220">        resultsRecycler.setLayoutManager(new LinearLayoutManager(getContext()));</span>
+<span class="fc" id="L221">        resultsRecycler.setAdapter(resultAdapter);</span>
+
+        // Chip listeners — change selectedChip, clear the search bar, refresh the list
+<span class="fc" id="L224">        View.OnClickListener chipListener = v -&gt; {</span>
+<span class="fc bfc" id="L225" title="All 2 branches covered.">            if      (v == chipAll)    selectedChip = &quot;ALL&quot;;</span>
+<span class="fc bfc" id="L226" title="All 2 branches covered.">            else if (v == chipMusic)  selectedChip = &quot;ALBUM&quot;;</span>
+<span class="fc bfc" id="L227" title="All 2 branches covered.">            else if (v == chipGames)  selectedChip = &quot;GAME&quot;;</span>
+<span class="fc bfc" id="L228" title="All 2 branches covered.">            else if (v == chipMovies) selectedChip = &quot;MOVIE&quot;;</span>
+<span class="fc bfc" id="L229" title="All 2 branches covered.">            else if (v == chipShows)  selectedChip = &quot;SHOW&quot;;</span>
+<span class="pc bpc" id="L230" title="1 of 2 branches missed.">            else if (v == chipBooks)  selectedChip = &quot;BOOK&quot;;</span>
+<span class="fc" id="L231">            updateChipColors();</span>
+<span class="fc" id="L232">            searchInput.setText(&quot;&quot;);</span>
+<span class="pc bpc" id="L233" title="1 of 2 branches missed.">            if (!allMediaResults.isEmpty()) {</span>
+<span class="fc" id="L234">                filterByChip();</span>
+            } else {
+<span class="nc" id="L236">                loadAllMedia();</span>
+            }
+<span class="fc" id="L238">        };</span>
+<span class="fc" id="L239">        chipAll.setOnClickListener(chipListener);</span>
+<span class="fc" id="L240">        chipMusic.setOnClickListener(chipListener);</span>
+<span class="fc" id="L241">        chipGames.setOnClickListener(chipListener);</span>
+<span class="fc" id="L242">        chipMovies.setOnClickListener(chipListener);</span>
+<span class="fc" id="L243">        chipShows.setOnClickListener(chipListener);</span>
+<span class="fc" id="L244">        chipBooks.setOnClickListener(chipListener);</span>
+
+        // Search bar — filter locally first, then fall back to external APIs
+<span class="fc" id="L247">        searchInput.setOnEditorActionListener((v, actionId, event) -&gt; {</span>
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">            if (actionId == EditorInfo.IME_ACTION_SEARCH) {</span>
+<span class="fc" id="L249">                String query = searchInput.getText().toString().trim();</span>
+<span class="pc bpc" id="L250" title="1 of 2 branches missed.">                if (!query.isEmpty()) {</span>
+<span class="fc" id="L251">                    filterLocalResults(query);</span>
+                } else {
+<span class="nc" id="L253">                    filterByChip(); // empty search → reset to chip view</span>
+                }
+<span class="fc" id="L255">                return true;</span>
+            }
+<span class="nc" id="L257">            return false;</span>
+        });
+
+<span class="fc" id="L260">        backBtn.setOnClickListener(v -&gt; {</span>
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">            if (reviewPhase.getVisibility() == View.VISIBLE) {</span>
+<span class="fc" id="L262">                showSearchPhase();</span>
+            } else {
+<span class="nc" id="L264">                dismiss();</span>
+            }
+<span class="fc" id="L266">        });</span>
+<span class="fc" id="L267">        closeBtn.setOnClickListener(v -&gt; dismiss());</span>
+<span class="fc" id="L268">        publishBtn.setOnClickListener(v -&gt; publish());</span>
+
+        // Pre-load all local media so the list is ready when the dialog opens
+<span class="fc" id="L271">        loadAllMedia();</span>
+
+<span class="fc" id="L273">        return view;</span>
+    }
+
+    // =========================================================================
+    // UI state
+    // =========================================================================
+
+    /** Switches to the search phase (first screen). */
+    private void showSearchPhase() {
+<span class="fc" id="L282">        searchPhase.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L283">        reviewPhase.setVisibility(View.GONE);</span>
+<span class="fc" id="L284">        headerText.setText(&quot;Select media&quot;);</span>
+<span class="fc" id="L285">        backBtn.setVisibility(View.GONE);</span>
+<span class="fc" id="L286">    }</span>
+
+    /** Switches to the review phase (second screen) and populates the selected-media header. */
+    private void showReviewPhase() {
+<span class="fc" id="L290">        searchPhase.setVisibility(View.GONE);</span>
+<span class="fc" id="L291">        reviewPhase.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L292">        headerText.setText(&quot;Write your review&quot;);</span>
+<span class="fc" id="L293">        backBtn.setVisibility(View.VISIBLE);</span>
+
+<span class="fc" id="L295">        selectedTitle.setText(selectedMedia.title);</span>
+<span class="fc" id="L296">        selectedSubtitle.setText(selectedMedia.subtitle + &quot; · &quot; + selectedMedia.mediaType);</span>
+<span class="fc bfc" id="L297" title="All 2 branches covered.">        if (selectedMedia.imageUrl != null) {</span>
+<span class="fc" id="L298">            ApiClient.loadImage(getContext(), selectedMedia.imageUrl, selectedCover);</span>
+        }
+<span class="fc" id="L300">    }</span>
+
+    /**
+     * Updates each chip's background tint and text colour to reflect {@link #selectedChip}.
+     * Active chips show the media-type brand colour with white text; inactive chips are grey.
+     * The Artist chip uses a tinted inactive state to preserve its orange brand feel.
+     */
+    private void updateChipColors() {
+<span class="fc" id="L308">        int inactive = android.graphics.Color.parseColor(&quot;#F0F0F0&quot;);</span>
+<span class="fc" id="L309">        applyChip(chipAll,    &quot;ALL&quot;,   android.graphics.Color.parseColor(&quot;#E53935&quot;), inactive);</span>
+<span class="fc" id="L310">        applyChip(chipMusic,  &quot;ALBUM&quot;, android.graphics.Color.parseColor(&quot;#E53935&quot;), inactive);</span>
+<span class="fc" id="L311">        applyChip(chipGames,  &quot;GAME&quot;,  android.graphics.Color.parseColor(&quot;#8E24AA&quot;), inactive);</span>
+<span class="fc" id="L312">        applyChip(chipMovies, &quot;MOVIE&quot;, android.graphics.Color.parseColor(&quot;#1E88E5&quot;), inactive);</span>
+<span class="fc" id="L313">        applyChip(chipShows,  &quot;SHOW&quot;,  android.graphics.Color.parseColor(&quot;#1E88E5&quot;), inactive);</span>
+<span class="fc" id="L314">        applyChip(chipBooks,  &quot;BOOK&quot;,  android.graphics.Color.parseColor(&quot;#43A047&quot;), inactive);</span>
+<span class="fc" id="L315">    }</span>
+
+    /** Applies active/inactive colour to a single chip. */
+    private void applyChip(TextView chip, String chipId, int activeColor, int inactiveColor) {
+<span class="fc" id="L319">        boolean active = selectedChip.equals(chipId);</span>
+<span class="fc" id="L320">        chip.setBackgroundTintList(android.content.res.ColorStateList.valueOf(</span>
+<span class="fc bfc" id="L321" title="All 2 branches covered.">                active ? activeColor : inactiveColor));</span>
+<span class="fc bfc" id="L322" title="All 2 branches covered.">        chip.setTextColor(active ? 0xFFFFFFFF : 0xFF000000);</span>
+<span class="fc" id="L323">    }</span>
+
+    // =========================================================================
+    // Load all media (called on dialog open)
+    // =========================================================================
+
+    /**
+     * Fetches all five media type lists from the backend in parallel.
+     * Each callback decrements {@link #pendingCalls} and calls {@link #onAllMediaLoaded}
+     * when the counter reaches zero.
+     *
+     * &lt;p&gt;Movies and shows share the {@code /movies} endpoint; the {@code mediaType}
+     * field in the JSON response distinguishes them.
+     */
+    private void loadAllMedia() {
+<span class="fc" id="L338">        searchResults.clear();</span>
+<span class="fc" id="L339">        allMediaResults.clear();</span>
+<span class="fc" id="L340">        resultAdapter.notifyDataSetChanged();</span>
+<span class="fc" id="L341">        pendingCalls.set(4); // albums, games, movies+shows, books</span>
+
+        // --- Albums ---
+<span class="fc" id="L344">        ApiClient.getArray(getContext(), &quot;/albums&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="fc" id="L348">                    Gson gson = new Gson();</span>
+<span class="fc bfc" id="L349" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="fc" id="L350">                        DTOmodels.album album = gson.fromJson(</span>
+<span class="fc" id="L351">                                response.getJSONObject(i).toString(), DTOmodels.album.class);</span>
+<span class="fc" id="L352">                        synchronized (allMediaResults) {</span>
+<span class="fc" id="L353">                            allMediaResults.add(new DTOmodels.SearchResult(</span>
+<span class="fc" id="L354">                                    album.albumId, album.name, album.genre, &quot;ALBUM&quot;, album.coverURL));</span>
+<span class="fc" id="L355">                        }</span>
+                    }
+<span class="fc" id="L357">                    Log.d(TAG, &quot;Loaded &quot; + response.length() + &quot; albums&quot;);</span>
+<span class="nc" id="L358">                } catch (Exception e) {</span>
+<span class="nc" id="L359">                    Log.e(TAG, &quot;Error loading albums: &quot; + e.getMessage());</span>
+<span class="fc" id="L360">                }</span>
+<span class="fc" id="L361">                onAllMediaLoaded();</span>
+<span class="fc" id="L362">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L366">                Log.e(TAG, &quot;Albums load failed: &quot; + message);</span>
+<span class="nc" id="L367">                onAllMediaLoaded();</span>
+<span class="nc" id="L368">            }</span>
+        });
+
+        // --- Games ---
+<span class="fc" id="L372">        ApiClient.getArray(getContext(), &quot;/games&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="fc" id="L376">                    Gson gson = new Gson();</span>
+<span class="fc bfc" id="L377" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="fc" id="L378">                        DTOmodels.game game = gson.fromJson(</span>
+<span class="fc" id="L379">                                response.getJSONObject(i).toString(), DTOmodels.game.class);</span>
+<span class="fc" id="L380">                        synchronized (allMediaResults) {</span>
+<span class="fc" id="L381">                            allMediaResults.add(new DTOmodels.SearchResult(</span>
+                                    game.id, game.title, game.developer, &quot;GAME&quot;, game.coverUrl));
+<span class="fc" id="L383">                        }</span>
+                    }
+<span class="fc" id="L385">                    Log.d(TAG, &quot;Loaded &quot; + response.length() + &quot; games&quot;);</span>
+<span class="nc" id="L386">                } catch (Exception e) {</span>
+<span class="nc" id="L387">                    Log.e(TAG, &quot;Error loading games: &quot; + e.getMessage());</span>
+<span class="fc" id="L388">                }</span>
+<span class="fc" id="L389">                onAllMediaLoaded();</span>
+<span class="fc" id="L390">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L394">                Log.e(TAG, &quot;Games load failed: &quot; + message);</span>
+<span class="nc" id="L395">                onAllMediaLoaded();</span>
+<span class="nc" id="L396">            }</span>
+        });
+
+        // --- Movies &amp; Shows (same /movies endpoint, differentiated by mediaType field) ---
+<span class="fc" id="L400">        ApiClient.getArray(getContext(), &quot;/movies&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="fc" id="L404">                    Gson gson = new Gson();</span>
+<span class="fc bfc" id="L405" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="fc" id="L406">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="fc" id="L407">                        DTOmodels.movie movie = gson.fromJson(obj.toString(), DTOmodels.movie.class);</span>
+<span class="fc" id="L408">                        String type = obj.getString(&quot;mediaType&quot;); // &quot;MOVIE&quot; or &quot;SHOW&quot;</span>
+<span class="fc" id="L409">                        synchronized (allMediaResults) {</span>
+<span class="pc bpc" id="L410" title="1 of 4 branches missed.">                            if (&quot;MOVIE&quot;.equals(type) || &quot;SHOW&quot;.equals(type)) {</span>
+<span class="fc" id="L411">                                allMediaResults.add(new DTOmodels.SearchResult(</span>
+                                        movie.id, movie.title, movie.director, type, movie.posterUrl));
+                            }
+<span class="fc" id="L414">                        }</span>
+                    }
+<span class="fc" id="L416">                    Log.d(TAG, &quot;Loaded &quot; + response.length() + &quot; movies/shows&quot;);</span>
+<span class="nc" id="L417">                } catch (Exception e) {</span>
+<span class="nc" id="L418">                    Log.e(TAG, &quot;Error loading movies: &quot; + e.getMessage());</span>
+<span class="fc" id="L419">                }</span>
+<span class="fc" id="L420">                onAllMediaLoaded();</span>
+<span class="fc" id="L421">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L425">                Log.e(TAG, &quot;Movies load failed: &quot; + message);</span>
+<span class="nc" id="L426">                onAllMediaLoaded();</span>
+<span class="nc" id="L427">            }</span>
+        });
+
+        // --- Books ---
+<span class="fc" id="L431">        ApiClient.getArray(getContext(), &quot;/books&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="fc" id="L435">                    Gson gson = new Gson();</span>
+<span class="fc bfc" id="L436" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="fc" id="L437">                        DTOmodels.book book = gson.fromJson(</span>
+<span class="fc" id="L438">                                response.getJSONObject(i).toString(), DTOmodels.book.class);</span>
+                        // Normalise empty thumbnail strings to null so image loader skips them
+<span class="pc bpc" id="L440" title="3 of 4 branches missed.">                        String thumbnail = (book.thumbnailurl != null &amp;&amp; !book.thumbnailurl.isEmpty())</span>
+<span class="pc" id="L441">                                ? book.thumbnailurl : null;</span>
+<span class="fc" id="L442">                        synchronized (allMediaResults) {</span>
+<span class="fc" id="L443">                            allMediaResults.add(new DTOmodels.SearchResult(</span>
+                                    book.id, book.title, book.authors, &quot;BOOK&quot;, thumbnail));
+<span class="fc" id="L445">                        }</span>
+                    }
+<span class="fc" id="L447">                    Log.d(TAG, &quot;Loaded &quot; + response.length() + &quot; books&quot;);</span>
+<span class="nc" id="L448">                } catch (Exception e) {</span>
+<span class="nc" id="L449">                    Log.e(TAG, &quot;Error loading books: &quot; + e.getMessage());</span>
+<span class="fc" id="L450">                }</span>
+<span class="fc" id="L451">                onAllMediaLoaded();</span>
+<span class="fc" id="L452">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L456">                Log.e(TAG, &quot;Books load failed: &quot; + message);</span>
+<span class="nc" id="L457">                onAllMediaLoaded();</span>
+<span class="nc" id="L458">            }</span>
+        });
+
+<span class="fc" id="L461">    }</span>
+
+    /**
+     * Called by every {@link #loadAllMedia} callback (success or error).
+     * Displays the full list once all five fetches have returned.
+     * {@link #filterByChip} is posted to the main thread since Volley callbacks
+     * run on a background thread.
+     */
+    private void onAllMediaLoaded() {
+<span class="fc bfc" id="L470" title="All 2 branches covered.">        if (pendingCalls.decrementAndGet() &gt; 0) return;</span>
+
+<span class="fc" id="L472">        Log.d(TAG, &quot;All media loaded: &quot; + allMediaResults.size() + &quot; items total&quot;);</span>
+<span class="pc bpc" id="L473" title="1 of 2 branches missed.">        if (!isAdded()) return;</span>
+<span class="fc" id="L474">        requireActivity().runOnUiThread(this::filterByChip);</span>
+<span class="fc" id="L475">    }</span>
+
+    // =========================================================================
+    // Filtering
+    // =========================================================================
+
+    /**
+     * Rebuilds {@link #searchResults} from {@link #allMediaResults} applying the
+     * current chip selection. Must be called on the main thread (notifies adapter).
+     */
+    private void filterByChip() {
+<span class="fc" id="L486">        searchResults.clear();</span>
+<span class="fc bfc" id="L487" title="All 2 branches covered.">        if (selectedChip.equals(&quot;ALL&quot;)) {</span>
+<span class="fc" id="L488">            searchResults.addAll(allMediaResults);</span>
+        } else {
+<span class="fc bfc" id="L490" title="All 2 branches covered.">            for (DTOmodels.SearchResult item : allMediaResults) {</span>
+<span class="fc bfc" id="L491" title="All 2 branches covered.">                if (selectedChip.equals(item.mediaType)) {</span>
+<span class="fc" id="L492">                    searchResults.add(item);</span>
+                }
+<span class="fc" id="L494">            }</span>
+        }
+<span class="fc" id="L496">        resultAdapter.notifyDataSetChanged();</span>
+<span class="fc" id="L497">        Log.d(TAG, &quot;Showing &quot; + searchResults.size() + &quot; results for chip: &quot; + selectedChip);</span>
+<span class="fc" id="L498">    }</span>
+
+    /**
+     * Filters {@link #allMediaResults} by {@code query} (local, instant) and then
+     * fires external API searches in parallel. External results are appended via
+     * {@link #addSearchResult} as each response arrives.
+     */
+    private void filterLocalResults(String query) {
+<span class="fc" id="L506">        searchResults.clear();</span>
+<span class="fc" id="L507">        String lower = query.toLowerCase();</span>
+<span class="fc bfc" id="L508" title="All 2 branches covered.">        for (DTOmodels.SearchResult item : allMediaResults) {</span>
+<span class="pc bpc" id="L509" title="1 of 4 branches missed.">            if (!selectedChip.equals(&quot;ALL&quot;) &amp;&amp; !selectedChip.equals(item.mediaType)) continue;</span>
+<span class="pc bpc" id="L510" title="1 of 4 branches missed.">            if (item.title != null &amp;&amp; item.title.toLowerCase().contains(lower)) {</span>
+<span class="fc" id="L511">                searchResults.add(item);</span>
+            }
+<span class="fc" id="L513">        }</span>
+<span class="fc" id="L514">        resultAdapter.notifyDataSetChanged();</span>
+<span class="fc" id="L515">        Log.d(TAG, &quot;Local results: &quot; + searchResults.size() + &quot;, also searching APIs…&quot;);</span>
+<span class="fc" id="L516">        searchMedia(query);</span>
+<span class="fc" id="L517">    }</span>
+
+    // =========================================================================
+    // API search (external fallback for media not yet in the database)
+    // =========================================================================
+
+    /**
+     * Kicks off external API searches for the given query.
+     * Only the chip-active media types are queried; {@link #pendingCalls} is set
+     * to the number of calls about to be made so {@link #onSearchCallDone} knows
+     * when all responses have arrived.
+     */
+    private void searchMedia(String query) {
+<span class="fc" id="L530">        pendingCalls.set(0);</span>
+
+<span class="pc bpc" id="L532" title="2 of 4 branches missed.">        if (selectedChip.equals(&quot;ALL&quot;) || selectedChip.equals(&quot;ALBUM&quot;)) {</span>
+<span class="fc" id="L533">            pendingCalls.incrementAndGet();</span>
+<span class="fc" id="L534">            searchAlbums(query);</span>
+        }
+<span class="pc bpc" id="L536" title="2 of 4 branches missed.">        if (selectedChip.equals(&quot;ALL&quot;) || selectedChip.equals(&quot;GAME&quot;)) {</span>
+<span class="nc" id="L537">            pendingCalls.incrementAndGet();</span>
+<span class="nc" id="L538">            searchGames(query);</span>
+        }
+<span class="pc bpc" id="L540" title="2 of 4 branches missed.">        if (selectedChip.equals(&quot;ALL&quot;) || selectedChip.equals(&quot;MOVIE&quot;)) {</span>
+<span class="nc" id="L541">            pendingCalls.incrementAndGet();</span>
+<span class="nc" id="L542">            searchMovies(query);</span>
+        }
+<span class="pc bpc" id="L544" title="2 of 4 branches missed.">        if (selectedChip.equals(&quot;ALL&quot;) || selectedChip.equals(&quot;SHOW&quot;)) {</span>
+<span class="nc" id="L545">            pendingCalls.incrementAndGet();</span>
+<span class="nc" id="L546">            searchShows(query);</span>
+        }
+<span class="pc bpc" id="L548" title="2 of 4 branches missed.">        if (selectedChip.equals(&quot;ALL&quot;) || selectedChip.equals(&quot;BOOK&quot;)) {</span>
+<span class="nc" id="L549">            pendingCalls.incrementAndGet();</span>
+<span class="nc" id="L550">            searchBooks(query);</span>
+        }
+<span class="fc" id="L552">    }</span>
+
+    private void searchAlbums(String query) {
+<span class="fc" id="L555">        ApiClient.get(getContext(), &quot;/search-albums-and-save?album_name=&quot; + query, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="fc" id="L559">                    DTOmodels.album album = new Gson().fromJson(response.toString(), DTOmodels.album.class);</span>
+<span class="fc" id="L560">                    addSearchResult(new DTOmodels.SearchResult(</span>
+<span class="fc" id="L561">                            album.albumId, album.name, album.genre, &quot;ALBUM&quot;, album.coverURL));</span>
+<span class="fc" id="L562">                    Log.d(TAG, &quot;Album found via API: &quot; + album.name);</span>
+<span class="nc" id="L563">                } catch (Exception e) {</span>
+<span class="nc" id="L564">                    Log.e(TAG, &quot;Album parse error: &quot; + e.getMessage());</span>
+<span class="fc" id="L565">                }</span>
+<span class="fc" id="L566">                onSearchCallDone();</span>
+<span class="fc" id="L567">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L571">                Log.e(TAG, &quot;Album search failed: &quot; + message);</span>
+<span class="nc" id="L572">                onSearchCallDone();</span>
+<span class="nc" id="L573">            }</span>
+        });
+<span class="fc" id="L575">    }</span>
+
+    private void searchGames(String query) {
+<span class="nc" id="L578">        ApiClient.getArray(getContext(), &quot;/search-games?q=&quot; + query, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L582">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L583" title="All 2 branches missed.">                    for (int i = 0; i &lt; Math.min(response.length(), 5); i++) {</span>
+<span class="nc" id="L584">                        DTOmodels.game game = gson.fromJson(</span>
+<span class="nc" id="L585">                                response.getJSONObject(i).toString(), DTOmodels.game.class);</span>
+<span class="nc" id="L586">                        addSearchResult(new DTOmodels.SearchResult(</span>
+                                game.id, game.title, game.developer, &quot;GAME&quot;, game.coverUrl, game.rawgId));
+                    }
+<span class="nc" id="L589">                    Log.d(TAG, &quot;Games found via API: &quot; + response.length());</span>
+<span class="nc" id="L590">                } catch (Exception e) {</span>
+<span class="nc" id="L591">                    Log.e(TAG, &quot;Game parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L592">                }</span>
+<span class="nc" id="L593">                onSearchCallDone();</span>
+<span class="nc" id="L594">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L598">                Log.e(TAG, &quot;Game search failed: &quot; + message);</span>
+<span class="nc" id="L599">                onSearchCallDone();</span>
+<span class="nc" id="L600">            }</span>
+        });
+<span class="nc" id="L602">    }</span>
+
+    private void searchMovies(String query) {
+<span class="nc" id="L605">        ApiClient.getArray(getContext(), &quot;/search-movies?q=&quot; + query, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L609">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L610" title="All 2 branches missed.">                    for (int i = 0; i &lt; Math.min(response.length(), 5); i++) {</span>
+<span class="nc" id="L611">                        DTOmodels.movie movie = gson.fromJson(</span>
+<span class="nc" id="L612">                                response.getJSONObject(i).toString(), DTOmodels.movie.class);</span>
+<span class="nc" id="L613">                        addSearchResult(new DTOmodels.SearchResult(</span>
+                                movie.id, movie.title, movie.director, &quot;MOVIE&quot;, movie.posterUrl, movie.tmdbId));
+                    }
+<span class="nc" id="L616">                    Log.d(TAG, &quot;Movies found via API: &quot; + response.length());</span>
+<span class="nc" id="L617">                } catch (Exception e) {</span>
+<span class="nc" id="L618">                    Log.e(TAG, &quot;Movie parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L619">                }</span>
+<span class="nc" id="L620">                onSearchCallDone();</span>
+<span class="nc" id="L621">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L625">                Log.e(TAG, &quot;Movie search failed: &quot; + message);</span>
+<span class="nc" id="L626">                onSearchCallDone();</span>
+<span class="nc" id="L627">            }</span>
+        });
+<span class="nc" id="L629">    }</span>
+
+    private void searchShows(String query) {
+<span class="nc" id="L632">        ApiClient.getArray(getContext(), &quot;/search-shows?q=&quot; + query, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L636">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L637" title="All 2 branches missed.">                    for (int i = 0; i &lt; Math.min(response.length(), 5); i++) {</span>
+                        // Shows share the movie DTO; mediaType is forced to &quot;SHOW&quot;
+<span class="nc" id="L639">                        DTOmodels.movie movie = gson.fromJson(</span>
+<span class="nc" id="L640">                                response.getJSONObject(i).toString(), DTOmodels.movie.class);</span>
+<span class="nc" id="L641">                        addSearchResult(new DTOmodels.SearchResult(</span>
+                                movie.id, movie.title, movie.director, &quot;SHOW&quot;, movie.posterUrl, movie.tmdbId));
+                    }
+<span class="nc" id="L644">                    Log.d(TAG, &quot;Shows found via API: &quot; + response.length());</span>
+<span class="nc" id="L645">                } catch (Exception e) {</span>
+<span class="nc" id="L646">                    Log.e(TAG, &quot;Show parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L647">                }</span>
+<span class="nc" id="L648">                onSearchCallDone();</span>
+<span class="nc" id="L649">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L653">                Log.e(TAG, &quot;Shows search failed: &quot; + message);</span>
+<span class="nc" id="L654">                onSearchCallDone();</span>
+<span class="nc" id="L655">            }</span>
+        });
+<span class="nc" id="L657">    }</span>
+
+    private void searchBooks(String query) {
+<span class="nc" id="L660">        ApiClient.getArray(getContext(), &quot;/search-books?q=&quot; + query, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L664">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L665" title="All 2 branches missed.">                    for (int i = 0; i &lt; Math.min(response.length(), 5); i++) {</span>
+<span class="nc" id="L666">                        DTOmodels.book book = gson.fromJson(</span>
+<span class="nc" id="L667">                                response.getJSONObject(i).toString(), DTOmodels.book.class);</span>
+<span class="nc bnc" id="L668" title="All 4 branches missed.">                        String thumbnail = (book.thumbnailurl != null &amp;&amp; !book.thumbnailurl.isEmpty())</span>
+<span class="nc" id="L669">                                ? book.thumbnailurl : null;</span>
+<span class="nc" id="L670">                        addSearchResult(new DTOmodels.SearchResult(</span>
+                                book.id, book.title, book.authors, &quot;BOOK&quot;, thumbnail, book.volumeid));
+                    }
+<span class="nc" id="L673">                    Log.d(TAG, &quot;Books found via API: &quot; + response.length());</span>
+<span class="nc" id="L674">                } catch (Exception e) {</span>
+<span class="nc" id="L675">                    Log.e(TAG, &quot;Book parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L676">                }</span>
+<span class="nc" id="L677">                onSearchCallDone();</span>
+<span class="nc" id="L678">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L682">                Log.e(TAG, &quot;Book search failed: &quot; + message);</span>
+<span class="nc" id="L683">                onSearchCallDone();</span>
+<span class="nc" id="L684">            }</span>
+        });
+<span class="nc" id="L686">    }</span>
+
+    /**
+     * Called by every {@link #searchMedia} callback (success or error).
+     * Once all external searches have returned, shows a &quot;no results&quot; toast if
+     * the list is still empty. Toast is posted to the main thread.
+     */
+    private void onSearchCallDone() {
+<span class="pc bpc" id="L694" title="1 of 2 branches missed.">        if (pendingCalls.decrementAndGet() &gt; 0) return;</span>
+<span class="pc bpc" id="L695" title="3 of 4 branches missed.">        if (searchResults.isEmpty() &amp;&amp; isAdded()) {</span>
+<span class="nc" id="L696">            requireActivity().runOnUiThread(() -&gt;</span>
+<span class="nc" id="L697">                    Toast.makeText(getContext(), &quot;No results found&quot;, Toast.LENGTH_SHORT).show());</span>
+        }
+<span class="fc" id="L699">    }</span>
+
+    /**
+     * Adds a search result to the visible list, skipping duplicates.
+     * Deduplication checks both title+type and externalId.
+     * Adapter notification is posted to the main thread since this is called
+     * from Volley background callbacks.
+     */
+    private void addSearchResult(DTOmodels.SearchResult result) {
+<span class="fc" id="L708">        synchronized (searchResults) {</span>
+<span class="pc bpc" id="L709" title="1 of 2 branches missed.">            for (DTOmodels.SearchResult existing : searchResults) {</span>
+                // Same title and type — already shown
+<span class="pc bpc" id="L711" title="2 of 4 branches missed.">                if (existing.title.equals(result.title) &amp;&amp; existing.mediaType.equals(result.mediaType)) {</span>
+<span class="fc" id="L712">                    return;</span>
+                }
+                // Same external API id — same item under a different local id
+<span class="nc bnc" id="L715" title="All 4 branches missed.">                if (existing.externalId != null &amp;&amp; result.externalId != null</span>
+<span class="nc bnc" id="L716" title="All 2 branches missed.">                        &amp;&amp; existing.externalId.equals(result.externalId)) {</span>
+<span class="nc" id="L717">                    return;</span>
+                }
+<span class="nc" id="L719">            }</span>
+<span class="nc" id="L720">            searchResults.add(result);</span>
+<span class="nc" id="L721">        }</span>
+<span class="nc bnc" id="L722" title="All 2 branches missed.">        if (isAdded()) {</span>
+<span class="nc" id="L723">            requireActivity().runOnUiThread(() -&gt; resultAdapter.notifyDataSetChanged());</span>
+        }
+<span class="nc" id="L725">    }</span>
+
+    // =========================================================================
+    // Publish flow
+    // =========================================================================
+
+    /**
+     * Validates user inputs and starts the publish chain.
+     * If the selected media item came from an external API (externalId set, no db id yet),
+     * saves it to the database first via {@link #saveMediaThenPublish}.
+     */
+    private void publish() {
+<span class="fc" id="L737">        String ratingStr = ratingInput.getText().toString().trim();</span>
+<span class="fc" id="L738">        String body      = bodyInput.getText().toString().trim();</span>
+<span class="fc" id="L739">        String caption   = captionInput.getText().toString().trim();</span>
+
+<span class="fc bfc" id="L741" title="All 2 branches covered.">        if (ratingStr.isEmpty()) {</span>
+<span class="fc" id="L742">            Toast.makeText(getContext(), &quot;Please enter a rating&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L743">            return;</span>
+        }
+        int rating;
+        try {
+<span class="fc" id="L747">            rating = Integer.parseInt(ratingStr);</span>
+<span class="pc bpc" id="L748" title="1 of 4 branches missed.">            if (rating &lt; 0 || rating &gt; 100) {</span>
+<span class="fc" id="L749">                Toast.makeText(getContext(), &quot;Rating must be 0-100&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L750">                return;</span>
+            }
+<span class="nc" id="L752">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L753">            Toast.makeText(getContext(), &quot;Invalid rating&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L754">            return;</span>
+<span class="fc" id="L755">        }</span>
+<span class="fc bfc" id="L756" title="All 2 branches covered.">        if (caption.isEmpty()) {</span>
+<span class="fc" id="L757">            Toast.makeText(getContext(), &quot;Caption is required&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L758">            return;</span>
+        }
+
+<span class="fc" id="L761">        publishBtn.setEnabled(false);</span>
+<span class="fc" id="L762">        publishBtn.setText(&quot;Publishing…&quot;);</span>
+
+        // Use the media type directly — no switch needed
+<span class="fc" id="L765">        String mediaType = selectedMedia.mediaType;</span>
+
+        // External-only items (from RAWG/TMDB/Hardcover) have no DB id yet
+<span class="pc bpc" id="L768" title="5 of 6 branches missed.">        if (selectedMedia.externalId != null &amp;&amp; !selectedMedia.externalId.isEmpty()</span>
+                &amp;&amp; selectedMedia.id == 0) {
+<span class="nc" id="L770">            saveMediaThenPublish(rating, body, caption, mediaType);</span>
+<span class="nc" id="L771">            return;</span>
+        }
+
+<span class="fc" id="L774">        createReview(rating, body, caption, mediaType);</span>
+<span class="fc" id="L775">    }</span>
+
+    /**
+     * Step 1: POST /reviews — creates the review record.
+     * Uses the {@code id} field returned in the response body directly; falls back to
+     * {@link #findReviewByTitle} when the response has no id (handles older backend versions).
+     */
+    private void createReview(int rating, String body, String caption, String mediaType) {
+<span class="fc" id="L783">        Log.d(TAG, &quot;Creating review for &quot; + selectedMedia.title</span>
+                + &quot; rating=&quot; + rating + &quot; dbId=&quot; + selectedMedia.id);
+
+<span class="fc" id="L786">        DTOmodels.review reviewRequest = new DTOmodels.review(mediaType, selectedMedia.title, rating, body);</span>
+
+<span class="fc" id="L788">        ApiClient.post(getContext(), &quot;/reviews&quot;, reviewRequest, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                // Prefer the id returned by the POST response
+<span class="fc" id="L792">                int reviewId = response.optInt(&quot;id&quot;, -1);</span>
+<span class="pc bpc" id="L793" title="1 of 2 branches missed.">                if (reviewId != -1) {</span>
+<span class="fc" id="L794">                    Log.d(TAG, &quot;Review created with id &quot; + reviewId);</span>
+<span class="fc" id="L795">                    linkReviewToUser(reviewId, caption);</span>
+                } else {
+                    // Fallback: scan all reviews and match by title (slower but safe)
+<span class="nc" id="L798">                    Log.d(TAG, &quot;POST /reviews returned no id — scanning all reviews for: &quot; + selectedMedia.title);</span>
+<span class="nc" id="L799">                    findReviewByTitle(selectedMedia.title, caption);</span>
+                }
+<span class="fc" id="L801">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L805">                Log.e(TAG, &quot;Review creation failed: &quot; + message);</span>
+<span class="nc" id="L806">                publishFailed();</span>
+<span class="nc" id="L807">            }</span>
+        });
+<span class="fc" id="L809">    }</span>
+
+    /**
+     * Fallback for {@link #createReview}: scans GET /reviews and finds the most
+     * recently created review whose title matches. Scans in reverse so the newest
+     * entry wins when duplicate titles exist.
+     */
+    private void findReviewByTitle(String title, String caption) {
+<span class="nc" id="L817">        ApiClient.getArray(getContext(), &quot;/reviews&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L821">                    int reviewId = -1;</span>
+<span class="nc bnc" id="L822" title="All 2 branches missed.">                    for (int i = response.length() - 1; i &gt;= 0; i--) {</span>
+<span class="nc" id="L823">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc bnc" id="L824" title="All 2 branches missed.">                        if (title.equals(obj.getString(&quot;title&quot;))) {</span>
+<span class="nc" id="L825">                            reviewId = obj.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L826">                            break;</span>
+                        }
+                    }
+<span class="nc bnc" id="L829" title="All 2 branches missed.">                    if (reviewId == -1) {</span>
+<span class="nc" id="L830">                        Log.e(TAG, &quot;Could not find created review for title: &quot; + title);</span>
+<span class="nc" id="L831">                        publishFailed();</span>
+<span class="nc" id="L832">                        return;</span>
+                    }
+<span class="nc" id="L834">                    Log.d(TAG, &quot;Found review id: &quot; + reviewId);</span>
+<span class="nc" id="L835">                    linkReviewToUser(reviewId, caption);</span>
+<span class="nc" id="L836">                } catch (Exception e) {</span>
+<span class="nc" id="L837">                    Log.e(TAG, &quot;Error finding review: &quot; + e.getMessage());</span>
+<span class="nc" id="L838">                    publishFailed();</span>
+<span class="nc" id="L839">                }</span>
+<span class="nc" id="L840">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L844">                Log.e(TAG, &quot;Failed to fetch reviews: &quot; + message);</span>
+<span class="nc" id="L845">                publishFailed();</span>
+<span class="nc" id="L846">            }</span>
+        });
+<span class="nc" id="L848">    }</span>
+
+    /**
+     * Step 2: PUT /reviews/{id}/user/{userId} — links the review to the current user.
+     * On failure, proceeds to {@link #publishPost} anyway so the post is not permanently lost.
+     */
+    private void linkReviewToUser(int reviewId, String caption) {
+<span class="fc" id="L855">        ApiClient.putString(getContext(),</span>
+                &quot;/reviews/&quot; + reviewId + &quot;/user/&quot; + currentUserId + &quot;?requesterId=&quot; + currentUserId, &quot;&quot;,
+<span class="fc" id="L857">                new Api_String_Interface() {</span>
+                    @Override
+                    public void onSuccess(String response) {
+<span class="fc" id="L860">                        Log.d(TAG, &quot;Review linked to user&quot;);</span>
+<span class="fc" id="L861">                        linkReviewToMedia(reviewId, caption);</span>
+<span class="fc" id="L862">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L866">                        Log.e(TAG, &quot;User link failed (continuing): &quot; + message);</span>
+<span class="nc" id="L867">                        publishPost(reviewId, caption); // still attempt to publish</span>
+<span class="nc" id="L868">                    }</span>
+                });
+<span class="fc" id="L870">    }</span>
+
+    /**
+     * Step 3: PUT /reviews/{id}/{mediaType}/{mediaId} — links the review to the media item.
+     * On failure, proceeds to {@link #publishPost} so the post is not permanently lost.
+     *
+     * &lt;p&gt;Note: shows use the {@code /movie/} endpoint because they share the movie table.
+     */
+    private void linkReviewToMedia(int reviewId, String caption) {
+        String endpoint;
+<span class="fc" id="L880">        String req = &quot;?requesterId=&quot; + currentUserId;</span>
+<span class="pc bpc" id="L881" title="4 of 5 branches missed.">        switch (selectedMedia.mediaType) {</span>
+<span class="fc" id="L882">            case &quot;ALBUM&quot;: endpoint = &quot;/reviews/&quot; + reviewId + &quot;/album/&quot; + selectedMedia.id + req; break;</span>
+<span class="nc" id="L883">            case &quot;GAME&quot;:  endpoint = &quot;/reviews/&quot; + reviewId + &quot;/game/&quot;  + selectedMedia.id + req; break;</span>
+            case &quot;MOVIE&quot;:
+<span class="nc" id="L885">            case &quot;SHOW&quot;:  endpoint = &quot;/reviews/&quot; + reviewId + &quot;/movie/&quot; + selectedMedia.id + req; break;</span>
+<span class="nc" id="L886">            case &quot;BOOK&quot;:  endpoint = &quot;/reviews/&quot; + reviewId + &quot;/book/&quot;  + selectedMedia.id + req; break;</span>
+            default:
+<span class="nc" id="L888">                Log.w(TAG, &quot;No media link endpoint for type: &quot; + selectedMedia.mediaType);</span>
+<span class="nc" id="L889">                publishPost(reviewId, caption);</span>
+<span class="nc" id="L890">                return;</span>
+        }
+
+<span class="fc" id="L893">        Log.d(TAG, &quot;Linking review to media: &quot; + endpoint);</span>
+
+<span class="fc" id="L895">        ApiClient.putString(getContext(), endpoint, &quot;&quot;, new Api_String_Interface() {</span>
+            @Override
+            public void onSuccess(String response) {
+<span class="fc" id="L898">                Log.d(TAG, &quot;Review linked to media&quot;);</span>
+<span class="fc" id="L899">                publishPost(reviewId, caption);</span>
+<span class="fc" id="L900">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L904">                Log.e(TAG, &quot;Media link failed (continuing): &quot; + message);</span>
+<span class="nc" id="L905">                publishPost(reviewId, caption); // still attempt to publish</span>
+<span class="nc" id="L906">            }</span>
+        });
+<span class="fc" id="L908">    }</span>
+
+    /**
+     * Step 4: POST /reviews/{id}/publish — creates the public post.
+     * On success, triggers a fire-and-forget rating update and dismisses the dialog.
+     */
+    private void publishPost(int reviewId, String caption) {
+<span class="fc" id="L915">        String endpoint = &quot;/reviews/&quot; + reviewId + &quot;/publish?authorId=&quot; + currentUserId;</span>
+<span class="fc" id="L916">        DTOmodels.PostPublishRequest request = new DTOmodels.PostPublishRequest(caption, &quot;PUBLIC&quot;);</span>
+
+<span class="fc" id="L918">        ApiClient.post(getContext(), endpoint, request, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="fc" id="L921">                Log.d(TAG, &quot;Post published successfully&quot;);</span>
+<span class="fc" id="L922">                updateMediaRating(); // fire-and-forget</span>
+<span class="pc bpc" id="L923" title="2 of 4 branches missed.">                if (isAdded() &amp;&amp; getContext() != null) {</span>
+<span class="fc" id="L924">                    requireActivity().runOnUiThread(() -&gt;</span>
+<span class="fc" id="L925">                            Toast.makeText(getContext(), &quot;Post published!&quot;, Toast.LENGTH_SHORT).show());</span>
+                }
+<span class="pc bpc" id="L927" title="1 of 2 branches missed.">                if (publishListener != null) {</span>
+<span class="fc" id="L928">                    publishListener.onPostPublished();</span>
+                }
+<span class="fc" id="L930">                dismiss();</span>
+<span class="fc" id="L931">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L935">                Log.e(TAG, &quot;Publish failed: &quot; + message);</span>
+<span class="nc" id="L936">                publishFailed();</span>
+<span class="nc" id="L937">            }</span>
+        });
+<span class="fc" id="L939">    }</span>
+
+    /** Re-enables the publish button and shows an error toast on the main thread. */
+    private void publishFailed() {
+<span class="nc bnc" id="L943" title="All 2 branches missed.">        if (isAdded()) {</span>
+<span class="nc" id="L944">            requireActivity().runOnUiThread(() -&gt; {</span>
+<span class="nc" id="L945">                publishBtn.setEnabled(true);</span>
+<span class="nc" id="L946">                publishBtn.setText(&quot;Publish&quot;);</span>
+<span class="nc bnc" id="L947" title="All 2 branches missed.">                if (getContext() != null) {</span>
+<span class="nc" id="L948">                    Toast.makeText(getContext(), &quot;Failed to publish&quot;, Toast.LENGTH_SHORT).show();</span>
+                }
+<span class="nc" id="L950">            });</span>
+        }
+<span class="nc" id="L952">    }</span>
+
+    /**
+     * Pre-step: saves an external (RAWG/TMDB/Hardcover) media item to the database
+     * before creating the review. Updates {@link DTOmodels.SearchResult#id} with the
+     * new database id so the rest of the publish chain can link correctly.
+     *
+     * &lt;p&gt;Albums auto-save during search and should never reach this method.
+     * The {@code externalId} format for movies/shows is {@code &quot;TYPE-tmdbId&quot;}
+     * (e.g. {@code &quot;MOVIE-12345&quot;}).
+     */
+    private void saveMediaThenPublish(int rating, String body, String caption, String mediaType) {
+        String saveEndpoint;
+<span class="nc bnc" id="L965" title="All 4 branches missed.">        switch (selectedMedia.mediaType) {</span>
+            case &quot;GAME&quot;:
+<span class="nc" id="L967">                saveEndpoint = &quot;/games/save?rawgId=&quot; + selectedMedia.externalId;</span>
+<span class="nc" id="L968">                break;</span>
+            case &quot;MOVIE&quot;:
+            case &quot;SHOW&quot;: {
+                // externalId is &quot;TYPE-tmdbId&quot; — split into its two parts
+<span class="nc bnc" id="L972" title="All 4 branches missed.">                if (selectedMedia.externalId == null || !selectedMedia.externalId.contains(&quot;-&quot;)) {</span>
+<span class="nc" id="L973">                    Log.e(TAG, &quot;Invalid externalId for movie/show: &quot; + selectedMedia.externalId);</span>
+<span class="nc" id="L974">                    publishFailed();</span>
+<span class="nc" id="L975">                    return;</span>
+                }
+<span class="nc" id="L977">                int dash = selectedMedia.externalId.indexOf(&quot;-&quot;);</span>
+<span class="nc" id="L978">                String mediaTypeToken = selectedMedia.externalId.substring(0, dash);</span>
+<span class="nc" id="L979">                String tmdbIdToken    = selectedMedia.externalId.substring(dash + 1);</span>
+<span class="nc" id="L980">                saveEndpoint = &quot;/movies/save?tmdbId=&quot; + tmdbIdToken + &quot;&amp;type=&quot; + mediaTypeToken;</span>
+<span class="nc" id="L981">                break;</span>
+            }
+            case &quot;BOOK&quot;:
+<span class="nc" id="L984">                saveEndpoint = &quot;/books/save?hardcoverId=&quot; + selectedMedia.externalId;</span>
+<span class="nc" id="L985">                break;</span>
+            default:
+<span class="nc" id="L987">                Log.e(TAG, &quot;Unknown media type for external save: &quot; + selectedMedia.mediaType);</span>
+<span class="nc" id="L988">                publishFailed();</span>
+<span class="nc" id="L989">                return;</span>
+        }
+
+<span class="nc" id="L992">        Log.d(TAG, &quot;Saving external media to database: &quot; + saveEndpoint);</span>
+
+<span class="nc" id="L994">        ApiClient.post(getContext(), saveEndpoint, null, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+                    // Extract the database id — field name varies by media type
+<span class="nc" id="L999">                    long savedId = response.optLong(&quot;id&quot;, 0);</span>
+<span class="nc bnc" id="L1000" title="All 2 branches missed.">                    if (savedId == 0) savedId = response.optLong(&quot;gameId&quot;, 0);</span>
+<span class="nc bnc" id="L1001" title="All 2 branches missed.">                    if (savedId == 0) savedId = response.optLong(&quot;movieId&quot;, 0);</span>
+<span class="nc bnc" id="L1002" title="All 2 branches missed.">                    if (savedId == 0) savedId = response.optLong(&quot;bookId&quot;, 0);</span>
+
+<span class="nc" id="L1004">                    selectedMedia.id = savedId;</span>
+<span class="nc" id="L1005">                    Log.d(TAG, &quot;Media saved with db id: &quot; + savedId);</span>
+<span class="nc" id="L1006">                    createReview(rating, body, caption, mediaType);</span>
+<span class="nc" id="L1007">                } catch (Exception e) {</span>
+<span class="nc" id="L1008">                    Log.e(TAG, &quot;Error parsing save response: &quot; + e.getMessage());</span>
+<span class="nc" id="L1009">                    publishFailed();</span>
+<span class="nc" id="L1010">                }</span>
+<span class="nc" id="L1011">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L1015">                Log.e(TAG, &quot;Save media failed: &quot; + message);</span>
+<span class="nc" id="L1016">                publishFailed();</span>
+<span class="nc" id="L1017">            }</span>
+        });
+<span class="nc" id="L1019">    }</span>
+
+    /**
+     * Step 5 (fire-and-forget): recalculates the media item's aggregate rating.
+     * Errors are logged but do not affect the UI — the post has already been published.
+     */
+    private void updateMediaRating() {
+        String endpoint;
+<span class="pc bpc" id="L1027" title="4 of 5 branches missed.">        switch (selectedMedia.mediaType) {</span>
+<span class="fc" id="L1028">            case &quot;ALBUM&quot;: endpoint = &quot;/album/update-average-rating/&quot; + selectedMedia.id; break;</span>
+<span class="nc" id="L1029">            case &quot;GAME&quot;:  endpoint = &quot;/games/&quot;  + selectedMedia.id + &quot;/update-rating&quot;;   break;</span>
+            case &quot;MOVIE&quot;:
+<span class="nc" id="L1031">            case &quot;SHOW&quot;:  endpoint = &quot;/movies/&quot; + selectedMedia.id + &quot;/update-rating&quot;;   break;</span>
+<span class="nc" id="L1032">            case &quot;BOOK&quot;:  endpoint = &quot;/books/&quot;  + selectedMedia.id + &quot;/update-rating&quot;;   break;</span>
+            default:
+<span class="nc" id="L1034">                Log.w(TAG, &quot;No rating update endpoint for type: &quot; + selectedMedia.mediaType);</span>
+<span class="nc" id="L1035">                return;</span>
+        }
+
+<span class="fc" id="L1038">        Log.d(TAG, &quot;Updating media rating: &quot; + endpoint);</span>
+
+<span class="fc" id="L1040">        ApiClient.putString(getContext(), endpoint, &quot;&quot;, new Api_String_Interface() {</span>
+            @Override
+            public void onSuccess(String response) {
+<span class="fc" id="L1043">                Log.d(TAG, &quot;Media rating updated&quot;);</span>
+<span class="fc" id="L1044">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L1048">                Log.e(TAG, &quot;Rating update failed (non-fatal): &quot; + message);</span>
+<span class="nc" id="L1049">            }</span>
+        });
+<span class="fc" id="L1051">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ManageGroupsActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">ManageGroupsActivity.java</span></div><h1>ManageGroupsActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+/**
+ * @author Edwin Cepeda
+ */
+<span class="fc" id="L22">public class ManageGroupsActivity extends AppCompatActivity {</span>
+
+    // Declare button variables
+    private Button deleteBtn, returnBtn;
+    private ImageButton searchBtn;
+
+    //Declare edit variables
+    private EditText findPostEdt;
+
+    //Declare textview variables
+    private TextView managePostHeader, groupNameText, groupIdText, professorIdText, groupClassText;
+
+    private JSONObject groupData;
+<span class="fc" id="L35">    private int groupID = -1;</span>
+<span class="fc" id="L36">    private int adminID = -1;</span>
+<span class="fc" id="L37">    private int userID = -1;</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L41">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L42">        setContentView(R.layout.activity_manage_groups); // Set the UI layout for the activity</span>
+
+<span class="fc" id="L44">        managePostHeader = findViewById(R.id.manage_group_header);</span>
+<span class="fc" id="L45">        findPostEdt = findViewById(R.id.findGroupEdt);</span>
+<span class="fc" id="L46">        searchBtn = findViewById(R.id.searchBtn);</span>
+<span class="fc" id="L47">        groupNameText = findViewById(R.id.groupNameText);</span>
+<span class="fc" id="L48">        groupIdText = findViewById(R.id.groupIdText);</span>
+<span class="fc" id="L49">        professorIdText = findViewById(R.id.professorIdText);</span>
+<span class="fc" id="L50">        groupClassText = findViewById(R.id.groupClassText);</span>
+<span class="fc" id="L51">        deleteBtn = findViewById(R.id.deleteBtn);</span>
+<span class="fc" id="L52">        returnBtn = findViewById(R.id.returnBtn);</span>
+
+<span class="fc" id="L54">        Bundle extras = getIntent().getExtras();</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        if (extras != null) {</span>
+<span class="fc" id="L56">            adminID = extras.getInt(&quot;ADMIN_ID&quot;, -1);</span>
+<span class="fc" id="L57">            userID = extras.getInt(&quot;USER_ID&quot;, -1);</span>
+        }
+
+<span class="fc" id="L60">        searchBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L63">                searchGroupInDB();</span>
+<span class="fc" id="L64">            }</span>
+        });
+
+<span class="fc" id="L67">        deleteBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L70">                deleteGroupInDB();</span>
+<span class="nc" id="L71">            }</span>
+        });
+
+<span class="fc" id="L74">        returnBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L77">                Intent intent = new Intent(ManageGroupsActivity.this, AdminPanelActivity.class);</span>
+<span class="fc" id="L78">                intent.putExtra(&quot;ADMIN_ID&quot;, adminID);</span>
+<span class="fc" id="L79">                intent.putExtra(&quot;USER_ID&quot;, userID);</span>
+<span class="fc" id="L80">                startActivity(intent);</span>
+<span class="fc" id="L81">            }</span>
+        });
+
+<span class="fc" id="L84">    }</span>
+
+    private void searchGroupInDB() {
+
+<span class="fc" id="L88">        ApiClient.get(ManageGroupsActivity.this, &quot;/group/id/&quot; + findPostEdt.getText().toString(), new Api_Interface() {</span>
+
+            @SuppressLint(&quot;SetTextI18n&quot;)
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="fc" id="L94">                    Log.d(&quot;Response test&quot;, response.toString());</span>
+<span class="fc" id="L95">                    String mediaDataString = response.toString();</span>
+<span class="fc" id="L96">                    groupData = new JSONObject(mediaDataString);</span>
+<span class="fc" id="L97">                    groupID = response.getInt(&quot;groupId&quot;);</span>
+<span class="fc" id="L98">                    groupNameText.setText(&quot;Group Name: &quot; + groupData.getString(&quot;name&quot;));</span>
+<span class="fc" id="L99">                    groupIdText.setText(&quot;Group ID: &quot; + groupData.getInt(&quot;groupId&quot;));</span>
+<span class="fc" id="L100">                    professorIdText.setText(&quot;Professor ID: &quot; + groupData.getJSONObject(&quot;professor&quot;).getInt(&quot;id&quot;));</span>
+<span class="fc" id="L101">                    groupClassText.setText(&quot;Class: &quot; + groupData.getString(&quot;className&quot;));</span>
+<span class="nc" id="L102">                } catch (JSONException e) {</span>
+<span class="nc" id="L103">                    throw new RuntimeException(e);</span>
+<span class="fc" id="L104">                }</span>
+<span class="fc" id="L105">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L109">                Log.e(&quot;search error&quot;, message);</span>
+<span class="nc" id="L110">                Toast.makeText(ManageGroupsActivity.this, message, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L111">            }</span>
+        });
+<span class="fc" id="L113">    }</span>
+
+    private void deleteGroupInDB() {
+
+<span class="nc" id="L117">        ApiClient.deleteString(ManageGroupsActivity.this, &quot;/delete-group/&quot; + groupID, new Api_String_Interface() {</span>
+            @Override
+            public void onSuccess(String response) {
+<span class="nc" id="L120">                Toast.makeText(ManageGroupsActivity.this, response, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L121">                Intent intent = new Intent(ManageGroupsActivity.this, AdminPanelActivity.class);</span>
+<span class="nc" id="L122">                intent.putExtra(&quot;ADMIN_ID&quot;, adminID);</span>
+<span class="nc" id="L123">                intent.putExtra(&quot;USER_ID&quot;, userID);</span>
+<span class="nc" id="L124">                startActivity(intent);</span>
+<span class="nc" id="L125">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L129">                Toast.makeText(ManageGroupsActivity.this, &quot;Could not delete post/comment.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L130">                Log.e(&quot;Delete error&quot;, message);</span>
+<span class="nc" id="L131">            }</span>
+        });
+
+<span class="nc" id="L134">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

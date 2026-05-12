@@ -1,0 +1,349 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > GameController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Games</a>
+</div>
+
+<h1>Coverage Summary for Class: GameController (onetoone.Games)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">GameController</td>
+<td class="coverageStat">
+  <span class="percent">
+    10%
+  </span>
+  <span class="absValue">
+    (1/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    2.5%
+  </span>
+  <span class="absValue">
+    (1/40)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">GameController$$SpringCGLIB$$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    10%
+  </span>
+  <span class="absValue">
+    (1/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    2.5%
+  </span>
+  <span class="absValue">
+    (1/40)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Games;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Operation;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.ArraySchema;
+&nbsp;import io.swagger.v3.oas.annotations.media.Content;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import io.swagger.v3.oas.annotations.responses.ApiResponse;
+&nbsp;import io.swagger.v3.oas.annotations.tags.Tag;
+&nbsp;import onetoone.Reviews.Review;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;/**
+&nbsp; * Game endpoints — backed by the RAWG API.
+&nbsp; *
+&nbsp; * Typical flow:
+&nbsp; *   1. GET /search-games?q=halo          → browse RAWG results (not saved)
+&nbsp; *   2. POST /games/save?rawgId=3498      → save a game to DB by its RAWG ID
+&nbsp; *   3. PUT /reviews/{id}/game/{gameId}   → link a review to that game (in ReviewController)
+&nbsp; */
+&nbsp;@RestController
+&nbsp;@Tag(name = &quot;Games&quot;, description = &quot;Search the RAWG API and manage saved games. API key required in application.properties (rawg.api.key).&quot;)
+<b class="fc">&nbsp;public class GameController {</b>
+&nbsp;
+&nbsp;    @Autowired private GameRepository gameRepository;
+&nbsp;    @Autowired private RawgService rawgService;
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Search RAWG for games&quot;,
+&nbsp;            description = &quot;Queries the RAWG API and returns results WITHOUT saving them to the database. Use this so the user can pick a game before saving.&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;q&quot;,   description = &quot;Game title to search for&quot;, required = true, example = &quot;Red Dead Redemption&quot;),
+&nbsp;                    @Parameter(name = &quot;max&quot;, description = &quot;Max results to return (1–40, default 5)&quot;, example = &quot;5&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;List of matching games from RAWG&quot;,
+&nbsp;                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = Game.class))))
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;/search-games&quot;)
+&nbsp;    public List&lt;Game&gt; searchGames(
+&nbsp;            @RequestParam(name = &quot;q&quot;) String query,
+&nbsp;            @RequestParam(name = &quot;max&quot;, defaultValue = &quot;5&quot;) int max) {
+<b class="nc">&nbsp;        return rawgService.searchGames(query, max);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Save a game to the database by RAWG ID&quot;,
+&nbsp;            description = &quot;Fetches full game details from RAWG by its ID and saves to DB. If already saved, returns the existing record. Get the rawgId from /search-games.&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;rawgId&quot;, description = &quot;RAWG game ID&quot;, required = true, example = &quot;3498&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Saved (or already existing) game&quot;,
+&nbsp;                            content = @Content(schema = @Schema(implementation = Game.class))),
+&nbsp;                    @ApiResponse(responseCode = &quot;500&quot;, description = &quot;RAWG API error&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PostMapping(&quot;/games/save&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; saveGame(@RequestParam String rawgId) {
+&nbsp;        try {
+<b class="nc">&nbsp;            Game existing = gameRepository.findByRawgId(rawgId).orElse(null);</b>
+<b class="nc">&nbsp;            if (existing != null) return ResponseEntity.ok(existing);</b>
+&nbsp;
+<b class="nc">&nbsp;            Game fetched = rawgService.getGameByRawgId(rawgId);</b>
+<b class="nc">&nbsp;            gameRepository.save(fetched);</b>
+<b class="nc">&nbsp;            return ResponseEntity.ok(fetched);</b>
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</b>
+<b class="nc">&nbsp;                    .body(&quot;RAWG fetch failed: &quot; + e.getMessage());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Get all saved games&quot;,
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;List of all games in DB&quot;,
+&nbsp;                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = Game.class))))
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;/games&quot;)
+&nbsp;    public List&lt;Game&gt; getAllGames() {
+<b class="nc">&nbsp;        return gameRepository.findAll();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Get a saved game by DB ID&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;id&quot;, description = &quot;Internal DB ID of the game&quot;, required = true, example = &quot;1&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Game found&quot;,
+&nbsp;                            content = @Content(schema = @Schema(implementation = Game.class))),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Game not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;/games/{id}&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; getGameById(@PathVariable Long id) {
+<b class="nc">&nbsp;        return gameRepository.findById(id)</b>
+<b class="nc">&nbsp;                .map(ResponseEntity::ok)</b>
+<b class="nc">&nbsp;                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Get saved games by genre&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;genre&quot;, description = &quot;Genre to filter by (case-insensitive)&quot;, required = true, example = &quot;Action&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Filtered list of games&quot;,
+&nbsp;                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = Game.class))))
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;/games/genre/{genre}&quot;)
+&nbsp;    public List&lt;Game&gt; getGamesByGenre(@PathVariable String genre) {
+<b class="nc">&nbsp;        return gameRepository.findByGenreIgnoreCase(genre);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Get all reviews for a game&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;id&quot;, description = &quot;Internal DB ID of the game&quot;, required = true, example = &quot;1&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;List of reviews for this game&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Game not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;/games/{id}/reviews&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; getGameReviews(@PathVariable Long id) {
+<b class="nc">&nbsp;        Game game = gameRepository.findById(id).orElse(null);</b>
+<b class="nc">&nbsp;        if (game == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;Game not found&quot;);</b>
+<b class="nc">&nbsp;        return ResponseEntity.ok(game.getReviews());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Recalculate and update average rating for a game&quot;,
+&nbsp;            description = &quot;Averages all linked review ratings and saves the result to the game&#39;s rating field.&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;id&quot;, description = &quot;Internal DB ID of the game&quot;, required = true, example = &quot;1&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Rating updated&quot;,
+&nbsp;                            content = @Content(schema = @Schema(example = &quot;Rating updated&quot;))),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Game not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PutMapping(&quot;/games/{id}/update-rating&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; updateRating(@PathVariable Long id) {
+<b class="nc">&nbsp;        Game game = gameRepository.findById(id).orElse(null);</b>
+<b class="nc">&nbsp;        if (game == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;Game not found&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        List&lt;Review&gt; reviews = game.getReviews();</b>
+<b class="nc">&nbsp;        if (reviews.isEmpty()) return ResponseEntity.ok(&quot;No reviews yet — rating unchanged&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        int avg = reviews.stream().mapToInt(Review::getRating).sum() / reviews.size();</b>
+<b class="nc">&nbsp;        game.setRating(avg);</b>
+<b class="nc">&nbsp;        gameRepository.save(game);</b>
+<b class="nc">&nbsp;        return ResponseEntity.ok(&quot;Rating updated to &quot; + avg);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Update game details manually&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;id&quot;, description = &quot;Internal DB ID of the game&quot;, required = true, example = &quot;1&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Updated game&quot;,
+&nbsp;                            content = @Content(schema = @Schema(implementation = Game.class))),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Game not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PutMapping(&quot;/games/{id}&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; updateGame(@PathVariable Long id, @RequestBody Game updated) {
+<b class="nc">&nbsp;        Game existing = gameRepository.findById(id).orElse(null);</b>
+<b class="nc">&nbsp;        if (existing == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;Game not found&quot;);</b>
+&nbsp;
+<b class="nc">&nbsp;        existing.setTitle(updated.getTitle());</b>
+<b class="nc">&nbsp;        existing.setGenre(updated.getGenre());</b>
+<b class="nc">&nbsp;        existing.setReleaseDate(updated.getReleaseDate());</b>
+<b class="nc">&nbsp;        existing.setDeveloper(updated.getDeveloper());</b>
+<b class="nc">&nbsp;        existing.setDescription(updated.getDescription());</b>
+<b class="nc">&nbsp;        existing.setCoverUrl(updated.getCoverUrl());</b>
+<b class="nc">&nbsp;        existing.setMetacriticScore(updated.getMetacriticScore());</b>
+&nbsp;
+<b class="nc">&nbsp;        gameRepository.save(existing);</b>
+<b class="nc">&nbsp;        return ResponseEntity.ok(existing);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Delete a game&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;id&quot;, description = &quot;Internal DB ID of the game&quot;, required = true, example = &quot;1&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Deleted&quot;,
+&nbsp;                            content = @Content(schema = @Schema(example = &quot;Deleted game id=1&quot;))),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Game not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @Transactional
+&nbsp;    @DeleteMapping(&quot;/games/{id}&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; deleteGame(@PathVariable Long id) {
+<b class="nc">&nbsp;        if (!gameRepository.existsById(id))</b>
+<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;Game not found&quot;);</b>
+<b class="nc">&nbsp;        gameRepository.deleteById(id);</b>
+<b class="nc">&nbsp;        return ResponseEntity.ok(&quot;Deleted game id=&quot; + id);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-04-27 14:13</div>
+</div>
+</body>
+</html>

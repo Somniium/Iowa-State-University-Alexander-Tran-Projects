@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MediaDetailActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">MediaDetailActivity.java</span></div><h1>MediaDetailActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="nc" id="L23">public class MediaDetailActivity extends AppCompatActivity {</span>
+
+    private static final String TAG = &quot;MediaDetail&quot;;
+
+    private ImageView backBtn, coverImg;
+    private TextView headerText, titleText, subtitleText, extraText;
+    private TextView typeBadge, ratingBadge;
+    private TextView descriptionLabel, descriptionText;
+    private TextView reviewsLabel, noReviewsText;
+    private RecyclerView reviewsRecycler;
+    private TextView albumsLabel;
+    private RecyclerView albumsRecycler;
+
+    private String mediaType;
+    private long mediaId;
+    private String title;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L42">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L43">        setContentView(R.layout.activity_media_detail);</span>
+
+<span class="nc" id="L45">        backBtn = findViewById(R.id.media_detail_back);</span>
+<span class="nc" id="L46">        headerText = findViewById(R.id.media_detail_header);</span>
+<span class="nc" id="L47">        coverImg = findViewById(R.id.media_detail_cover);</span>
+<span class="nc" id="L48">        titleText = findViewById(R.id.media_detail_title);</span>
+<span class="nc" id="L49">        subtitleText = findViewById(R.id.media_detail_subtitle);</span>
+<span class="nc" id="L50">        extraText = findViewById(R.id.media_detail_extra);</span>
+<span class="nc" id="L51">        typeBadge = findViewById(R.id.media_detail_type_badge);</span>
+<span class="nc" id="L52">        ratingBadge = findViewById(R.id.media_detail_rating_badge);</span>
+<span class="nc" id="L53">        descriptionLabel = findViewById(R.id.media_detail_description_label);</span>
+<span class="nc" id="L54">        descriptionText = findViewById(R.id.media_detail_description);</span>
+<span class="nc" id="L55">        reviewsLabel = findViewById(R.id.media_detail_reviews_label);</span>
+<span class="nc" id="L56">        noReviewsText = findViewById(R.id.media_detail_no_reviews);</span>
+<span class="nc" id="L57">        reviewsRecycler = findViewById(R.id.media_detail_reviews_recycler);</span>
+<span class="nc" id="L58">        albumsLabel = findViewById(R.id.media_detail_albums_label);</span>
+<span class="nc" id="L59">        albumsRecycler = findViewById(R.id.media_detail_albums_recycler);</span>
+
+<span class="nc" id="L61">        mediaType = getIntent().getStringExtra(&quot;mediaType&quot;);</span>
+<span class="nc" id="L62">        mediaId = getIntent().getLongExtra(&quot;mediaId&quot;, -1);</span>
+<span class="nc" id="L63">        title = getIntent().getStringExtra(&quot;title&quot;);</span>
+
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        headerText.setText(title != null ? title : &quot;Media&quot;);</span>
+<span class="nc" id="L66">        backBtn.setOnClickListener(v -&gt; finish());</span>
+
+<span class="nc" id="L68">        reviewsRecycler.setLayoutManager(new LinearLayoutManager(this));</span>
+<span class="nc" id="L69">        albumsRecycler.setLayoutManager(new LinearLayoutManager(this));</span>
+
+<span class="nc bnc" id="L71" title="All 4 branches missed.">        if (mediaType == null || mediaId == -1) {</span>
+<span class="nc" id="L72">            showError(&quot;Error: missing media info&quot;);</span>
+<span class="nc" id="L73">            return;</span>
+        }
+
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (mediaId == 0) {</span>
+<span class="nc" id="L77">            showNotInDatabase();</span>
+<span class="nc" id="L78">            return;</span>
+        }
+
+<span class="nc" id="L81">        loadMediaDetail();</span>
+<span class="nc" id="L82">    }</span>
+
+    // ==================== DISPLAY ====================
+
+    private void loadMediaDetail() {
+<span class="nc bnc" id="L87" title="All 6 branches missed.">        switch (mediaType) {</span>
+            case &quot;ALBUM&quot;:
+            case &quot;MUSIC&quot;:
+<span class="nc" id="L90">                loadAlbum();</span>
+<span class="nc" id="L91">                break;</span>
+            case &quot;BOOK&quot;:
+<span class="nc" id="L93">                loadBook();</span>
+<span class="nc" id="L94">                break;</span>
+            case &quot;GAME&quot;:
+<span class="nc" id="L96">                loadGame();</span>
+<span class="nc" id="L97">                break;</span>
+            case &quot;MOVIE&quot;:
+            case &quot;SHOW&quot;:
+<span class="nc" id="L100">                loadMovie();</span>
+<span class="nc" id="L101">                break;</span>
+            case &quot;ARTIST&quot;:
+<span class="nc" id="L103">                loadArtist();</span>
+<span class="nc" id="L104">                break;</span>
+            default:
+<span class="nc" id="L106">                showError(&quot;Unknown media type: &quot; + mediaType);</span>
+        }
+<span class="nc" id="L108">    }</span>
+
+    private void displayMedia(String title, String subtitle, String extra, String description,
+                              int rating, String imageUrl, String type) {
+<span class="nc" id="L112">        titleText.setText(title);</span>
+<span class="nc" id="L113">        subtitleText.setText(subtitle);</span>
+
+<span class="nc bnc" id="L115" title="All 4 branches missed.">        if (extra != null &amp;&amp; !extra.isEmpty()) {</span>
+<span class="nc" id="L116">            extraText.setText(extra);</span>
+<span class="nc" id="L117">            extraText.setVisibility(View.VISIBLE);</span>
+        } else {
+<span class="nc" id="L119">            extraText.setVisibility(View.GONE);</span>
+        }
+
+<span class="nc" id="L122">        typeBadge.setText(type);</span>
+<span class="nc" id="L123">        int typeColor = getTypeColor(type);</span>
+<span class="nc" id="L124">        typeBadge.getBackground().setColorFilter(typeColor, android.graphics.PorterDuff.Mode.SRC_IN);</span>
+
+<span class="nc" id="L126">        int ratingColor = RatingUtility.getRatingColor(rating);</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        ratingBadge.setText(rating &gt; 0 ? String.valueOf(rating) : &quot;-&quot;);</span>
+<span class="nc" id="L128">        ratingBadge.getBackground().setColorFilter(ratingColor, android.graphics.PorterDuff.Mode.SRC_IN);</span>
+
+<span class="nc bnc" id="L130" title="All 4 branches missed.">        if (imageUrl != null &amp;&amp; !imageUrl.isEmpty()) {</span>
+<span class="nc" id="L131">            ApiClient.loadImage(this, imageUrl, coverImg);</span>
+        }
+
+<span class="nc bnc" id="L134" title="All 4 branches missed.">        if (description != null &amp;&amp; !description.isEmpty()) {</span>
+<span class="nc" id="L135">            descriptionText.setText(description);</span>
+<span class="nc" id="L136">            descriptionLabel.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L137">            descriptionText.setVisibility(View.VISIBLE);</span>
+        } else {
+<span class="nc" id="L139">            descriptionLabel.setVisibility(View.GONE);</span>
+<span class="nc" id="L140">            descriptionText.setVisibility(View.GONE);</span>
+        }
+<span class="nc" id="L142">    }</span>
+
+    private void showError(String message) {
+<span class="nc" id="L145">        Toast.makeText(this, message, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L146">        titleText.setText(&quot;Not available&quot;);</span>
+<span class="nc" id="L147">        subtitleText.setText(&quot;Something went wrong&quot;);</span>
+<span class="nc" id="L148">        reviewsLabel.setVisibility(View.GONE);</span>
+<span class="nc" id="L149">        noReviewsText.setVisibility(View.GONE);</span>
+<span class="nc" id="L150">        Log.e(TAG, message);</span>
+<span class="nc" id="L151">    }</span>
+
+    private void showNotInDatabase() {
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        titleText.setText(title != null ? title : &quot;Unknown&quot;);</span>
+<span class="nc" id="L155">        subtitleText.setText(&quot;Not in database&quot;);</span>
+
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        if (mediaType != null) {</span>
+<span class="nc" id="L158">            typeBadge.setText(mediaType);</span>
+<span class="nc" id="L159">            typeBadge.getBackground().setColorFilter(getTypeColor(mediaType), android.graphics.PorterDuff.Mode.SRC_IN);</span>
+        }
+
+<span class="nc" id="L162">        ratingBadge.setText(&quot;-&quot;);</span>
+<span class="nc" id="L163">        ratingBadge.getBackground().setColorFilter(</span>
+<span class="nc" id="L164">                android.graphics.Color.parseColor(&quot;#848482&quot;), android.graphics.PorterDuff.Mode.SRC_IN);</span>
+
+<span class="nc" id="L166">        descriptionLabel.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L167">        descriptionLabel.setText(&quot;Not in database&quot;);</span>
+<span class="nc" id="L168">        descriptionText.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L169">        descriptionText.setText(&quot;This item hasn't been added to the database yet. Search for it in the Post tab and create a review to add it.&quot;);</span>
+
+<span class="nc" id="L171">        reviewsLabel.setVisibility(View.GONE);</span>
+<span class="nc" id="L172">        noReviewsText.setVisibility(View.GONE);</span>
+
+<span class="nc" id="L174">        Toast.makeText(this, &quot;This item is not in the database yet&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L175">        Log.d(TAG, &quot;Media not in database: &quot; + mediaType + &quot; id=&quot; + mediaId);</span>
+<span class="nc" id="L176">    }</span>
+
+    // ==================== LOAD METHODS ====================
+
+    private void loadAlbum() {
+<span class="nc" id="L181">        ApiClient.get(this, &quot;/album/&quot; + mediaId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L185">                    DTOmodels.album album = new Gson().fromJson(response.toString(), DTOmodels.album.class);</span>
+<span class="nc" id="L186">                    displayMedia(album.name, album.genre, album.releaseDate, null,</span>
+                            album.rating, album.coverURL, &quot;ALBUM&quot;);
+
+<span class="nc bnc" id="L189" title="All 4 branches missed.">                    if (album.albumReviews != null &amp;&amp; !album.albumReviews.isEmpty()) {</span>
+<span class="nc" id="L190">                        showReviews(album.albumReviews);</span>
+                    } else {
+<span class="nc" id="L192">                        noReviewsText.setVisibility(View.VISIBLE);</span>
+                    }
+<span class="nc" id="L194">                    Log.d(TAG, &quot;Album loaded: &quot; + album.name);</span>
+<span class="nc" id="L195">                } catch (Exception e) {</span>
+<span class="nc" id="L196">                    Log.e(TAG, &quot;Album parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L197">                    showNotInDatabase();</span>
+<span class="nc" id="L198">                }</span>
+<span class="nc" id="L199">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L203">                Log.e(TAG, &quot;Album load failed: &quot; + message);</span>
+<span class="nc" id="L204">                showNotInDatabase();</span>
+<span class="nc" id="L205">            }</span>
+        });
+<span class="nc" id="L207">    }</span>
+
+    private void loadBook() {
+<span class="nc" id="L210">        ApiClient.get(this, &quot;/books/&quot; + mediaId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L214">                    DTOmodels.book book = new Gson().fromJson(response.toString(), DTOmodels.book.class);</span>
+<span class="nc" id="L215">                    String thumbnail = book.thumbnailurl;</span>
+<span class="nc bnc" id="L216" title="All 4 branches missed.">                    if (thumbnail != null &amp;&amp; thumbnail.isEmpty()) thumbnail = null;</span>
+<span class="nc" id="L217">                    displayMedia(book.title, book.authors, book.publisheddate, book.description,</span>
+                            0, thumbnail, &quot;BOOK&quot;);
+<span class="nc" id="L219">                    noReviewsText.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L220">                    Log.d(TAG, &quot;Book loaded: &quot; + book.title);</span>
+<span class="nc" id="L221">                } catch (Exception e) {</span>
+<span class="nc" id="L222">                    Log.e(TAG, &quot;Book parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L223">                    showNotInDatabase();</span>
+<span class="nc" id="L224">                }</span>
+<span class="nc" id="L225">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L229">                Log.e(TAG, &quot;Book load failed: &quot; + message);</span>
+<span class="nc" id="L230">                showNotInDatabase();</span>
+<span class="nc" id="L231">            }</span>
+        });
+<span class="nc" id="L233">    }</span>
+
+    private void loadGame() {
+<span class="nc" id="L236">        ApiClient.get(this, &quot;/games/&quot; + mediaId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L240">                    DTOmodels.game game = new Gson().fromJson(response.toString(), DTOmodels.game.class);</span>
+<span class="nc" id="L241">                    displayMedia(game.title, game.developer, game.releaseDate, game.description,</span>
+                            game.rating, game.coverUrl, &quot;GAME&quot;);
+<span class="nc" id="L243">                    noReviewsText.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L244">                    Log.d(TAG, &quot;Game loaded: &quot; + game.title);</span>
+<span class="nc" id="L245">                } catch (Exception e) {</span>
+<span class="nc" id="L246">                    Log.e(TAG, &quot;Game parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L247">                    showNotInDatabase();</span>
+<span class="nc" id="L248">                }</span>
+<span class="nc" id="L249">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L253">                Log.e(TAG, &quot;Game load failed: &quot; + message);</span>
+<span class="nc" id="L254">                showNotInDatabase();</span>
+<span class="nc" id="L255">            }</span>
+        });
+<span class="nc" id="L257">    }</span>
+
+    private void loadMovie() {
+<span class="nc" id="L260">        ApiClient.get(this, &quot;/movies/&quot; + mediaId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L264">                    DTOmodels.movie movie = new Gson().fromJson(response.toString(), DTOmodels.movie.class);</span>
+<span class="nc" id="L265">                    displayMedia(movie.title, movie.director, movie.releaseDate, movie.overview,</span>
+                            movie.rating, movie.posterUrl, &quot;MOVIE&quot;);
+<span class="nc" id="L267">                    noReviewsText.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L268">                    Log.d(TAG, &quot;Movie loaded: &quot; + movie.title);</span>
+<span class="nc" id="L269">                } catch (Exception e) {</span>
+<span class="nc" id="L270">                    Log.e(TAG, &quot;Movie parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L271">                    showNotInDatabase();</span>
+<span class="nc" id="L272">                }</span>
+<span class="nc" id="L273">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L277">                Log.e(TAG, &quot;Movie load failed: &quot; + message);</span>
+<span class="nc" id="L278">                showNotInDatabase();</span>
+<span class="nc" id="L279">            }</span>
+        });
+<span class="nc" id="L281">    }</span>
+
+    private void loadArtist() {
+<span class="nc" id="L284">        ApiClient.getArray(this, &quot;/artists&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L288">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L290">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L291">                        DTOmodels.artist artist = gson.fromJson(obj.toString(), DTOmodels.artist.class);</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">                        if (artist.artistId == mediaId) {</span>
+<span class="nc" id="L293">                            displayMedia(artist.name, artist.genre, &quot;&quot;, null,</span>
+                                    artist.rating, artist.photoURL, &quot;ARTIST&quot;);
+
+<span class="nc" id="L296">                            loadArtistAlbums(obj);</span>
+
+<span class="nc" id="L298">                            reviewsLabel.setVisibility(View.GONE);</span>
+<span class="nc" id="L299">                            noReviewsText.setVisibility(View.GONE);</span>
+
+<span class="nc" id="L301">                            Log.d(TAG, &quot;Artist loaded: &quot; + artist.name);</span>
+<span class="nc" id="L302">                            return;</span>
+                        }
+                    }
+<span class="nc" id="L305">                    showNotInDatabase();</span>
+<span class="nc" id="L306">                } catch (Exception e) {</span>
+<span class="nc" id="L307">                    Log.e(TAG, &quot;Artist parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L308">                    showNotInDatabase();</span>
+<span class="nc" id="L309">                }</span>
+<span class="nc" id="L310">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L314">                Log.e(TAG, &quot;Artists load failed: &quot; + message);</span>
+<span class="nc" id="L315">                showNotInDatabase();</span>
+<span class="nc" id="L316">            }</span>
+        });
+<span class="nc" id="L318">    }</span>
+
+    // ==================== ARTIST ALBUMS (reuses feed media cards) ====================
+
+    private void loadArtistAlbums(JSONObject artistObj) {
+        try {
+<span class="nc" id="L324">            JSONArray albumsArray = artistObj.optJSONArray(&quot;albums&quot;);</span>
+<span class="nc bnc" id="L325" title="All 4 branches missed.">            if (albumsArray == null || albumsArray.length() == 0) {</span>
+<span class="nc" id="L326">                albumsLabel.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L327">                albumsLabel.setText(&quot;Albums (0)&quot;);</span>
+<span class="nc" id="L328">                return;</span>
+            }
+
+<span class="nc" id="L331">            albumsLabel.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L332">            albumsLabel.setText(&quot;Albums (&quot; + albumsArray.length() + &quot;)&quot;);</span>
+<span class="nc" id="L333">            albumsRecycler.setVisibility(View.VISIBLE);</span>
+
+<span class="nc" id="L335">            List&lt;DTOmodels.FeedItem&gt; albumItems = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L336">            Gson gson = new Gson();</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">            for (int i = 0; i &lt; albumsArray.length(); i++) {</span>
+<span class="nc" id="L338">                DTOmodels.album album = gson.fromJson(</span>
+<span class="nc" id="L339">                        albumsArray.getJSONObject(i).toString(), DTOmodels.album.class);</span>
+<span class="nc" id="L340">                albumItems.add(DTOmodels.FeedItem.fromAlbum(album));</span>
+            }
+
+<span class="nc" id="L343">            FeedAdapter albumAdapter = new FeedAdapter(this, albumItems, new FeedAdapter.OnItemClickListener() {</span>
+                @Override
+                public void onPostClick(DTOmodels.FeedPost post) {
+<span class="nc" id="L346">                }</span>
+
+                @Override
+                public void onMediaClick(DTOmodels.FeedMedia media) {
+<span class="nc" id="L350">                    Intent intent = new Intent(MediaDetailActivity.this, MediaDetailActivity.class);</span>
+<span class="nc" id="L351">                    intent.putExtra(&quot;mediaType&quot;, media.mediaType);</span>
+<span class="nc" id="L352">                    intent.putExtra(&quot;mediaId&quot;, media.id);</span>
+<span class="nc" id="L353">                    intent.putExtra(&quot;title&quot;, media.title);</span>
+<span class="nc" id="L354">                    startActivity(intent);</span>
+<span class="nc" id="L355">                }</span>
+            });
+
+<span class="nc" id="L358">            albumsRecycler.setAdapter(albumAdapter);</span>
+<span class="nc" id="L359">            Log.d(TAG, &quot;Loaded &quot; + albumItems.size() + &quot; albums for artist&quot;);</span>
+<span class="nc" id="L360">        } catch (Exception e) {</span>
+<span class="nc" id="L361">            Log.e(TAG, &quot;Error loading artist albums: &quot; + e.getMessage());</span>
+<span class="nc" id="L362">        }</span>
+<span class="nc" id="L363">    }</span>
+
+    // ==================== REVIEWS (reuses feed post cards) ====================
+
+    private void showReviews(List&lt;DTOmodels.review&gt; reviews) {
+<span class="nc" id="L368">        reviewsLabel.setText(&quot;Reviews (&quot; + reviews.size() + &quot;)&quot;);</span>
+<span class="nc" id="L369">        noReviewsText.setVisibility(View.GONE);</span>
+
+<span class="nc" id="L371">        List&lt;DTOmodels.FeedItem&gt; reviewItems = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">        for (DTOmodels.review review : reviews) {</span>
+<span class="nc" id="L373">            DTOmodels.FeedPost fakePost = new DTOmodels.FeedPost();</span>
+<span class="nc" id="L374">            fakePost.mediaTitle = review.title;</span>
+<span class="nc" id="L375">            fakePost.mediaType = mediaType;</span>
+<span class="nc" id="L376">            fakePost.rating = review.rating;</span>
+<span class="nc" id="L377">            fakePost.caption = review.body;</span>
+<span class="nc" id="L378">            fakePost.authorName = review.title;</span>
+<span class="nc" id="L379">            fakePost.publishedAt = &quot;&quot;;</span>
+<span class="nc" id="L380">            reviewItems.add(DTOmodels.FeedItem.fromPost(fakePost));</span>
+<span class="nc" id="L381">        }</span>
+
+<span class="nc" id="L383">        FeedAdapter reviewAdapter = new FeedAdapter(this, reviewItems, new FeedAdapter.OnItemClickListener() {</span>
+            @Override
+            public void onPostClick(DTOmodels.FeedPost post) {
+<span class="nc" id="L386">            }</span>
+
+            @Override
+            public void onMediaClick(DTOmodels.FeedMedia media) {
+<span class="nc" id="L390">            }</span>
+        });
+
+<span class="nc" id="L393">        reviewsRecycler.setAdapter(reviewAdapter);</span>
+<span class="nc" id="L394">    }</span>
+
+    // ==================== HELPERS ====================
+
+    private int getTypeColor(String type) {
+<span class="nc bnc" id="L399" title="All 2 branches missed.">        if (type == null) return android.graphics.Color.parseColor(&quot;#888888&quot;);</span>
+<span class="nc bnc" id="L400" title="All 6 branches missed.">        switch (type) {</span>
+            case &quot;ALBUM&quot;:
+            case &quot;MUSIC&quot;:
+<span class="nc" id="L403">                return android.graphics.Color.parseColor(&quot;#E53935&quot;);</span>
+            case &quot;BOOK&quot;:
+<span class="nc" id="L405">                return android.graphics.Color.parseColor(&quot;#43A047&quot;);</span>
+            case &quot;GAME&quot;:
+<span class="nc" id="L407">                return android.graphics.Color.parseColor(&quot;#8E24AA&quot;);</span>
+            case &quot;MOVIE&quot;:
+            case &quot;SHOW&quot;:
+<span class="nc" id="L410">                return android.graphics.Color.parseColor(&quot;#1E88E5&quot;);</span>
+            case &quot;ARTIST&quot;:
+<span class="nc" id="L412">                return android.graphics.Color.parseColor(&quot;#FB8C00&quot;);</span>
+            default:
+<span class="nc" id="L414">                return android.graphics.Color.parseColor(&quot;#888888&quot;);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

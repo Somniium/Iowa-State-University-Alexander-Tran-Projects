@@ -1,0 +1,230 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ChatController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Chat</a>
+</div>
+
+<h1>Coverage Summary for Class: ChatController (onetoone.Chat)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ChatController</td>
+<td class="coverageStat">
+  <span class="percent">
+    40%
+  </span>
+  <span class="absValue">
+    (2/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    12.5%
+  </span>
+  <span class="absValue">
+    (3/24)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ChatController$SendMessageRequest</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    33.3%
+  </span>
+  <span class="absValue">
+    (2/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    12%
+  </span>
+  <span class="absValue">
+    (3/25)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Chat;
+&nbsp;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Map;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@RequestMapping(&quot;/api/chat&quot;)
+&nbsp;public class ChatController {
+&nbsp;
+<b class="fc">&nbsp;    private static final Logger log = LoggerFactory.getLogger(ChatController.class);</b>
+&nbsp;
+&nbsp;    /** Hard cap on a single user message. Prevents callers from blowing through Gemini quota
+&nbsp;     *  with a single megabyte-sized prompt and from blowing up the DB row. */
+&nbsp;    private static final int MAX_MESSAGE_CHARS = 4000;
+&nbsp;
+&nbsp;    private final ChatService chatService;
+&nbsp;
+&nbsp;    @Autowired
+<b class="fc">&nbsp;    public ChatController(ChatService chatService) {</b>
+<b class="fc">&nbsp;        this.chatService = chatService;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @PostMapping(&quot;/message&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; sendMessage(@RequestBody SendMessageRequest req) {
+&nbsp;        // Validate request shape up front. Anything we reject here never makes it to the LLM provider.
+<b class="nc">&nbsp;        if (req == null) {</b>
+<b class="nc">&nbsp;            return ResponseEntity.badRequest().body(Map.of(&quot;error&quot;, &quot;Missing request body&quot;));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (req.userId() == null || req.userId() &lt;= 0) {</b>
+<b class="nc">&nbsp;            return ResponseEntity.badRequest().body(Map.of(&quot;error&quot;, &quot;userId is required&quot;));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (req.message() == null || req.message().isBlank()) {</b>
+<b class="nc">&nbsp;            return ResponseEntity.badRequest().body(Map.of(&quot;error&quot;, &quot;message cannot be empty&quot;));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        if (req.message().length() &gt; MAX_MESSAGE_CHARS) {</b>
+<b class="nc">&nbsp;            return ResponseEntity.badRequest().body(Map.of(</b>
+&nbsp;                    &quot;error&quot;, &quot;message too long&quot;,
+<b class="nc">&nbsp;                    &quot;maxChars&quot;, MAX_MESSAGE_CHARS,</b>
+<b class="nc">&nbsp;                    &quot;actualChars&quot;, req.message().length()</b>
+&nbsp;            ));
+&nbsp;        }
+&nbsp;
+&nbsp;        try {
+<b class="nc">&nbsp;            ChatMessage reply = chatService.sendMessage(req.userId(), req.sessionId(), req.message());</b>
+<b class="nc">&nbsp;            return ResponseEntity.ok(Map.of(</b>
+<b class="nc">&nbsp;                    &quot;sessionId&quot;, reply.getSessionId(),</b>
+<b class="nc">&nbsp;                    &quot;messageId&quot;, reply.getId(),</b>
+<b class="nc">&nbsp;                    &quot;content&quot;, reply.getContent(),</b>
+<b class="nc">&nbsp;                    &quot;createdAt&quot;, reply.getCreatedAt()</b>
+&nbsp;            ));
+&nbsp;        } catch (IllegalArgumentException e) {
+&nbsp;            // Caller-fault: bad sessionId, etc. Safe to echo back.
+<b class="nc">&nbsp;            return ResponseEntity.badRequest().body(Map.of(&quot;error&quot;, e.getMessage()));</b>
+&nbsp;        } catch (Exception e) {
+&nbsp;            // Server-fault: log full detail server-side, return a generic message to the caller.
+&nbsp;            // Previously we echoed e.getMessage() which could leak Gemini API responses (containing
+&nbsp;            // API-key-prefixed error text), DB error fragments, etc.
+<b class="nc">&nbsp;            log.error(&quot;Chat failed for userId={} sessionId={}&quot;, req.userId(), req.sessionId(), e);</b>
+<b class="nc">&nbsp;            return ResponseEntity.internalServerError().body(Map.of(&quot;error&quot;, &quot;Chat service unavailable&quot;));</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/sessions/{userId}&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;ChatSession&gt;&gt; listSessions(@PathVariable Long userId) {
+<b class="nc">&nbsp;        return ResponseEntity.ok(chatService.listSessions(userId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping(&quot;/sessions/{sessionId}/messages&quot;)
+&nbsp;    public ResponseEntity&lt;List&lt;ChatMessage&gt;&gt; getHistory(@PathVariable Long sessionId) {
+<b class="nc">&nbsp;        return ResponseEntity.ok(chatService.getHistory(sessionId));</b>
+&nbsp;    }
+&nbsp;
+<b class="nc">&nbsp;    public record SendMessageRequest(Long userId, Long sessionId, String message) {}</b>
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-05 18:52</div>
+</div>
+</body>
+</html>

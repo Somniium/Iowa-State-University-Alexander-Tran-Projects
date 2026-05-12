@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LoginActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">LoginActivity.java</span></div><h1>LoginActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import androidx.appcompat.app.AppCompatActivity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+// Volley and JSON imports
+import com.google.gson.Gson;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+/**
+ * @author Edwin Cepeda and Cristian Alvarez
+ */
+<span class="fc" id="L23">public class LoginActivity extends AppCompatActivity {</span>
+
+    // Define UI variables
+    private EditText usernameEditText, passwordEditText;
+    private Button studentButton, professorButton, adminButton, loginButton, backButton;
+
+    // Define TextView variables
+    private TextView loginHeader, signupText,adminLoginText, forgotPasswordText , idLabel, passwordLabel;
+
+    //Define LinearLayout variables;
+    private LinearLayout usertypeQuery, loginDetails;
+
+    //Define variable containing the type of login being attempted
+    private String loginType;
+
+    //Define variable containing the name of user
+    private String verifiedUserName;
+
+    //Define variable containing the user's ID. -1 by default until user credentials are verified.
+<span class="fc" id="L42">    private int userID = -1;</span>
+<span class="fc" id="L43">    private Boolean validLogin = true;</span>
+
+    //Higher permission IDs. -1 by default, signifying there is no professor or admin object for the user.
+<span class="fc" id="L46">    private int professorID = -1;</span>
+<span class="fc" id="L47">    private int adminID = -1;</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L51">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L52">        setContentView(R.layout.activity_login);</span>
+
+        // Initialize UI elements
+<span class="fc" id="L55">        usertypeQuery = findViewById(R.id.usertype_query);</span>
+<span class="fc" id="L56">        loginDetails = findViewById(R.id.login_details);</span>
+<span class="fc" id="L57">        usernameEditText = findViewById(R.id.login_username_edit);</span>
+<span class="fc" id="L58">        passwordEditText = findViewById(R.id.login_password_edit);</span>
+<span class="fc" id="L59">        studentButton = findViewById(R.id.student_button);</span>
+<span class="fc" id="L60">        professorButton = findViewById(R.id.professor_button);</span>
+<span class="fc" id="L61">        adminButton = findViewById(R.id.admin_button);</span>
+<span class="fc" id="L62">        loginButton = findViewById(R.id.login_login_btn);</span>
+<span class="fc" id="L63">        backButton = findViewById(R.id.cancel_login_btn);</span>
+
+<span class="fc" id="L65">        loginHeader = findViewById(R.id.login_header);</span>
+<span class="fc" id="L66">        signupText = findViewById(R.id.login_signup);</span>
+<span class="fc" id="L67">        adminLoginText = findViewById(R.id.admin_login);</span>
+<span class="fc" id="L68">        forgotPasswordText = findViewById(R.id.forgot_password);</span>
+<span class="fc" id="L69">        idLabel = findViewById(R.id.id_label);</span>
+<span class="fc" id="L70">        passwordLabel = findViewById(R.id.password_label);</span>
+
+        // Set static text for the UI elements
+<span class="fc" id="L73">        loginHeader.setText(&quot;Login&quot;);</span>
+<span class="fc" id="L74">        loginButton.setText(&quot;Login&quot;);</span>
+<span class="fc" id="L75">        signupText.setText(&quot;Don't have an account? Sign Up&quot;);</span>
+<span class="fc" id="L76">        adminLoginText.setText(&quot;Admin Login&quot;);</span>
+<span class="fc" id="L77">        forgotPasswordText.setText(&quot;Forgot Password?&quot;);</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        if (idLabel != null) idLabel.setText(&quot;ISU ID&quot;);</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        if (passwordLabel != null) passwordLabel.setText(&quot;Password&quot;);</span>
+
+
+
+        /* Click Listeners */
+
+<span class="fc" id="L85">        studentButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L88">                loginType = &quot;student&quot;;</span>
+<span class="fc" id="L89">                usertypeQuery.setVisibility(View.GONE);</span>
+<span class="fc" id="L90">                loginDetails.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L91">            }</span>
+        });
+
+<span class="fc" id="L94">        professorButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L97">                loginType = &quot;professor&quot;;</span>
+<span class="fc" id="L98">                usertypeQuery.setVisibility(View.GONE);</span>
+<span class="fc" id="L99">                loginDetails.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L100">            }</span>
+        });
+
+<span class="fc" id="L103">        adminButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L106">                loginType = &quot;admin&quot;;</span>
+<span class="fc" id="L107">                usertypeQuery.setVisibility(View.GONE);</span>
+<span class="fc" id="L108">                loginDetails.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L109">            }</span>
+        });
+
+<span class="fc" id="L112">        loginButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="fc" id="L115">                String username = usernameEditText.getText().toString();</span>
+<span class="fc" id="L116">                String password = passwordEditText.getText().toString();</span>
+
+                /* If the user's credentials check out, this will make verifiedUserName and userID
+                no longer be null (as they are by default). A null check gates off the rest of this method
+                from running. */
+<span class="fc" id="L121">                verifyCredentials(username, password);</span>
+
+                //Null check and ID check. If verifyCredentials failed, nothing else will run.
+<span class="pc bpc" id="L124" title="3 of 4 branches missed.">                if (verifiedUserName == null || userID == -1) {</span>
+<span class="fc" id="L125">                    return;</span>
+                }
+
+                /*Verification step for all user types. There are additional checks to ensure the account
+                is of the type they are claiming to be.*/
+<span class="nc bnc" id="L130" title="All 2 branches missed.">                if (loginType.equals(&quot;admin&quot;)) {</span>
+<span class="nc" id="L131">                        checkAdmin();</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                } else if (loginType.equals(&quot;professor&quot;)) {</span>
+<span class="nc" id="L133">                        checkProfessor();</span>
+                } else {
+                    // TODO: If the user is claiming to simply be a student, we still need to check that this is not an elevated account.
+<span class="nc" id="L136">                    checkAdmin();</span>
+<span class="nc" id="L137">                    checkProfessor();</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">                    if (validLogin) {</span>
+<span class="nc" id="L139">                        finishLogin();</span>
+                    }
+                }
+
+
+
+//               ApiClient.post(LoginActivity.this, &quot;/users/login&quot;, loginRequest, new Api_Interface() {
+//                   @Override
+//                   public void onSuccess(JSONObject response) {
+//                       DTOmodels.LoginResponse loginResponse = new Gson().fromJson(response.toString(), DTOmodels.LoginResponse.class);
+//
+//                        Toast.makeText(LoginActivity.this, &quot;Welcome, &quot; + loginResponse.name + &quot;!&quot;, Toast.LENGTH_SHORT).show();
+//
+//                        Intent intent = new Intent(LoginActivity.this, UserProfileActivity.class);
+//                        intent.putExtra(&quot;USER_ID&quot;, loginResponse.id);
+//                        startActivity(intent);
+//                        finish();
+//                   }
+//                   @Override
+//                   public void onError(String message) {
+//                        Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
+//                   }
+//               });
+<span class="nc" id="L162">            }</span>
+        });
+
+
+<span class="fc" id="L166">        signupText.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L169">                Intent intent = new Intent(LoginActivity.this, SignupActivity.class);</span>
+<span class="nc" id="L170">                startActivity(intent);</span>
+<span class="nc" id="L171">            }</span>
+        });
+
+<span class="fc" id="L174">        adminLoginText.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+                // TODO: Route to an AdminLoginActivity or handle admin flow
+<span class="nc" id="L178">            }</span>
+        });
+
+<span class="fc" id="L181">        forgotPasswordText.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+                // TODO: Route to ForgotPasswordActivity
+<span class="nc" id="L185">            }</span>
+        });
+
+<span class="fc" id="L188">        backButton.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L191">                Intent intent = new Intent(LoginActivity.this, MainActivity.class);</span>
+<span class="nc" id="L192">                startActivity(intent);</span>
+<span class="nc" id="L193">            }</span>
+        });
+<span class="fc" id="L195">    }</span>
+
+    /**
+     * This method checks with the database to verify that the user's username and password line up.
+     * @param username The username of the user to be verified.
+     * @param password The password that the user provided, used to check login.
+     */
+    protected void verifyCredentials(String username, String password) {
+<span class="fc" id="L203">        DTOmodels.LoginRequest loginRequest = new DTOmodels.LoginRequest(username, password);</span>
+
+<span class="fc" id="L205">        ApiClient.post(LoginActivity.this, &quot;/users/login&quot;, loginRequest, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="fc" id="L208">                DTOmodels.LoginResponse loginResponse = new Gson().fromJson(response.toString(), DTOmodels.LoginResponse.class);</span>
+<span class="fc" id="L209">                userID = loginResponse.id;</span>
+<span class="fc" id="L210">                verifiedUserName = loginResponse.name;</span>
+                /*Verification step for all user types. There are additional checks to ensure the account
+                is of the type they are claiming to be.*/
+<span class="fc bfc" id="L213" title="All 2 branches covered.">                if (loginType.equals(&quot;admin&quot;)) {</span>
+<span class="fc" id="L214">                    checkAdmin();</span>
+<span class="fc bfc" id="L215" title="All 2 branches covered.">                } else if (loginType.equals(&quot;professor&quot;)) {</span>
+<span class="fc" id="L216">                    checkProfessor();</span>
+                } else {
+                    //Higher authority users can still log in as students.
+<span class="fc" id="L219">                    finishLogin();</span>
+                }
+<span class="fc" id="L221">            }</span>
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L224">                Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L225">            }</span>
+        });
+<span class="fc" id="L227">    }</span>
+
+    protected void checkAdmin() {
+<span class="fc" id="L230">        ApiClient.get(LoginActivity.this, &quot;/admin/user/&quot; + userID, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="pc bpc" id="L233" title="1 of 2 branches missed.">                if (loginType.equals(&quot;admin&quot;)) {</span>
+                    int adminID;
+                    try {
+<span class="fc" id="L236">                        adminID = response.getInt(&quot;id&quot;);</span>
+<span class="fc" id="L237">                        Log.d(&quot;Check: &quot;, String.valueOf(adminID));</span>
+<span class="fc" id="L238">                        finishAdminLogin(adminID);</span>
+<span class="nc" id="L239">                    } catch (JSONException e) {</span>
+<span class="nc" id="L240">                        throw new RuntimeException(e);</span>
+<span class="fc" id="L241">                    }</span>
+<span class="fc" id="L242">                    finishLogin();</span>
+<span class="fc" id="L243">                } else {</span>
+<span class="nc" id="L244">                    Toast.makeText(LoginActivity.this, &quot;Invalid user type.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L245">                    validLogin = false;</span>
+                }
+<span class="fc" id="L247">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc bnc" id="L251" title="All 2 branches missed.">                if (loginType.equals(&quot;admin&quot;)) {</span>
+<span class="nc" id="L252">                    Toast.makeText(LoginActivity.this, &quot;Not a valid admin.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">                } else if (loginType.equals(&quot;student&quot;)) {</span>
+<span class="nc" id="L254">                    validLogin = true;</span>
+                }
+<span class="nc" id="L256">            }</span>
+        });
+<span class="fc" id="L258">    }</span>
+
+    protected void checkProfessor() {
+<span class="fc" id="L261">        ApiClient.get(LoginActivity.this, &quot;/professor/user/&quot; + userID, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="pc bpc" id="L264" title="1 of 2 branches missed.">                if (loginType.equals(&quot;professor&quot;)) {</span>
+<span class="fc" id="L265">                    int professorID = -1;</span>
+                    try {
+<span class="fc" id="L267">                        professorID = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L268">                    } catch (JSONException e) {</span>
+<span class="nc" id="L269">                        throw new RuntimeException(e);</span>
+<span class="fc" id="L270">                    }</span>
+<span class="fc" id="L271">                    finishLogin();</span>
+//                    Intent intent = new Intent(LoginActivity.this, ProfessorPanelActivity.class);
+//                    intent.putExtra(&quot;USER_ID&quot;, userID);
+//                    intent.putExtra(&quot;PROFESSOR_ID&quot;, professorID);
+//                    startActivity(intent);
+//                    finish();
+<span class="fc" id="L277">                } else {</span>
+<span class="nc" id="L278">                    Toast.makeText(LoginActivity.this, &quot;Invalid user type.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L279">                    validLogin = false;</span>
+                }
+<span class="fc" id="L281">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L285">                Log.d(&quot;Tag&quot;, loginType);</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">                if (loginType.equals(&quot;professor&quot;)) {</span>
+<span class="nc" id="L287">                    Toast.makeText(LoginActivity.this, &quot;Not a valid professor.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">                } else if (loginType.equals(&quot;student&quot;)) {</span>
+<span class="nc" id="L289">                    validLogin = true;</span>
+                }
+<span class="nc" id="L291">            }</span>
+        });
+<span class="fc" id="L293">    }</span>
+
+    /**
+     * This simple helper method switches activities. Only here to avoid code duplication.
+     */
+    protected void finishLogin() {
+<span class="fc" id="L299">        Toast.makeText(LoginActivity.this, &quot;Welcome, &quot; + verifiedUserName + &quot;!&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L300">        Intent intent = new Intent(LoginActivity.this, MainFeedActivity.class);</span>
+<span class="fc" id="L301">        intent.putExtra(&quot;USER_ID&quot;, userID);</span>
+<span class="fc" id="L302">        intent.putExtra(&quot;ADMIN_ID&quot;, adminID);</span>
+<span class="fc" id="L303">        intent.putExtra(&quot;PROFESSOR_ID&quot;, professorID);</span>
+<span class="fc" id="L304">        startActivity(intent);</span>
+<span class="fc" id="L305">        finish();</span>
+<span class="fc" id="L306">    }</span>
+
+    /**
+     * This simple helper method switches activities. Only here to avoid code duplication.
+     */
+    protected void finishAdminLogin(int adminID) {
+<span class="fc" id="L312">        Toast.makeText(LoginActivity.this, &quot;Welcome, &quot; + verifiedUserName + &quot;!&quot;, Toast.LENGTH_SHORT).show();</span>
+
+<span class="pc bpc" id="L314" title="1 of 2 branches missed.">        if (loginType.equals(&quot;admin&quot;)) {</span>
+<span class="fc" id="L315">            Intent intent = new Intent(LoginActivity.this, AdminPanelActivity.class);</span>
+<span class="fc" id="L316">            intent.putExtra(&quot;USER_ID&quot;, userID);</span>
+<span class="fc" id="L317">            intent.putExtra(&quot;ADMIN_ID&quot;, adminID);</span>
+<span class="fc" id="L318">            startActivity(intent);</span>
+<span class="fc" id="L319">            finish();</span>
+        }
+<span class="fc" id="L321">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

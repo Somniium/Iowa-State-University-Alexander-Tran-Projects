@@ -1,0 +1,208 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > NotificationWebSocketHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Notifications</a>
+</div>
+
+<h1>Coverage Summary for Class: NotificationWebSocketHandler (onetoone.Notifications)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">NotificationWebSocketHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    22.2%
+  </span>
+  <span class="absValue">
+    (2/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    8.3%
+  </span>
+  <span class="absValue">
+    (2/24)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Notifications;
+&nbsp;
+&nbsp;import org.springframework.web.socket.CloseStatus;
+&nbsp;import org.springframework.web.socket.TextMessage;
+&nbsp;import org.springframework.web.socket.WebSocketSession;
+&nbsp;import org.springframework.web.socket.handler.TextWebSocketHandler;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;
+&nbsp;/**
+&nbsp; * Handles WebSocket connections for live notifications.
+&nbsp; *
+&nbsp; * Each user connects with their userId in the URL path:
+&nbsp; *   ws://localhost:8080/ws/notifications/{userId}
+&nbsp; *
+&nbsp; * Other parts of the app call NotificationWebSocketHandler.sendToUser(userId, message)
+&nbsp; * to push a notification to a specific connected user.
+&nbsp; */
+<b class="fc">&nbsp;public class NotificationWebSocketHandler extends TextWebSocketHandler {</b>
+&nbsp;
+&nbsp;    // userId (as String) -&gt; active WebSocket session
+<b class="fc">&nbsp;    private static final Map&lt;String, WebSocketSession&gt; sessions = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void afterConnectionEstablished(WebSocketSession session) {
+<b class="nc">&nbsp;        String userId = extractUserId(session);</b>
+<b class="nc">&nbsp;        if (userId != null) {</b>
+<b class="nc">&nbsp;            sessions.put(userId, session);</b>
+<b class="nc">&nbsp;            System.out.println(&quot;WebSocket connected: userId=&quot; + userId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+<b class="nc">&nbsp;        String userId = extractUserId(session);</b>
+<b class="nc">&nbsp;        if (userId != null) {</b>
+<b class="nc">&nbsp;            sessions.remove(userId);</b>
+<b class="nc">&nbsp;            System.out.println(&quot;WebSocket disconnected: userId=&quot; + userId);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+&nbsp;        // Clients can send a ping; server echoes back to confirm connection
+&nbsp;        try {
+<b class="nc">&nbsp;            session.sendMessage(new TextMessage(&quot;{\&quot;type\&quot;:\&quot;pong\&quot;}&quot;));</b>
+&nbsp;        } catch (IOException e) {
+<b class="nc">&nbsp;            System.err.println(&quot;Error sending pong: &quot; + e.getMessage());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Send a JSON notification string to a specific user.
+&nbsp;     * Called by NotificationService whenever an event occurs.
+&nbsp;     */
+&nbsp;    public void sendToUser(String userId, String jsonMessage) {
+<b class="nc">&nbsp;        WebSocketSession session = sessions.get(userId);</b>
+<b class="nc">&nbsp;        if (session != null &amp;&amp; session.isOpen()) {</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                session.sendMessage(new TextMessage(jsonMessage));</b>
+&nbsp;            } catch (IOException e) {
+<b class="nc">&nbsp;                System.err.println(&quot;Failed to send notification to userId=&quot; + userId + &quot;: &quot; + e.getMessage());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Broadcast a message to all connected users.
+&nbsp;     */
+&nbsp;    public void broadcast(String jsonMessage) {
+<b class="nc">&nbsp;        sessions.forEach((userId, session) -&gt; {</b>
+<b class="nc">&nbsp;            if (session.isOpen()) {</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    session.sendMessage(new TextMessage(jsonMessage));</b>
+&nbsp;                } catch (IOException e) {
+<b class="nc">&nbsp;                    System.err.println(&quot;Broadcast failed for userId=&quot; + userId);</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    /** Extracts {userId} from the WebSocket URI path. */
+&nbsp;    private String extractUserId(WebSocketSession session) {
+<b class="nc">&nbsp;        String path = session.getUri() != null ? session.getUri().getPath() : null;</b>
+<b class="nc">&nbsp;        if (path == null) return null;</b>
+&nbsp;        // path = /ws/notifications/{userId}
+<b class="nc">&nbsp;        String[] parts = path.split(&quot;/&quot;);</b>
+<b class="nc">&nbsp;        return parts.length &gt; 0 ? parts[parts.length - 1] : null;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-04-27 14:13</div>
+</div>
+</body>
+</html>

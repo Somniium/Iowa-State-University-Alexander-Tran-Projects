@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+    <Button
+        android:id="@+id/adminButton"
+        android:layout_width="125dp"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:layout_marginBottom="20dp"
+        android:text="Admin"
+        />
+
+    <Button
+        android:id="@+id/studentButton"
+        android:layout_width="125dp"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:paddingBottom="20dp"
+        android:layout_marginBottom="20dp"
+        android:text="Student"
+        />
+
+    <Button
+        android:id="@+id/guestButton"
+        android:layout_width="125dp"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:paddingBottom="20dp"
+        android:text="Guest"
+        />
+
+</LinearLayout>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  dialog_feed_filter.xml — Filter bottom sheet for the feed.
+  Inflated inside FeedFragment.showFilterSheet() as a BottomSheetDialog.
+
+  Two chip groups, both singleSelection + selectionRequired:
+    - View Type     (sheet_chip_view_type)  — all / posts only / following / media only
+    - Media Category (sheet_chip_media_type) — everything / albums / movies / books / games / artists
+
+  Each chip selection is applied immediately without closing the sheet.
+  Chip state is restored from FeedFragment.currentViewType / currentFilter on open.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- ── VIEW TYPE section ─────────────────────────────────────────────── -->
+    <!-- Controls what kind of items appear: everything, posts only,
+         posts from followed users, or media cards only. -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="View Type"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/black" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/sheet_chip_view_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:singleSelection="true"
+        app:selectionRequired="true">
+
+        <!-- Default — all posts and media cards interleaved -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/sheet_chip_view_all"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="All" />
+
+        <!-- Only user-post cards (no media cards) -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/sheet_chip_view_posts"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Posts Only" />
+
+        <!-- Only posts from users the current user follows -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/sheet_chip_view_following"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Following" />
+
+        <!-- Only media cover-art cards (no user posts) -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/sheet_chip_view_media"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Media Only" />
+
+    </com.google.android.material.chip.ChipGroup>
+
+    <!-- ── MEDIA CATEGORY section ────────────────────────────────────────── -->
+    <!-- Narrows the feed to one media category. Stacks on top of the VIEW
+         filter — e.g. "Following + Albums" shows only album posts from
+         followed users. -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Media Category"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/black" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/sheet_chip_media_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:singleSelection="true"
+        app:selectionRequired="true">
+
+        <!-- Default — no media-type restriction -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/sheet_chip_type_all"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Everything" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/sheet_chip_type_album"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Albums" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/sheet_chip_type_movie"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Movies" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/sheet_chip_type_book"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Books" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/sheet_chip_type_game"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Games" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/sheet_chip_type_artist"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Artists" />
+
+    </com.google.android.material.chip.ChipGroup>
+
+</LinearLayout>

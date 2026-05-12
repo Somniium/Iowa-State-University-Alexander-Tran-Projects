@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MainFeedActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">MainFeedActivity.java</span></div><h1>MainFeedActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+
+<span class="fc" id="L16">public class MainFeedActivity extends AppCompatActivity {</span>
+
+    private ImageView feedIcon, groupsIcon, postIcon, notifsIcon, profileIcon;
+    private TextView feedText, groupsText, postText, notifsText, profileText;
+    private LinearLayout nav_groups;
+    private View notifDot;
+    private BroadcastReceiver mainNotificationReceiver;
+
+<span class="fc" id="L24">    private String activeTab = &quot;feed&quot;;</span>
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L28">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L29">        setContentView(R.layout.activity_main_feed);</span>
+
+<span class="fc" id="L31">        feedIcon = findViewById(R.id.nav_feed_icon);</span>
+<span class="fc" id="L32">        groupsIcon = findViewById(R.id.nav_groups_icon);</span>
+<span class="fc" id="L33">        postIcon = findViewById(R.id.nav_post_icon);</span>
+<span class="fc" id="L34">        notifsIcon = findViewById(R.id.nav_notifs_icon);</span>
+<span class="fc" id="L35">        profileIcon = findViewById(R.id.nav_profile_icon);</span>
+
+<span class="fc" id="L37">        feedText = findViewById(R.id.nav_feed_text);</span>
+<span class="fc" id="L38">        groupsText = findViewById(R.id.nav_groups_text);</span>
+<span class="fc" id="L39">        postText = findViewById(R.id.nav_post_text);</span>
+<span class="fc" id="L40">        notifsText = findViewById(R.id.nav_notifs_text);</span>
+<span class="fc" id="L41">        profileText = findViewById(R.id.nav_profile_text);</span>
+<span class="fc" id="L42">        notifDot = findViewById(R.id.notif_dot);</span>
+<span class="fc" id="L43">        nav_groups = findViewById(R.id.nav_groups);</span>
+
+<span class="fc" id="L45">        mainNotificationReceiver = new BroadcastReceiver() {</span>
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                // If we're not currently on the notifications tab, show the dot
+<span class="pc bpc" id="L49" title="2 of 4 branches missed.">                if (notifDot != null &amp;&amp; !&quot;notifs&quot;.equals(activeTab)) {</span>
+<span class="fc" id="L50">                    notifDot.setVisibility(View.VISIBLE);</span>
+                }
+<span class="fc" id="L52">            }</span>
+        };
+
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        if (savedInstanceState == null) {</span>
+<span class="fc" id="L56">            loadFragment(new FeedFragment());</span>
+<span class="fc" id="L57">            setActiveTab(&quot;feed&quot;);</span>
+        }
+
+<span class="fc" id="L60">        findViewById(R.id.nav_feed).setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L61">            loadFragment(new FeedFragment());</span>
+<span class="fc" id="L62">            setActiveTab(&quot;feed&quot;);</span>
+<span class="fc" id="L63">        });</span>
+
+<span class="fc" id="L65">        findViewById(R.id.nav_groups).setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L66">            loadFragment(new GroupsFragment());</span>
+<span class="fc" id="L67">            setActiveTab(&quot;groups&quot;);</span>
+<span class="fc" id="L68">        });</span>
+
+<span class="fc" id="L70">        findViewById(R.id.nav_post).setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L71">            setActiveTab(&quot;post&quot;);</span>
+<span class="fc" id="L72">            CreatePostDialogFragment dialog = new CreatePostDialogFragment();</span>
+<span class="fc" id="L73">            dialog.setOnPostPublishedListener(() -&gt; {</span>
+<span class="fc" id="L74">                loadFragment(new FeedFragment());</span>
+<span class="fc" id="L75">                setActiveTab(&quot;feed&quot;);</span>
+<span class="fc" id="L76">            });</span>
+<span class="fc" id="L77">            dialog.setOnDismissListener(() -&gt; {</span>
+<span class="fc" id="L78">                loadFragment(new FeedFragment());</span>
+<span class="fc" id="L79">                setActiveTab(&quot;feed&quot;);</span>
+<span class="fc" id="L80">            });</span>
+<span class="fc" id="L81">            dialog.show(getSupportFragmentManager(), &quot;create_post&quot;);</span>
+<span class="fc" id="L82">        });</span>
+
+<span class="fc" id="L84">        findViewById(R.id.nav_notifs).setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L85">            loadFragment(new NotificationsFragment());</span>
+<span class="fc" id="L86">            setActiveTab(&quot;notifs&quot;);</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">            if (notifDot != null) {</span>
+<span class="fc" id="L88">                notifDot.setVisibility(View.GONE);</span>
+            }
+<span class="fc" id="L90">        });</span>
+
+<span class="fc" id="L92">        findViewById(R.id.nav_profile).setOnClickListener(v -&gt; {</span>
+<span class="fc" id="L93">            loadFragment(new UserProfileFragment());</span>
+<span class="fc" id="L94">            setActiveTab(&quot;profile&quot;);</span>
+<span class="fc" id="L95">        });</span>
+
+<span class="fc" id="L97">        Intent notifService = new Intent(this, NotificationWebSocket.class);</span>
+<span class="fc" id="L98">        notifService.putExtra(&quot;USER_ID&quot;, getIntent().getIntExtra(&quot;USER_ID&quot;, -1));</span>
+<span class="fc" id="L99">        startService(notifService);</span>
+
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        if (getIntent().getBooleanExtra(&quot;openNotifs&quot;, false)) {</span>
+<span class="nc" id="L102">            loadFragment(new NotificationsFragment());</span>
+<span class="nc" id="L103">            setActiveTab(&quot;notifs&quot;);</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">        } else if (getIntent().getBooleanExtra(&quot;openFriends&quot;, false)) {</span>
+<span class="nc" id="L105">            loadFragment(new FriendsFragment());</span>
+<span class="nc" id="L106">            setActiveTab(&quot;profile&quot;);</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        } else if (getIntent().getBooleanExtra(&quot;openFollowing&quot;, false)) {</span>
+<span class="nc" id="L108">            loadFragment(new FollowingFragment());</span>
+<span class="nc" id="L109">            setActiveTab(&quot;profile&quot;);</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        } else if (getIntent().getIntExtra(&quot;openViewProfile&quot;, -1) != -1) {</span>
+<span class="nc" id="L111">            int uid = getIntent().getIntExtra(&quot;openViewProfile&quot;, -1);</span>
+<span class="nc" id="L112">            loadFragment(ViewProfileFragment.newInstance(uid));</span>
+<span class="nc" id="L113">            setActiveTab(&quot;profile&quot;);</span>
+        }
+<span class="fc" id="L115">    }</span>
+
+    @Override
+    protected void onResume() {
+<span class="fc" id="L119">        super.onResume();</span>
+<span class="fc" id="L120">        IntentFilter filter = new IntentFilter(&quot;com.example.androidexample.NEW_NOTIFICATION&quot;);</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">        if (android.os.Build.VERSION.SDK_INT &gt;= android.os.Build.VERSION_CODES.TIRAMISU) {</span>
+<span class="fc" id="L122">            registerReceiver(mainNotificationReceiver, filter, Context.RECEIVER_EXPORTED);</span>
+        } else {
+<span class="nc" id="L124">            registerReceiver(mainNotificationReceiver, filter);</span>
+        }
+<span class="fc" id="L126">    }</span>
+
+    @Override
+    protected void onPause() {
+<span class="fc" id="L130">        super.onPause();</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">        if (mainNotificationReceiver != null) {</span>
+<span class="fc" id="L132">            unregisterReceiver(mainNotificationReceiver);</span>
+        }
+<span class="fc" id="L134">    }</span>
+
+    @Override
+    protected void onNewIntent(android.content.Intent intent) {
+<span class="nc" id="L138">        super.onNewIntent(intent);</span>
+        // Preserve USER_ID from the original intent — other fragments (e.g. CreatePost)
+        // read it from getActivity().getIntent() and must never see -1.
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (!intent.hasExtra(&quot;USER_ID&quot;)) {</span>
+<span class="nc" id="L142">            intent.putExtra(&quot;USER_ID&quot;, getIntent().getIntExtra(&quot;USER_ID&quot;, -1));</span>
+        }
+<span class="nc" id="L144">        setIntent(intent);</span>
+
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (intent.getBooleanExtra(&quot;openFriends&quot;, false)) {</span>
+<span class="nc" id="L147">            loadFragment(new FriendsFragment());</span>
+<span class="nc" id="L148">            setActiveTab(&quot;profile&quot;);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        } else if (intent.getBooleanExtra(&quot;openFollowing&quot;, false)) {</span>
+<span class="nc" id="L150">            loadFragment(new FollowingFragment());</span>
+<span class="nc" id="L151">            setActiveTab(&quot;profile&quot;);</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        } else if (intent.getIntExtra(&quot;openViewProfile&quot;, -1) != -1) {</span>
+<span class="nc" id="L153">            int uid = intent.getIntExtra(&quot;openViewProfile&quot;, -1);</span>
+<span class="nc" id="L154">            loadFragment(ViewProfileFragment.newInstance(uid));</span>
+<span class="nc" id="L155">            setActiveTab(&quot;profile&quot;);</span>
+        }
+<span class="nc" id="L157">    }</span>
+
+    protected void loadFragment(Fragment fragment) {
+<span class="fc" id="L160">        getSupportFragmentManager()</span>
+<span class="fc" id="L161">                .beginTransaction()</span>
+<span class="fc" id="L162">                .replace(R.id.fragment_container, fragment)</span>
+<span class="fc" id="L163">                .commit();</span>
+<span class="fc" id="L164">    }</span>
+
+    private void setActiveTab(String tab) {
+<span class="fc" id="L167">        int inactive = android.graphics.Color.parseColor(&quot;#000000&quot;);</span>
+<span class="fc" id="L168">        int active = android.graphics.Color.parseColor(&quot;#E53935&quot;);</span>
+
+<span class="fc" id="L170">        feedIcon.setColorFilter(inactive);</span>
+<span class="fc" id="L171">        groupsIcon.setColorFilter(inactive);</span>
+<span class="fc" id="L172">        postIcon.setColorFilter(inactive);</span>
+<span class="fc" id="L173">        notifsIcon.setColorFilter(inactive);</span>
+<span class="fc" id="L174">        profileIcon.setColorFilter(inactive);</span>
+
+<span class="fc" id="L176">        feedText.setTextColor(inactive);</span>
+<span class="fc" id="L177">        groupsText.setTextColor(inactive);</span>
+<span class="fc" id="L178">        postText.setTextColor(inactive);</span>
+<span class="fc" id="L179">        notifsText.setTextColor(inactive);</span>
+<span class="fc" id="L180">        profileText.setTextColor(inactive);</span>
+
+<span class="fc" id="L182">        feedText.setTypeface(null, android.graphics.Typeface.NORMAL);</span>
+<span class="fc" id="L183">        groupsText.setTypeface(null, android.graphics.Typeface.NORMAL);</span>
+<span class="fc" id="L184">        postText.setTypeface(null, android.graphics.Typeface.NORMAL);</span>
+<span class="fc" id="L185">        notifsText.setTypeface(null, android.graphics.Typeface.NORMAL);</span>
+<span class="fc" id="L186">        profileText.setTypeface(null, android.graphics.Typeface.NORMAL);</span>
+
+<span class="pc bpc" id="L188" title="1 of 6 branches missed.">        switch (tab) {</span>
+            case &quot;feed&quot;:
+<span class="fc" id="L190">                activeTab = &quot;feed&quot;;</span>
+<span class="fc" id="L191">                feedIcon.setColorFilter(active);</span>
+<span class="fc" id="L192">                feedText.setTextColor(active);</span>
+<span class="fc" id="L193">                feedText.setTypeface(null, android.graphics.Typeface.BOLD);</span>
+<span class="fc" id="L194">                break;</span>
+            case &quot;groups&quot;:
+<span class="fc" id="L196">                activeTab = &quot;groups&quot;;</span>
+<span class="fc" id="L197">                groupsIcon.setColorFilter(active);</span>
+<span class="fc" id="L198">                groupsText.setTextColor(active);</span>
+<span class="fc" id="L199">                groupsText.setTypeface(null, android.graphics.Typeface.BOLD);</span>
+<span class="fc" id="L200">                break;</span>
+            case &quot;post&quot;:
+<span class="fc" id="L202">                activeTab = &quot;post&quot;;</span>
+<span class="fc" id="L203">                postIcon.setColorFilter(active);</span>
+<span class="fc" id="L204">                postText.setTextColor(active);</span>
+<span class="fc" id="L205">                postText.setTypeface(null, android.graphics.Typeface.BOLD);</span>
+<span class="fc" id="L206">                break;</span>
+            case &quot;notifs&quot;:
+<span class="fc" id="L208">                activeTab = &quot;notifs&quot;;</span>
+<span class="fc" id="L209">                notifsIcon.setColorFilter(active);</span>
+<span class="fc" id="L210">                notifsText.setTextColor(active);</span>
+<span class="fc" id="L211">                notifsText.setTypeface(null, android.graphics.Typeface.BOLD);</span>
+<span class="fc" id="L212">                break;</span>
+            case &quot;profile&quot;:
+<span class="fc" id="L214">                activeTab = &quot;profile&quot;;</span>
+<span class="fc" id="L215">                profileIcon.setColorFilter(active);</span>
+<span class="fc" id="L216">                profileText.setTextColor(active);</span>
+<span class="fc" id="L217">                profileText.setTypeface(null, android.graphics.Typeface.BOLD);</span>
+                break;
+        }
+<span class="fc" id="L220">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserManageActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">UserManageActivity.java</span></div><h1>UserManageActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+<span class="nc" id="L25">public class UserManageActivity extends AppCompatActivity {</span>
+
+    // Declare button variables
+    private Button updateBtn, deleteBtn, returnBtn;
+    private ImageButton searchBtn;
+
+    // Declare layout variables
+    private LinearLayout passwordInput, idInput, usernameInput, emailInput;
+
+    //Declare edit variables
+    private EditText searchEdt, passwordEdt, idEdt, usernameEdt, emailEdt;
+
+    //Declare variables for holding user information
+    private String username, password, email;
+    private int id;
+    private boolean active;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="nc" id="L44">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L45">        setContentView(R.layout.activity_user_manage); // Set the UI layout for the activity</span>
+
+        // Initialize buttons by finding them using their IDs from XML layout
+<span class="nc" id="L48">        searchBtn = findViewById(R.id.searchBtn);</span>
+<span class="nc" id="L49">        updateBtn = findViewById(R.id.updateBtn);</span>
+<span class="nc" id="L50">        deleteBtn = findViewById(R.id.deleteBtn);</span>
+<span class="nc" id="L51">        returnBtn = findViewById(R.id.returnBtn);</span>
+
+<span class="nc" id="L53">        passwordInput = findViewById(R.id.password_input);</span>
+<span class="nc" id="L54">        idInput = findViewById(R.id.id_input);</span>
+<span class="nc" id="L55">        usernameInput = findViewById(R.id.username_input);</span>
+<span class="nc" id="L56">        emailInput = findViewById(R.id.email_input);</span>
+
+<span class="nc" id="L58">        searchEdt = findViewById(R.id.userEdt);</span>
+<span class="nc" id="L59">        passwordEdt = findViewById(R.id.passwordEdt);</span>
+<span class="nc" id="L60">        idEdt = findViewById(R.id.idEdt);</span>
+<span class="nc" id="L61">        usernameEdt = findViewById(R.id.usernameEdt);</span>
+<span class="nc" id="L62">        emailEdt = findViewById(R.id.emailEdt);</span>
+
+<span class="nc" id="L64">        searchBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L67">                ApiClient.get(UserManageActivity.this, &quot;/users/name/&quot; + searchEdt.getText(), new Api_Interface() {</span>
+                    @Override
+                    public void onSuccess(JSONObject response) {
+                        try {
+<span class="nc" id="L71">                            username = response.getString(&quot;name&quot;);</span>
+<span class="nc" id="L72">                            email = response.getString(&quot;emailId&quot;);</span>
+<span class="nc" id="L73">                            id = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L74">                            password = response.getString(&quot;password&quot;);</span>
+<span class="nc" id="L75">                            active = response.getBoolean(&quot;active&quot;);</span>
+<span class="nc" id="L76">                            usernameEdt.setText(username);</span>
+<span class="nc" id="L77">                            emailEdt.setText(email);</span>
+<span class="nc" id="L78">                            idEdt.setText(String.valueOf(id));</span>
+<span class="nc" id="L79">                            passwordEdt.setText(password);</span>
+<span class="nc" id="L80">                        } catch (JSONException e) {</span>
+<span class="nc" id="L81">                            throw new RuntimeException(e);</span>
+<span class="nc" id="L82">                        }</span>
+<span class="nc" id="L83">                        makeVisible();</span>
+<span class="nc" id="L84">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L88">                        Toast.makeText(UserManageActivity.this, &quot;Could not find user.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L89">                    }</span>
+                });
+<span class="nc" id="L91">            }</span>
+        });
+
+<span class="nc" id="L94">        deleteBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L97">                ApiClient.delete(UserManageActivity.this, &quot;/users/id/&quot; + id, new Api_Interface() {</span>
+                    @Override
+                    public void onSuccess(JSONObject response) {
+<span class="nc" id="L100">                        Toast.makeText(UserManageActivity.this, &quot;User '&quot; + username + &quot;' terminated.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L101">                        Intent intent = new Intent(UserManageActivity.this, AdminPanelActivity.class);</span>
+<span class="nc" id="L102">                        startActivity(intent);</span>
+<span class="nc" id="L103">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L107">                        Toast.makeText(UserManageActivity.this, &quot;Could not find user.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L108">                    }</span>
+                });
+
+<span class="nc" id="L111">            }</span>
+        });
+
+<span class="nc" id="L114">        returnBtn.setOnClickListener(new View.OnClickListener() {</span>
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L117">                Intent intent = new Intent(UserManageActivity.this, AdminPanelActivity.class);</span>
+<span class="nc" id="L118">                startActivity(intent);</span>
+<span class="nc" id="L119">            }</span>
+        });
+
+<span class="nc" id="L122">        updateBtn.setOnClickListener(new View.OnClickListener() {</span>
+
+
+            @Override
+            public void onClick(View v) {
+<span class="nc" id="L127">                JSONObject updatedUserData = new JSONObject();</span>
+                try {
+<span class="nc" id="L129">                    updatedUserData.put(&quot;id&quot;, Integer.parseInt(idEdt.getText().toString()));</span>
+<span class="nc" id="L130">                    updatedUserData.put(&quot;name&quot;, usernameEdt.getText().toString());</span>
+<span class="nc" id="L131">                    updatedUserData.put(&quot;emailId&quot;, emailEdt.getText().toString());</span>
+<span class="nc" id="L132">                    updatedUserData.put(&quot;password&quot;, passwordEdt.getText().toString());</span>
+<span class="nc" id="L133">                    updatedUserData.put(&quot;active&quot;, active);</span>
+<span class="nc" id="L134">                } catch (JSONException e) {</span>
+<span class="nc" id="L135">                    e.printStackTrace();</span>
+<span class="nc" id="L136">                }</span>
+<span class="nc" id="L137">                Log.d(&quot;Sending...&quot;, updatedUserData.toString());</span>
+//                ApiClient.put(UserManageActivity.this, &quot;/users/&quot; + idEdt.getText().toString(), updatedUserData, new Api_Interface() {
+//                    @Override
+//                    public void onSuccess(JSONObject response) {
+//                        try {
+//                            String currentName = response.getString(&quot;name&quot;);
+//                            usernameEdt.setText(currentName);
+//                            String currentEmail = response.getString(&quot;emailId&quot;);
+//                            emailEdt.setText(currentEmail);
+//                            int currentID = response.getInt(&quot;id&quot;);
+//                            idEdt.setText(String.valueOf(currentID));
+//                            String currentPassword = response.getString(&quot;password&quot;);
+//                            passwordEdt.setText(currentPassword);
+//                        } catch (JSONException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                        makeVisible();
+//                    }
+//
+//                    @Override
+//                    public void onError(String message) {
+//                        Toast.makeText(UserManageActivity.this, &quot;Could not process data update.&quot;, Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+<span class="nc" id="L161">                String url = String.format(&quot;http://coms-3090-017.class.las.iastate.edu:8080/users/%s&quot;, idEdt.getText().toString());</span>
+<span class="nc" id="L162">                JsonObjectRequest update = new JsonObjectRequest(Request.Method.PUT,</span>
+                        url,
+                        updatedUserData, // the updated book to updated
+                        response -&gt; {
+                            try {
+<span class="nc" id="L167">                                String currentName = response.getString(&quot;name&quot;);</span>
+<span class="nc" id="L168">                                usernameEdt.setText(currentName);</span>
+<span class="nc" id="L169">                                String currentEmail = response.getString(&quot;emailId&quot;);</span>
+<span class="nc" id="L170">                                emailEdt.setText(currentEmail);</span>
+<span class="nc" id="L171">                                int currentID = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L172">                                idEdt.setText(String.valueOf(currentID));</span>
+<span class="nc" id="L173">                                String currentPassword = response.getString(&quot;password&quot;);</span>
+<span class="nc" id="L174">                                passwordEdt.setText(currentPassword);</span>
+<span class="nc" id="L175">                            } catch (JSONException e) {</span>
+<span class="nc" id="L176">                                throw new RuntimeException(e);</span>
+<span class="nc" id="L177">                            }</span>
+<span class="nc" id="L178">                            Toast.makeText(UserManageActivity.this, &quot;User Data Updated.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L179">                        },</span>
+
+
+                        error -&gt; {
+<span class="nc" id="L183">                            Toast.makeText(UserManageActivity.this, &quot;Could not process data update.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L184">                        }</span>
+<span class="nc" id="L185">                ) {</span>
+                    @Override
+                    public Map&lt;String, String&gt; getHeaders() throws AuthFailureError {
+                        // Define headers if needed
+<span class="nc" id="L189">                        HashMap&lt;String, String&gt; headers = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L190">                        return headers;</span>
+                    }
+
+                    @Override
+                    protected Map&lt;String, String&gt; getParams() {
+                        // Define parameters if needed
+<span class="nc" id="L196">                        Map&lt;String, String&gt; params = new HashMap&lt;&gt;();</span>
+                        // Example parameters (uncomment if needed)
+                        // params.put(&quot;param1&quot;, &quot;value1&quot;);
+                        // params.put(&quot;param2&quot;, &quot;value2&quot;);
+<span class="nc" id="L200">                        return params;</span>
+                    }
+                };
+
+                // Adding request to the Volley request queue
+<span class="nc" id="L205">                VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(update);</span>
+<span class="nc" id="L206">            }</span>
+        });
+
+<span class="nc" id="L209">    }</span>
+
+    protected void makeVisible() {
+<span class="nc" id="L212">        passwordInput.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L213">        idInput.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L214">        usernameInput.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L215">        emailInput.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L216">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

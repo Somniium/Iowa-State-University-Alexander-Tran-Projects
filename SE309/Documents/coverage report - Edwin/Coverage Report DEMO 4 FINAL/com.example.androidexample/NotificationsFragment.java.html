@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotificationsFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">NotificationsFragment.java</span></div><h1>NotificationsFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="nc" id="L30">public class NotificationsFragment extends Fragment {</span>
+
+    private RecyclerView recyclerView;
+    private TextView emptyText, markAllRead;
+    private NotificationAdapter adapter;
+    private BroadcastReceiver notificationReceiver;
+    private List&lt;DTOmodels.Notification&gt; notifications;
+    private int currentUserId;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+<span class="nc" id="L42">        View view = inflater.inflate(R.layout.fragment_notification, container, false);</span>
+
+<span class="nc bnc" id="L44" title="All 4 branches missed.">        if (getActivity() != null &amp;&amp; getActivity().getIntent() != null) {</span>
+<span class="nc" id="L45">            currentUserId = getActivity().getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+        }
+
+<span class="nc" id="L48">        recyclerView = view.findViewById(R.id.notification_recycler_view);</span>
+<span class="nc" id="L49">        emptyText = view.findViewById(R.id.notifications_empty);</span>
+<span class="nc" id="L50">        markAllRead = view.findViewById(R.id.mark_all_read);</span>
+
+<span class="nc" id="L52">        notifications = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L53">        adapter = new NotificationAdapter(getContext(), notifications, new NotificationAdapter.OnItemClickListener() {</span>
+            @Override
+            public void onNotificationClick(DTOmodels.Notification notification) {
+<span class="nc bnc" id="L56" title="All 2 branches missed.">                if (!notification.read) {</span>
+<span class="nc" id="L57">                    markRead(notification);</span>
+                }
+<span class="nc" id="L59">            }</span>
+
+            @Override
+            public void onNotificationLongClick(DTOmodels.Notification notification) {
+<span class="nc bnc" id="L63" title="All 2 branches missed.">                if (getContext() == null) return;</span>
+<span class="nc" id="L64">                new androidx.appcompat.app.AlertDialog.Builder(getContext())</span>
+<span class="nc" id="L65">                        .setTitle(&quot;Delete notification?&quot;)</span>
+<span class="nc" id="L66">                        .setMessage(notification.message)</span>
+<span class="nc" id="L67">                        .setPositiveButton(&quot;Delete&quot;, (dialog, which) -&gt; deleteNotification(notification))</span>
+<span class="nc" id="L68">                        .setNegativeButton(&quot;Cancel&quot;, null)</span>
+<span class="nc" id="L69">                        .show();</span>
+<span class="nc" id="L70">            }</span>
+        });
+
+<span class="nc" id="L73">        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));</span>
+<span class="nc" id="L74">        recyclerView.setAdapter(adapter);</span>
+
+<span class="nc" id="L76">        markAllRead.setOnClickListener(v -&gt; markAllRead());</span>
+
+<span class="nc" id="L78">        notificationReceiver = new BroadcastReceiver() {</span>
+            @Override
+            public void onReceive(Context context, Intent intent) {
+<span class="nc" id="L81">                Log.d(&quot;Notifications&quot;, &quot;New notification received, refreshing...&quot;);</span>
+<span class="nc" id="L82">                loadNotifications();</span>
+<span class="nc" id="L83">            }</span>
+        };
+
+<span class="nc" id="L86">        return view;</span>
+    }
+
+    @Override
+    public void onResume() {
+<span class="nc" id="L91">        super.onResume();</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (getActivity() != null) {</span>
+<span class="nc" id="L93">            IntentFilter filter = new IntentFilter(&quot;com.example.androidexample.NEW_NOTIFICATION&quot;);</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">            if (android.os.Build.VERSION.SDK_INT &gt;= android.os.Build.VERSION_CODES.TIRAMISU) {</span>
+<span class="nc" id="L95">                getActivity().registerReceiver(notificationReceiver, filter, Context.RECEIVER_NOT_EXPORTED);</span>
+            } else {
+<span class="nc" id="L97">                ContextCompat.registerReceiver(getActivity(), notificationReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);</span>
+            }
+        }
+<span class="nc" id="L100">        loadNotifications();</span>
+<span class="nc" id="L101">    }</span>
+
+    @Override
+    public void onPause() {
+<span class="nc" id="L105">        super.onPause();</span>
+<span class="nc bnc" id="L106" title="All 4 branches missed.">        if (getActivity() != null &amp;&amp; notificationReceiver != null) {</span>
+<span class="nc" id="L107">            getActivity().unregisterReceiver(notificationReceiver);</span>
+        }
+<span class="nc" id="L109">    }</span>
+
+    private void loadNotifications() {
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if(currentUserId == -1) {</span>
+<span class="nc" id="L113">            showEmpty();</span>
+<span class="nc" id="L114">            return;</span>
+        }
+
+<span class="nc" id="L117">        ApiClient.getArray(getContext(), &quot;/users/&quot; + currentUserId + &quot;/notifications&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L121">                    notifications.clear();</span>
+<span class="nc" id="L122">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L124">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L125">                        DTOmodels.Notification notification = gson.fromJson(obj.toString(), DTOmodels.Notification.class);</span>
+<span class="nc" id="L126">                        notifications.add(notification);</span>
+                    }
+<span class="nc" id="L128">                    adapter.notifyDataSetChanged();</span>
+
+<span class="nc bnc" id="L130" title="All 2 branches missed.">                    if(notifications.isEmpty()) {</span>
+<span class="nc" id="L131">                        showEmpty();</span>
+                    } else {
+<span class="nc" id="L133">                        recyclerView.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L134">                        emptyText.setVisibility(View.GONE);</span>
+                    }
+<span class="nc" id="L136">                    Log.d(&quot;notifications&quot;, &quot;Loaded &quot; + notifications.size() + &quot; notifications&quot;);</span>
+<span class="nc" id="L137">                } catch (Exception e) {</span>
+<span class="nc" id="L138">                    Log.e(&quot;notifications&quot;, &quot;Parse error&quot; + e.getMessage());</span>
+<span class="nc" id="L139">                    showEmpty();</span>
+<span class="nc" id="L140">                }</span>
+<span class="nc" id="L141">            }</span>
+            @Override
+            public void onError(String errorMessage) {
+<span class="nc" id="L144">                Log.e(&quot;notifications&quot;, &quot;Load failed &quot; + errorMessage);</span>
+<span class="nc" id="L145">                showEmpty();</span>
+<span class="nc" id="L146">            }</span>
+        });
+<span class="nc" id="L148">    }</span>
+
+    private void markRead(DTOmodels.Notification notification){
+<span class="nc" id="L151">        ApiClient.putString(getContext(), &quot;/notifications/&quot; + notification.id + &quot;/read&quot;, &quot;&quot;, new Api_String_Interface() {</span>
+            @Override
+            public void onSuccess(String response) {
+<span class="nc" id="L154">                notification.read = true;</span>
+<span class="nc" id="L155">                adapter.notifyDataSetChanged();</span>
+<span class="nc" id="L156">                Log.d(&quot;notifications&quot;, &quot;Marked notification &quot; + notification.id + &quot; as read&quot;);</span>
+<span class="nc" id="L157">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L161">                Log.e(&quot;notifications&quot;, &quot;Mark read failed &quot; + message);</span>
+<span class="nc" id="L162">            }</span>
+        });
+<span class="nc" id="L164">    }</span>
+
+    private void markAllRead(){
+<span class="nc" id="L167">        ApiClient.putString(getContext(), &quot;/users/&quot; + currentUserId + &quot;/notifications/read-all&quot;, &quot;&quot;, new Api_String_Interface() {</span>
+            @Override
+            public void onSuccess(String response) {
+<span class="nc bnc" id="L170" title="All 2 branches missed.">                for(DTOmodels.Notification n : notifications) {</span>
+<span class="nc" id="L171">                    n.read = true;</span>
+<span class="nc" id="L172">                }</span>
+<span class="nc" id="L173">                adapter.notifyDataSetChanged();</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">                if(getContext() != null){</span>
+<span class="nc" id="L175">                    Toast.makeText(getContext(), &quot;All notifications marked as read&quot;, Toast.LENGTH_SHORT).show();</span>
+                }
+<span class="nc" id="L177">                Log.d(&quot;notifications&quot;, &quot;Marked all notifications as read&quot;);</span>
+<span class="nc" id="L178">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L182">                Log.e(&quot;notifications&quot;, &quot;Mark all read failed &quot; + message);</span>
+<span class="nc" id="L183">            }</span>
+        });
+<span class="nc" id="L185">    }</span>
+
+    private void deleteNotification(DTOmodels.Notification notification) {
+<span class="nc" id="L188">        ApiClient.deleteString(getContext(), &quot;/notifications/&quot; + notification.id, new Api_String_Interface() {</span>
+            @Override
+            public void onSuccess(String response) {
+<span class="nc" id="L191">                notifications.remove(notification);</span>
+<span class="nc" id="L192">                adapter.notifyDataSetChanged();</span>
+
+<span class="nc bnc" id="L194" title="All 2 branches missed.">                if (notifications.isEmpty()) {</span>
+<span class="nc" id="L195">                    showEmpty();</span>
+                }
+
+<span class="nc" id="L198">                Log.d(&quot;Notifications&quot;, &quot;Deleted notification &quot; + notification.id);</span>
+<span class="nc" id="L199">                Toast.makeText(getContext(), &quot;Notification deleted&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L200">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L204">                Log.e(&quot;Notifications&quot;, &quot;Delete failed: &quot; + message);</span>
+<span class="nc" id="L205">            }</span>
+        });
+<span class="nc" id="L207">    }</span>
+
+    private void showEmpty(){
+<span class="nc" id="L210">        recyclerView.setVisibility(View.GONE);</span>
+<span class="nc" id="L211">        emptyText.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L212">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

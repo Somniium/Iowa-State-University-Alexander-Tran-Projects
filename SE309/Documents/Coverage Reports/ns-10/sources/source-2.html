@@ -1,0 +1,246 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > NotificationController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Notifications</a>
+</div>
+
+<h1>Coverage Summary for Class: NotificationController (onetoone.Notifications)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">NotificationController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    14.3%
+  </span>
+  <span class="absValue">
+    (1/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    4.2%
+  </span>
+  <span class="absValue">
+    (1/24)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Notifications;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Operation;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.ArraySchema;
+&nbsp;import io.swagger.v3.oas.annotations.media.Content;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import io.swagger.v3.oas.annotations.responses.ApiResponse;
+&nbsp;import io.swagger.v3.oas.annotations.tags.Tag;
+&nbsp;import onetoone.Users.User;
+&nbsp;import onetoone.Users.UserRepository;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@RestController
+&nbsp;@Tag(name = &quot;Notifications&quot;, description = &quot;Retrieve and manage user notifications. Live delivery via WebSocket: ws://localhost:8080/ws/notifications/{userId}&quot;)
+<b class="fc">&nbsp;public class NotificationController {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private NotificationRepository notificationRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserRepository userRepository;
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Get all notifications for a user&quot;,
+&nbsp;            description = &quot;Returns all notifications (read and unread) newest first.&quot;,
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;List of notifications&quot;,
+&nbsp;                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = Notification.class)))),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;User not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;/users/{userId}/notifications&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; getUserNotifications(
+&nbsp;            @Parameter(description = &quot;ID of the user&quot;, required = true) @PathVariable int userId) {
+<b class="nc">&nbsp;        User user = userRepository.findByUserId(userId);</b>
+<b class="nc">&nbsp;        if (user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;User not found&quot;);</b>
+<b class="nc">&nbsp;        return ResponseEntity.ok(notificationRepository.findByRecipient_IdOrderByCreatedAtDesc(userId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Get unread notifications for a user&quot;,
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Unread notifications&quot;,
+&nbsp;                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = Notification.class)))),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;User not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;/users/{userId}/notifications/unread&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; getUnreadNotifications(
+&nbsp;            @Parameter(description = &quot;ID of the user&quot;, required = true) @PathVariable int userId) {
+<b class="nc">&nbsp;        User user = userRepository.findByUserId(userId);</b>
+<b class="nc">&nbsp;        if (user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;User not found&quot;);</b>
+<b class="nc">&nbsp;        return ResponseEntity.ok(notificationRepository.findByRecipient_IdAndReadFalseOrderByCreatedAtDesc(userId));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Get unread notification count (badge)&quot;,
+&nbsp;            description = &quot;Use this to drive a badge counter in the UI.&quot;,
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;JSON unread count&quot;,
+&nbsp;                            content = @Content(schema = @Schema(example = &quot;{\&quot;unread\&quot;:3}&quot;))),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;User not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @GetMapping(&quot;/users/{userId}/notifications/count&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; getUnreadCount(
+&nbsp;            @Parameter(description = &quot;ID of the user&quot;, required = true) @PathVariable int userId) {
+<b class="nc">&nbsp;        User user = userRepository.findByUserId(userId);</b>
+<b class="nc">&nbsp;        if (user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;User not found&quot;);</b>
+<b class="nc">&nbsp;        long count = notificationRepository.countByRecipient_IdAndReadFalse(userId);</b>
+<b class="nc">&nbsp;        return ResponseEntity.ok(&quot;{\&quot;unread\&quot;:&quot; + count + &quot;}&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Mark a single notification as read&quot;,
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Updated notification&quot;,
+&nbsp;                            content = @Content(schema = @Schema(implementation = Notification.class))),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Notification not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PutMapping(&quot;/notifications/{id}/read&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; markRead(
+&nbsp;            @Parameter(description = &quot;Notification ID&quot;, required = true) @PathVariable int id) {
+<b class="nc">&nbsp;        Notification n = notificationRepository.findById(id).orElse(null);</b>
+<b class="nc">&nbsp;        if (n == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;Notification not found&quot;);</b>
+<b class="nc">&nbsp;        n.setRead(true);</b>
+<b class="nc">&nbsp;        notificationRepository.save(n);</b>
+<b class="nc">&nbsp;        return ResponseEntity.ok(n);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Mark ALL notifications as read for a user&quot;,
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;All marked as read&quot;,
+&nbsp;                            content = @Content(schema = @Schema(example = &quot;{\&quot;message\&quot;:\&quot;All notifications marked as read\&quot;}&quot;)))
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PutMapping(&quot;/users/{userId}/notifications/read-all&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; markAllRead(
+&nbsp;            @Parameter(description = &quot;ID of the user&quot;, required = true) @PathVariable int userId) {
+<b class="nc">&nbsp;        List&lt;Notification&gt; unread = notificationRepository.findByRecipient_IdAndReadFalseOrderByCreatedAtDesc(userId);</b>
+<b class="nc">&nbsp;        unread.forEach(n -&gt; n.setRead(true));</b>
+<b class="nc">&nbsp;        notificationRepository.saveAll(unread);</b>
+<b class="nc">&nbsp;        return ResponseEntity.ok(&quot;{\&quot;message\&quot;:\&quot;All notifications marked as read\&quot;}&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Delete a notification&quot;,
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Deleted&quot;,
+&nbsp;                            content = @Content(schema = @Schema(example = &quot;{\&quot;message\&quot;:\&quot;success\&quot;}&quot;))),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Notification not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @DeleteMapping(&quot;/notifications/{id}&quot;)
+&nbsp;    public ResponseEntity&lt;?&gt; deleteNotification(
+&nbsp;            @Parameter(description = &quot;Notification ID&quot;, required = true) @PathVariable int id) {
+<b class="nc">&nbsp;        if (!notificationRepository.existsById(id))</b>
+<b class="nc">&nbsp;            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(&quot;Notification not found&quot;);</b>
+<b class="nc">&nbsp;        notificationRepository.deleteById(id);</b>
+<b class="nc">&nbsp;        return ResponseEntity.ok(&quot;{\&quot;message\&quot;:\&quot;success\&quot;}&quot;);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-04-27 14:13</div>
+</div>
+</body>
+</html>

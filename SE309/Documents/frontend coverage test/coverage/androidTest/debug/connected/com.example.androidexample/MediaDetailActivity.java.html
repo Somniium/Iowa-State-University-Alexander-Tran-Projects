@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MediaDetailActivity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">MediaDetailActivity.java</span></div><h1>MediaDetailActivity.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * MediaDetailActivity — full-screen detail view for a single media item.
+ *
+ * &lt;p&gt;Receives {@code mediaType}, {@code mediaId}, and {@code title} via Intent extras.
+ * Loads the appropriate backend endpoint based on {@code mediaType} and populates:
+ * &lt;ul&gt;
+ *   &lt;li&gt;Cover image, title, subtitle (artist/author/director), and extra info (genre/date)&lt;/li&gt;
+ *   &lt;li&gt;Media-type badge and aggregate rating badge&lt;/li&gt;
+ *   &lt;li&gt;Optional description (games, movies, books)&lt;/li&gt;
+ *   &lt;li&gt;A reviews section using the feed post card layout (albums only — other types
+ *       do not yet expose per-review lists from the backend)&lt;/li&gt;
+ *   &lt;li&gt;For artists: an album grid using the feed media card layout&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;When {@code mediaId == 0} (item exists externally but not in the database),
+ * {@link #showNotInDatabase()} is called instead of making a network request.
+ *
+ * &lt;p&gt;Media type colours are provided by {@link RatingUtility#getMediaTypeColor(String)}
+ * so they stay consistent with the feed and post detail screens.
+ */
+<span class="fc" id="L48">public class MediaDetailActivity extends AppCompatActivity {</span>
+
+    private static final String TAG = &quot;MediaDetail&quot;;
+
+    // =========================================================================
+    // Views
+    // =========================================================================
+
+    private ImageView backBtn, coverImg;
+    private TextView headerText, titleText, subtitleText, extraText;
+    private TextView typeBadge, ratingBadge;
+    private TextView descriptionLabel, descriptionText;
+    private TextView reviewsLabel, noReviewsText;
+    private RecyclerView reviewsRecycler;
+    private TextView albumsLabel;
+    private LinearLayout albumsContainer;   // direct-child cards; parent ScrollView scrolls
+
+    // =========================================================================
+    // Intent data
+    // =========================================================================
+
+    private String mediaType;
+    private long mediaId;
+    private String title;
+    private int currentUserId;
+
+    // =========================================================================
+    // Lifecycle
+    // =========================================================================
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+<span class="fc" id="L80">        super.onCreate(savedInstanceState);</span>
+<span class="fc" id="L81">        setContentView(R.layout.activity_media_detail);</span>
+
+<span class="fc" id="L83">        backBtn          = findViewById(R.id.media_detail_back);</span>
+<span class="fc" id="L84">        headerText       = findViewById(R.id.media_detail_header);</span>
+<span class="fc" id="L85">        coverImg         = findViewById(R.id.media_detail_cover);</span>
+<span class="fc" id="L86">        titleText        = findViewById(R.id.media_detail_title);</span>
+<span class="fc" id="L87">        subtitleText     = findViewById(R.id.media_detail_subtitle);</span>
+<span class="fc" id="L88">        extraText        = findViewById(R.id.media_detail_extra);</span>
+<span class="fc" id="L89">        typeBadge        = findViewById(R.id.media_detail_type_badge);</span>
+<span class="fc" id="L90">        ratingBadge      = findViewById(R.id.media_detail_rating_badge);</span>
+<span class="fc" id="L91">        descriptionLabel = findViewById(R.id.media_detail_description_label);</span>
+<span class="fc" id="L92">        descriptionText  = findViewById(R.id.media_detail_description);</span>
+<span class="fc" id="L93">        reviewsLabel     = findViewById(R.id.media_detail_reviews_label);</span>
+<span class="fc" id="L94">        noReviewsText    = findViewById(R.id.media_detail_no_reviews);</span>
+<span class="fc" id="L95">        reviewsRecycler  = findViewById(R.id.media_detail_reviews_recycler);</span>
+<span class="fc" id="L96">        albumsLabel      = findViewById(R.id.media_detail_albums_label);</span>
+<span class="fc" id="L97">        albumsContainer  = findViewById(R.id.media_detail_albums_container);</span>
+
+<span class="fc" id="L99">        mediaType     = getIntent().getStringExtra(&quot;mediaType&quot;);</span>
+<span class="fc" id="L100">        mediaId       = getIntent().getLongExtra(&quot;mediaId&quot;, -1);</span>
+<span class="fc" id="L101">        title         = getIntent().getStringExtra(&quot;title&quot;);</span>
+<span class="fc" id="L102">        currentUserId = getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">        headerText.setText(title != null ? title : &quot;Media&quot;);</span>
+<span class="fc" id="L105">        backBtn.setOnClickListener(v -&gt; finish());</span>
+
+<span class="fc" id="L107">        reviewsRecycler.setLayoutManager(new LinearLayoutManager(this));</span>
+<span class="fc" id="L108">        reviewsRecycler.setNestedScrollingEnabled(false);</span>
+
+<span class="pc bpc" id="L110" title="2 of 4 branches missed.">        if (mediaType == null || mediaId == -1) {</span>
+<span class="nc" id="L111">            showError(&quot;Error: missing media info&quot;);</span>
+<span class="nc" id="L112">            return;</span>
+        }
+
+        // mediaId == 0 means the item came from an external API but is not in the DB yet
+<span class="fc bfc" id="L116" title="All 2 branches covered.">        if (mediaId == 0) {</span>
+<span class="fc" id="L117">            showNotInDatabase();</span>
+<span class="fc" id="L118">            return;</span>
+        }
+
+<span class="fc" id="L121">        loadMediaDetail();</span>
+<span class="fc" id="L122">    }</span>
+
+    // =========================================================================
+    // Display
+    // =========================================================================
+
+    /** Routes to the correct loader based on media type. */
+    private void loadMediaDetail() {
+<span class="pc bpc" id="L130" title="5 of 6 branches missed.">        switch (mediaType) {</span>
+            case &quot;ALBUM&quot;:
+            case &quot;MUSIC&quot;:  // legacy value stored before the ALBUM rename
+<span class="nc" id="L133">                loadAlbum();</span>
+<span class="nc" id="L134">                break;</span>
+            case &quot;BOOK&quot;:
+<span class="nc" id="L136">                loadBook();</span>
+<span class="nc" id="L137">                break;</span>
+            case &quot;GAME&quot;:
+<span class="nc" id="L139">                loadGame();</span>
+<span class="nc" id="L140">                break;</span>
+            case &quot;MOVIE&quot;:
+            case &quot;SHOW&quot;:   // shows share the movie table and endpoint
+<span class="fc" id="L143">                loadMovie();</span>
+<span class="fc" id="L144">                break;</span>
+            case &quot;ARTIST&quot;:
+<span class="nc" id="L146">                loadArtist();</span>
+<span class="nc" id="L147">                break;</span>
+            default:
+<span class="nc" id="L149">                showError(&quot;Unknown media type: &quot; + mediaType);</span>
+        }
+<span class="fc" id="L151">    }</span>
+
+    /**
+     * Populates the common header section (cover, title, badges, description).
+     * Called by every load method once the API response has been parsed.
+     *
+     * @param title       primary display name
+     * @param subtitle    secondary line (artist, author, director, etc.)
+     * @param extra       tertiary line (genre, release date, etc.) — hidden if empty
+     * @param description long-form description — section hidden if empty
+     * @param rating      aggregate rating (0 = unrated)
+     * @param imageUrl    cover/poster URL (null/empty → no image loaded)
+     * @param type        mediaType string used to colour the type badge
+     */
+    private void displayMedia(String title, String subtitle, String extra, String description,
+                              int rating, String imageUrl, String type) {
+<span class="fc" id="L167">        titleText.setText(title);</span>
+<span class="fc" id="L168">        subtitleText.setText(subtitle);</span>
+
+<span class="pc bpc" id="L170" title="2 of 4 branches missed.">        if (extra != null &amp;&amp; !extra.isEmpty()) {</span>
+<span class="fc" id="L171">            extraText.setText(extra);</span>
+<span class="fc" id="L172">            extraText.setVisibility(View.VISIBLE);</span>
+        } else {
+<span class="nc" id="L174">            extraText.setVisibility(View.GONE);</span>
+        }
+
+        // Type badge — colour from shared RatingUtility so it matches the feed
+<span class="fc" id="L178">        typeBadge.setText(type);</span>
+<span class="fc" id="L179">        int typeColor = RatingUtility.getMediaTypeColor(type);</span>
+<span class="fc" id="L180">        typeBadge.getBackground().setColorFilter(typeColor, android.graphics.PorterDuff.Mode.SRC_IN);</span>
+
+        // Rating badge
+<span class="fc" id="L183">        int ratingColor = RatingUtility.getRatingColor(rating);</span>
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">        ratingBadge.setText(rating &gt; 0 ? String.valueOf(rating) : &quot;-&quot;);</span>
+<span class="fc" id="L185">        ratingBadge.getBackground().setColorFilter(ratingColor, android.graphics.PorterDuff.Mode.SRC_IN);</span>
+
+<span class="pc bpc" id="L187" title="2 of 4 branches missed.">        if (imageUrl != null &amp;&amp; !imageUrl.isEmpty()) {</span>
+<span class="fc" id="L188">            ApiClient.loadImage(this, imageUrl, coverImg);</span>
+        }
+
+<span class="pc bpc" id="L191" title="2 of 4 branches missed.">        if (description != null &amp;&amp; !description.isEmpty()) {</span>
+<span class="fc" id="L192">            descriptionText.setText(description);</span>
+<span class="fc" id="L193">            descriptionLabel.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L194">            descriptionText.setVisibility(View.VISIBLE);</span>
+        } else {
+<span class="nc" id="L196">            descriptionLabel.setVisibility(View.GONE);</span>
+<span class="nc" id="L197">            descriptionText.setVisibility(View.GONE);</span>
+        }
+<span class="fc" id="L199">    }</span>
+
+    /** Shows a generic error state and logs the message. */
+    private void showError(String message) {
+<span class="nc" id="L203">        Toast.makeText(this, message, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L204">        titleText.setText(&quot;Not available&quot;);</span>
+<span class="nc" id="L205">        subtitleText.setText(&quot;Something went wrong&quot;);</span>
+<span class="nc" id="L206">        reviewsLabel.setVisibility(View.GONE);</span>
+<span class="nc" id="L207">        noReviewsText.setVisibility(View.GONE);</span>
+<span class="nc" id="L208">        Log.e(TAG, message);</span>
+<span class="nc" id="L209">    }</span>
+
+    /**
+     * Shows a placeholder state when the item is not yet in the database.
+     * This happens when the user taps a media card that was added from an external
+     * API result (RAWG, TMDB, Hardcover) but not yet saved via a review.
+     */
+    private void showNotInDatabase() {
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">        titleText.setText(title != null ? title : &quot;Unknown&quot;);</span>
+<span class="fc" id="L218">        subtitleText.setText(&quot;Not in database&quot;);</span>
+
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">        if (mediaType != null) {</span>
+<span class="fc" id="L221">            typeBadge.setText(mediaType);</span>
+<span class="fc" id="L222">            typeBadge.getBackground().setColorFilter(</span>
+<span class="fc" id="L223">                    RatingUtility.getMediaTypeColor(mediaType), android.graphics.PorterDuff.Mode.SRC_IN);</span>
+        }
+
+<span class="fc" id="L226">        ratingBadge.setText(&quot;-&quot;);</span>
+<span class="fc" id="L227">        ratingBadge.getBackground().setColorFilter(</span>
+<span class="fc" id="L228">                android.graphics.Color.parseColor(&quot;#848482&quot;), android.graphics.PorterDuff.Mode.SRC_IN);</span>
+
+<span class="fc" id="L230">        descriptionLabel.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L231">        descriptionLabel.setText(&quot;Not in database&quot;);</span>
+<span class="fc" id="L232">        descriptionText.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L233">        descriptionText.setText(&quot;This item hasn't been added to the database yet. &quot; + &quot;Search for it in the Post tab and create a review to add it.&quot;);</span>
+
+<span class="fc" id="L235">        reviewsLabel.setVisibility(View.GONE);</span>
+<span class="fc" id="L236">        noReviewsText.setVisibility(View.GONE);</span>
+
+<span class="fc" id="L238">        Toast.makeText(this, &quot;This item is not in the database yet&quot;, Toast.LENGTH_LONG).show();</span>
+<span class="fc" id="L239">        Log.d(TAG, &quot;Media not in database: &quot; + mediaType + &quot; id=&quot; + mediaId);</span>
+<span class="fc" id="L240">    }</span>
+
+    // =========================================================================
+    // Load methods
+    // =========================================================================
+
+    private void loadAlbum() {
+<span class="nc" id="L247">        ApiClient.get(this, &quot;/album/&quot; + mediaId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L251">                    DTOmodels.album album = new Gson().fromJson(response.toString(), DTOmodels.album.class);</span>
+<span class="nc" id="L252">                    displayMedia(album.name, album.genre, album.releaseDate, null,</span>
+                            album.rating, album.coverURL, &quot;ALBUM&quot;);
+
+                    // Always use the 2-step loader so we get real postIds (needed for comments).
+<span class="nc" id="L256">                    loadReviewsForMedia(&quot;ALBUM&quot;, mediaId);</span>
+<span class="nc" id="L257">                    Log.d(TAG, &quot;Album loaded: &quot; + album.name);</span>
+<span class="nc" id="L258">                } catch (Exception e) {</span>
+<span class="nc" id="L259">                    Log.e(TAG, &quot;Album parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L260">                    showNotInDatabase();</span>
+<span class="nc" id="L261">                }</span>
+<span class="nc" id="L262">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L266">                Log.e(TAG, &quot;Album load failed: &quot; + message);</span>
+<span class="nc" id="L267">                showNotInDatabase();</span>
+<span class="nc" id="L268">            }</span>
+        });
+<span class="nc" id="L270">    }</span>
+
+    private void loadBook() {
+<span class="nc" id="L273">        ApiClient.get(this, &quot;/books/&quot; + mediaId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L277">                    DTOmodels.book book = new Gson().fromJson(response.toString(), DTOmodels.book.class);</span>
+                    // Normalise empty thumbnail to null so the image loader skips it
+<span class="nc bnc" id="L279" title="All 4 branches missed.">                    String thumbnail = (book.thumbnailurl != null &amp;&amp; !book.thumbnailurl.isEmpty())</span>
+<span class="nc" id="L280">                            ? book.thumbnailurl : null;</span>
+<span class="nc" id="L281">                    displayMedia(book.title, book.authors, book.publisheddate, book.description,</span>
+                            0, thumbnail, &quot;BOOK&quot;);
+<span class="nc" id="L283">                    loadReviewsForMedia(&quot;BOOK&quot;, mediaId);</span>
+<span class="nc" id="L284">                    Log.d(TAG, &quot;Book loaded: &quot; + book.title);</span>
+<span class="nc" id="L285">                } catch (Exception e) {</span>
+<span class="nc" id="L286">                    Log.e(TAG, &quot;Book parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L287">                    showNotInDatabase();</span>
+<span class="nc" id="L288">                }</span>
+<span class="nc" id="L289">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L293">                Log.e(TAG, &quot;Book load failed: &quot; + message);</span>
+<span class="nc" id="L294">                showNotInDatabase();</span>
+<span class="nc" id="L295">            }</span>
+        });
+<span class="nc" id="L297">    }</span>
+
+    private void loadGame() {
+<span class="nc" id="L300">        ApiClient.get(this, &quot;/games/&quot; + mediaId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L304">                    DTOmodels.game game = new Gson().fromJson(response.toString(), DTOmodels.game.class);</span>
+<span class="nc" id="L305">                    displayMedia(game.title, game.developer, game.releaseDate, game.description,</span>
+                            game.rating, game.coverUrl, &quot;GAME&quot;);
+<span class="nc" id="L307">                    loadReviewsForMedia(&quot;GAME&quot;, mediaId);</span>
+<span class="nc" id="L308">                    Log.d(TAG, &quot;Game loaded: &quot; + game.title);</span>
+<span class="nc" id="L309">                } catch (Exception e) {</span>
+<span class="nc" id="L310">                    Log.e(TAG, &quot;Game parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L311">                    showNotInDatabase();</span>
+<span class="nc" id="L312">                }</span>
+<span class="nc" id="L313">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L317">                Log.e(TAG, &quot;Game load failed: &quot; + message);</span>
+<span class="nc" id="L318">                showNotInDatabase();</span>
+<span class="nc" id="L319">            }</span>
+        });
+<span class="nc" id="L321">    }</span>
+
+    private void loadMovie() {
+<span class="fc" id="L324">        ApiClient.get(this, &quot;/movies/&quot; + mediaId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="fc" id="L328">                    DTOmodels.movie movie = new Gson().fromJson(response.toString(), DTOmodels.movie.class);</span>
+                    // Use the actual mediaType from the intent (MOVIE or SHOW) for the badge
+<span class="fc" id="L330">                    displayMedia(movie.title, movie.director, movie.releaseDate, movie.overview,</span>
+<span class="fc" id="L331">                            movie.rating, movie.posterUrl, mediaType);</span>
+                    // mediaType is &quot;MOVIE&quot; or &quot;SHOW&quot;; both link reviews via the movie FK
+<span class="fc" id="L333">                    loadReviewsForMedia(mediaType, mediaId);</span>
+<span class="fc" id="L334">                    Log.d(TAG, &quot;Movie/show loaded: &quot; + movie.title);</span>
+<span class="nc" id="L335">                } catch (Exception e) {</span>
+<span class="nc" id="L336">                    Log.e(TAG, &quot;Movie parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L337">                    showNotInDatabase();</span>
+<span class="fc" id="L338">                }</span>
+<span class="fc" id="L339">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L343">                Log.e(TAG, &quot;Movie load failed: &quot; + message);</span>
+<span class="nc" id="L344">                showNotInDatabase();</span>
+<span class="nc" id="L345">            }</span>
+        });
+<span class="fc" id="L347">    }</span>
+
+    /**
+     * Loads the artist detail screen in two sequential steps:
+     *
+     * &lt;ol&gt;
+     *   &lt;li&gt;Fetch {@code GET /artist/get-artist/{mediaId}} and display the artist
+     *       header (name, photo, genre, rating) immediately so the screen isn't blank.&lt;/li&gt;
+     *   &lt;li&gt;Fire {@code POST /add-artist-albums/id/{mediaId}} to ingest the full
+     *       discography from Spotify into the database, then re-fetch the artist via
+     *       {@code GET /artist/get-artist/{mediaId}} to get the saved albums and render
+     *       them as scrollable cards.&lt;/li&gt;
+     * &lt;/ol&gt;
+     */
+    private void loadArtist() {
+<span class="nc" id="L362">        ApiClient.get(this, &quot;/artist/get-artist/&quot; + mediaId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L366">                    DTOmodels.artist artist = new Gson().fromJson(response.toString(), DTOmodels.artist.class);</span>
+                    // Step 1 — show header immediately
+<span class="nc" id="L368">                    displayMedia(artist.name, artist.genre, &quot;&quot;, null,</span>
+                            artist.rating, artist.photoURL, &quot;ARTIST&quot;);
+<span class="nc" id="L370">                    reviewsLabel.setVisibility(View.GONE);</span>
+<span class="nc" id="L371">                    noReviewsText.setVisibility(View.GONE);</span>
+<span class="nc" id="L372">                    albumsLabel.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L373">                    albumsLabel.setText(&quot;Albums (loading…)&quot;);</span>
+<span class="nc" id="L374">                    Log.d(TAG, &quot;Artist header displayed: &quot; + artist.name);</span>
+
+                    // Step 2 — ingest from Spotify, then fetch and render albums
+<span class="nc" id="L377">                    ingestThenShowAlbums();</span>
+<span class="nc" id="L378">                } catch (Exception e) {</span>
+<span class="nc" id="L379">                    Log.e(TAG, &quot;Artist parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L380">                    showNotInDatabase();</span>
+<span class="nc" id="L381">                }</span>
+<span class="nc" id="L382">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L386">                Log.e(TAG, &quot;Artist load failed: &quot; + message);</span>
+<span class="nc" id="L387">                showNotInDatabase();</span>
+<span class="nc" id="L388">            }</span>
+        });
+<span class="nc" id="L390">    }</span>
+
+    /**
+     * Fires {@code POST /add-artist-albums/id/{mediaId}} to save the artist's
+     * discography from Spotify, then calls {@link #fetchAndShowAlbums()} to render
+     * the result. If ingestion fails the fetch runs anyway so any albums already in
+     * the database are still shown.
+     */
+    private void ingestThenShowAlbums() {
+<span class="nc" id="L399">        Log.d(TAG, &quot;Ingesting artist albums from Spotify: /add-artist-albums/id/&quot; + mediaId);</span>
+<span class="nc" id="L400">        ApiClient.post(this, &quot;/add-artist-albums/id/&quot; + mediaId, null, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L403">                Log.d(TAG, &quot;Ingest complete — fetching updated artist&quot;);</span>
+<span class="nc" id="L404">                fetchAndShowAlbums();</span>
+<span class="nc" id="L405">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L409">                Log.e(TAG, &quot;Ingest failed (showing existing albums): &quot; + message);</span>
+<span class="nc" id="L410">                fetchAndShowAlbums(); // show whatever is already in the DB</span>
+<span class="nc" id="L411">            }</span>
+        });
+<span class="nc" id="L413">    }</span>
+
+    /**
+     * Re-fetches the artist via {@code GET /artist/get-artist/{mediaId}} and hands
+     * the response JSON object to {@link #loadArtistAlbums(JSONObject)} to render
+     * album cards. Updates the label to &quot;Albums (0)&quot; if the fetch fails.
+     */
+    private void fetchAndShowAlbums() {
+<span class="nc" id="L421">        ApiClient.get(this, &quot;/artist/get-artist/&quot; + mediaId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L424">                loadArtistAlbums(response);</span>
+<span class="nc" id="L425">                Log.d(TAG, &quot;Albums refreshed after ingest&quot;);</span>
+<span class="nc" id="L426">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L430">                Log.e(TAG, &quot;Album fetch failed: &quot; + message);</span>
+<span class="nc" id="L431">                albumsLabel.setText(&quot;Albums (0)&quot;);</span>
+<span class="nc" id="L432">            }</span>
+        });
+<span class="nc" id="L434">    }</span>
+
+    // =========================================================================
+    // Artist albums — cards inflated directly into a LinearLayout
+    // =========================================================================
+
+    /**
+     * Inflates an {@code item_feed_post} card for each album in the artist JSON and
+     * adds them as direct children of {@link #albumsContainer} (a LinearLayout).
+     *
+     * &lt;p&gt;Using a LinearLayout instead of a RecyclerView eliminates nested-scrolling
+     * conflicts: every card is always in the layout tree and the parent
+     * {@code ScrollView} handles all scrolling, so every album is reachable.
+     *
+     * &lt;p&gt;Tapping a card opens {@link MediaDetailActivity} for that album.
+     */
+    private void loadArtistAlbums(JSONObject artistObj) {
+        try {
+<span class="nc" id="L452">            JSONArray albumsArray = artistObj.optJSONArray(&quot;albums&quot;);</span>
+<span class="nc bnc" id="L453" title="All 4 branches missed.">            if (albumsArray == null || albumsArray.length() == 0) {</span>
+<span class="nc" id="L454">                albumsLabel.setText(&quot;Albums (0)&quot;);</span>
+<span class="nc" id="L455">                return;</span>
+            }
+
+<span class="nc" id="L458">            albumsLabel.setText(&quot;Albums (&quot; + albumsArray.length() + &quot;)&quot;);</span>
+<span class="nc" id="L459">            albumsContainer.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L460">            albumsContainer.removeAllViews(); // clear any cards from a previous call</span>
+
+<span class="nc" id="L462">            Gson gson = new Gson();</span>
+<span class="nc bnc" id="L463" title="All 2 branches missed.">            for (int i = 0; i &lt; albumsArray.length(); i++) {</span>
+<span class="nc" id="L464">                DTOmodels.album album = gson.fromJson(</span>
+<span class="nc" id="L465">                        albumsArray.getJSONObject(i).toString(), DTOmodels.album.class);</span>
+
+<span class="nc" id="L467">                View card = LayoutInflater.from(this)</span>
+<span class="nc" id="L468">                        .inflate(R.layout.item_feed_post, albumsContainer, false);</span>
+
+<span class="nc" id="L470">                TextView titleView    = card.findViewById(R.id.feed_title);</span>
+<span class="nc" id="L471">                TextView subtitleView = card.findViewById(R.id.feed_subtitle);</span>
+<span class="nc" id="L472">                TextView typeView     = card.findViewById(R.id.feed_media_type);</span>
+<span class="nc" id="L473">                TextView extraView    = card.findViewById(R.id.feed_extra_info);</span>
+<span class="nc" id="L474">                TextView badgeView    = card.findViewById(R.id.feed_rating_badge);</span>
+<span class="nc" id="L475">                ImageView coverView   = card.findViewById(R.id.feed_cover_img);</span>
+<span class="nc" id="L476">                CardView cardRoot     = card.findViewById(R.id.card_root);</span>
+
+<span class="nc" id="L478">                titleView.setText(album.name);</span>
+<span class="nc" id="L479">                subtitleView.setText(album.artist);</span>
+<span class="nc" id="L480">                typeView.setText(&quot;ALBUM&quot;);</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">                extraView.setText(album.genre != null ? album.genre : &quot;&quot;);</span>
+
+<span class="nc" id="L483">                int color = RatingUtility.getRatingColor(album.rating);</span>
+<span class="nc" id="L484">                cardRoot.setCardBackgroundColor(color);</span>
+<span class="nc bnc" id="L485" title="All 2 branches missed.">                badgeView.setText(album.rating &gt; 0 ? String.valueOf(album.rating) : &quot;-&quot;);</span>
+<span class="nc" id="L486">                badgeView.getBackground().setColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN);</span>
+
+<span class="nc" id="L488">                ApiClient.loadImage(this, album.coverURL, coverView);</span>
+
+<span class="nc" id="L490">                final long albumId   = album.albumId;</span>
+<span class="nc" id="L491">                final String albumName = album.name;</span>
+<span class="nc" id="L492">                card.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L493">                    Intent intent = new Intent(this, MediaDetailActivity.class);</span>
+<span class="nc" id="L494">                    intent.putExtra(&quot;mediaType&quot;, &quot;ALBUM&quot;);</span>
+<span class="nc" id="L495">                    intent.putExtra(&quot;mediaId&quot;,   albumId);</span>
+<span class="nc" id="L496">                    intent.putExtra(&quot;title&quot;,     albumName);</span>
+<span class="nc" id="L497">                    intent.putExtra(&quot;USER_ID&quot;,   currentUserId);</span>
+<span class="nc" id="L498">                    startActivity(intent);</span>
+<span class="nc" id="L499">                });</span>
+
+<span class="nc" id="L501">                albumsContainer.addView(card);</span>
+            }
+
+<span class="nc" id="L504">            Log.d(TAG, &quot;Rendered &quot; + albumsArray.length() + &quot; album cards for artist&quot;);</span>
+<span class="nc" id="L505">        } catch (Exception e) {</span>
+<span class="nc" id="L506">            Log.e(TAG, &quot;Error loading artist albums: &quot; + e.getMessage());</span>
+<span class="nc" id="L507">            albumsLabel.setText(&quot;Albums (0)&quot;);</span>
+<span class="nc" id="L508">        }</span>
+<span class="nc" id="L509">    }</span>
+
+    // =========================================================================
+    // Reviews (reuses feed post cards)
+    // =========================================================================
+
+    /**
+     * Two-step loader that shows reviews for the current media item with full post
+     * data (postId, authorName, likeCount, commentCount) so tapping a card opens
+     * {@link PostViewActivity} with everything it needs — including comments.
+     *
+     * &lt;p&gt;&lt;b&gt;Step 1&lt;/b&gt; — {@code GET /reviews/type/{type}}: collect the IDs of reviews
+     * whose FK (albumId / bookId / gameId / movieId) matches this media item.
+     *
+     * &lt;p&gt;&lt;b&gt;Step 2&lt;/b&gt; — {@code GET /feed/type/{type}}: keep only the published posts
+     * whose {@code reviewId} is in the set from step 1. These posts carry the real
+     * {@code postId}, {@code authorName}, {@code likeCount}, and {@code commentCount}.
+     */
+    private void loadReviewsForMedia(String type, long id) {
+<span class="fc" id="L528">        ApiClient.getArray(this, &quot;/reviews/type/&quot; + type, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray reviewsJson) {
+                try {
+<span class="fc" id="L532">                    Gson gson = new Gson();</span>
+<span class="fc" id="L533">                    Set&lt;Integer&gt; matchingIds = new HashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L534" title="All 2 branches covered.">                    for (int i = 0; i &lt; reviewsJson.length(); i++) {</span>
+<span class="fc" id="L535">                        DTOmodels.review r = gson.fromJson(</span>
+<span class="fc" id="L536">                                reviewsJson.getJSONObject(i).toString(), DTOmodels.review.class);</span>
+                        Long fkId;
+<span class="pc bpc" id="L538" title="4 of 5 branches missed.">                        switch (type) {</span>
+<span class="nc" id="L539">                            case &quot;ALBUM&quot;: fkId = r.albumId; break;</span>
+<span class="nc" id="L540">                            case &quot;BOOK&quot;:  fkId = r.bookId;  break;</span>
+<span class="nc" id="L541">                            case &quot;GAME&quot;:  fkId = r.gameId;  break;</span>
+                            case &quot;MOVIE&quot;:
+<span class="fc" id="L543">                            case &quot;SHOW&quot;:  fkId = r.movieId; break;</span>
+<span class="nc" id="L544">                            default:      fkId = null;</span>
+                        }
+<span class="pc bpc" id="L546" title="1 of 4 branches missed.">                        if (fkId != null &amp;&amp; fkId == id) {</span>
+<span class="fc" id="L547">                            matchingIds.add(r.id);</span>
+                        }
+                    }
+<span class="pc bpc" id="L550" title="1 of 2 branches missed.">                    if (matchingIds.isEmpty()) {</span>
+<span class="nc" id="L551">                        noReviewsText.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L552">                        return;</span>
+                    }
+                    // Step 2 — fetch published posts and keep those wrapping a matched review
+<span class="fc" id="L555">                    loadPostsForReviews(type, matchingIds);</span>
+<span class="nc" id="L556">                } catch (Exception e) {</span>
+<span class="nc" id="L557">                    Log.e(TAG, &quot;Reviews parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L558">                    noReviewsText.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L559">                }</span>
+<span class="fc" id="L560">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L564">                Log.e(TAG, &quot;Reviews load failed: &quot; + message);</span>
+<span class="nc" id="L565">                noReviewsText.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L566">            }</span>
+        });
+<span class="fc" id="L568">    }</span>
+
+    /**
+     * Second step of the review loader. Fetches {@code GET /feed/type/{type}} and
+     * keeps posts whose {@code reviewId} is in {@code reviewIds}. Passes the
+     * resulting list to {@link #showPostCards(List)}.
+     */
+    private void loadPostsForReviews(String type, Set&lt;Integer&gt; reviewIds) {
+<span class="fc" id="L576">        ApiClient.getArray(this, &quot;/feed/type/&quot; + type, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray feedJson) {
+                try {
+<span class="fc" id="L580">                    Gson gson = new Gson();</span>
+<span class="fc" id="L581">                    List&lt;DTOmodels.FeedItem&gt; items = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L582" title="All 2 branches covered.">                    for (int i = 0; i &lt; feedJson.length(); i++) {</span>
+<span class="fc" id="L583">                        DTOmodels.FeedPost post = gson.fromJson(</span>
+<span class="fc" id="L584">                                feedJson.getJSONObject(i).toString(), DTOmodels.FeedPost.class);</span>
+<span class="fc bfc" id="L585" title="All 2 branches covered.">                        if (reviewIds.contains(post.reviewId)) {</span>
+<span class="fc" id="L586">                            items.add(DTOmodels.FeedItem.fromPost(post));</span>
+                        }
+                    }
+<span class="pc bpc" id="L589" title="1 of 2 branches missed.">                    if (!items.isEmpty()) {</span>
+<span class="fc" id="L590">                        showPostCards(items);</span>
+                    } else {
+                        // Reviews exist but haven't been published as posts yet
+<span class="nc" id="L593">                        noReviewsText.setVisibility(View.VISIBLE);</span>
+                    }
+<span class="nc" id="L595">                } catch (Exception e) {</span>
+<span class="nc" id="L596">                    Log.e(TAG, &quot;Feed parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L597">                    noReviewsText.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L598">                }</span>
+<span class="fc" id="L599">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L603">                Log.e(TAG, &quot;Feed load failed: &quot; + message);</span>
+<span class="nc" id="L604">                noReviewsText.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L605">            }</span>
+        });
+<span class="fc" id="L607">    }</span>
+
+    /**
+     * Binds the reviews RecyclerView with full post data so tapping a card opens
+     * {@link PostViewActivity} with a real {@code postId} (enabling comments),
+     * the correct {@code authorName}, and accurate like / comment counts.
+     */
+    private void showPostCards(List&lt;DTOmodels.FeedItem&gt; items) {
+<span class="fc" id="L615">        reviewsLabel.setText(&quot;Reviews (&quot; + items.size() + &quot;)&quot;);</span>
+<span class="fc" id="L616">        noReviewsText.setVisibility(View.GONE);</span>
+
+<span class="fc" id="L618">        FeedAdapter reviewAdapter = new FeedAdapter(this, items, new FeedAdapter.OnItemClickListener() {</span>
+            @Override
+            public void onPostClick(DTOmodels.FeedPost post) {
+<span class="nc" id="L621">                Intent intent = new Intent(MediaDetailActivity.this, PostViewActivity.class);</span>
+<span class="nc" id="L622">                intent.putExtra(&quot;postId&quot;,       post.id);          // real post ID — comments load</span>
+<span class="nc" id="L623">                intent.putExtra(&quot;reviewId&quot;,     post.reviewId);</span>
+<span class="nc" id="L624">                intent.putExtra(&quot;authorId&quot;,     post.authorId);</span>
+<span class="nc" id="L625">                intent.putExtra(&quot;authorName&quot;,   post.authorName);</span>
+<span class="nc" id="L626">                intent.putExtra(&quot;caption&quot;,      post.caption);</span>
+<span class="nc" id="L627">                intent.putExtra(&quot;mediaTitle&quot;,   post.mediaTitle);</span>
+<span class="nc" id="L628">                intent.putExtra(&quot;mediaType&quot;,    post.mediaType);</span>
+<span class="nc" id="L629">                intent.putExtra(&quot;rating&quot;,       post.rating);</span>
+<span class="nc" id="L630">                intent.putExtra(&quot;likeCount&quot;,    post.likeCount);</span>
+<span class="nc" id="L631">                intent.putExtra(&quot;commentCount&quot;, post.commentCount);</span>
+<span class="nc" id="L632">                intent.putExtra(&quot;publishedAt&quot;,  post.publishedAt);</span>
+<span class="nc" id="L633">                intent.putExtra(&quot;USER_ID&quot;,      currentUserId);</span>
+<span class="nc" id="L634">                startActivity(intent);</span>
+<span class="nc" id="L635">            }</span>
+
+            @Override
+            public void onMediaClick(DTOmodels.FeedMedia media) {
+                // No media cards inside the reviews section
+<span class="nc" id="L640">            }</span>
+        });
+
+<span class="fc" id="L643">        reviewsRecycler.setAdapter(reviewAdapter);</span>
+<span class="fc" id="L644">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

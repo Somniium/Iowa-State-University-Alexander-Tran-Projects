@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FeedAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">FeedAdapter.java</span></div><h1>FeedAdapter.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.List;
+
+/**
+ * FeedAdapter — RecyclerView adapter for the main feed.
+ *
+ * &lt;p&gt;Supports two distinct card layouts driven by {@link DTOmodels.FeedItem#type}:
+ * &lt;ul&gt;
+ *   &lt;li&gt;{@code TYPE_POST  (0)} → {@code item_feed_user_post.xml}  — a user's published review&lt;/li&gt;
+ *   &lt;li&gt;{@code TYPE_MEDIA (1)} → {@code item_feed_post.xml}        — a cover-art media card&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;The adapter holds a reference to {@code displayedItems} in FeedFragment.
+ * That list is always mutated in-place (clear + addAll) so this reference
+ * never goes stale — no need for a setter.
+ *
+ * &lt;p&gt;Item click events are forwarded to the host fragment via {@link OnItemClickListener}.
+ */
+public class FeedAdapter extends RecyclerView.Adapter&lt;RecyclerView.ViewHolder&gt; {
+
+    // -------------------------------------------------------------------------
+    // View type constants — must match DTOmodels.FeedItem.TYPE_* values
+    // -------------------------------------------------------------------------
+
+    private static final int TYPE_POST  = DTOmodels.FeedItem.TYPE_POST;
+    private static final int TYPE_MEDIA = DTOmodels.FeedItem.TYPE_MEDIA;
+
+    // -------------------------------------------------------------------------
+    // Fields
+    // -------------------------------------------------------------------------
+
+    private final Context context;
+    private final OnItemClickListener listener;
+    /** The live, in-place list managed by FeedFragment. Never replaced — only mutated. */
+    private final List&lt;DTOmodels.FeedItem&gt; items;
+
+    // =========================================================================
+    // Constructor
+    // =========================================================================
+
+    public FeedAdapter(Context context,
+                       List&lt;DTOmodels.FeedItem&gt; items,
+<span class="fc" id="L54">                       OnItemClickListener listener) {</span>
+<span class="fc" id="L55">        this.context  = context;</span>
+<span class="fc" id="L56">        this.items    = items;</span>
+<span class="fc" id="L57">        this.listener = listener;</span>
+<span class="fc" id="L58">    }</span>
+
+    // =========================================================================
+    // RecyclerView.Adapter overrides
+    // =========================================================================
+
+    /** Returns TYPE_POST or TYPE_MEDIA so the correct layout is inflated. */
+    @Override
+    public int getItemViewType(int position) {
+<span class="fc" id="L67">        return items.get(position).type;</span>
+    }
+
+    @Override
+    public int getItemCount() {
+<span class="fc" id="L72">        return items.size();</span>
+    }
+
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+<span class="fc" id="L77">        LayoutInflater inflater = LayoutInflater.from(context);</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">        if (viewType == TYPE_POST) {</span>
+<span class="fc" id="L79">            View v = inflater.inflate(R.layout.item_feed_user_post, parent, false);</span>
+<span class="fc" id="L80">            return new PostViewHolder(v);</span>
+        } else {
+<span class="fc" id="L82">            View v = inflater.inflate(R.layout.item_feed_post, parent, false);</span>
+<span class="fc" id="L83">            return new MediaViewHolder(v);</span>
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+<span class="fc" id="L89">        DTOmodels.FeedItem item = items.get(position);</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (holder instanceof PostViewHolder) {</span>
+<span class="fc" id="L91">            bindPost((PostViewHolder) holder, item.post);</span>
+        } else {
+<span class="fc" id="L93">            bindMedia((MediaViewHolder) holder, item.media);</span>
+        }
+<span class="fc" id="L95">    }</span>
+
+    // =========================================================================
+    // Bind helpers
+    // =========================================================================
+
+    /**
+     * Populates a user-post card.
+     *
+     * &lt;p&gt;The outer CardView border is tinted with the rating colour so the
+     * score is immediately visible at a glance. The inner FrameLayout stays
+     * white/neutral via {@code rounded_inner_bg}.
+     */
+    private void bindPost(PostViewHolder h, DTOmodels.FeedPost post) {
+<span class="fc" id="L109">        int ratingColor = RatingUtility.getRatingColor(post.rating);</span>
+
+        // Card border tint + rating badge
+<span class="fc" id="L112">        h.cardRoot.setCardBackgroundColor(ratingColor);</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">        h.ratingBadge.setText(post.rating &gt; 0 ? String.valueOf(post.rating) : &quot;-&quot;);</span>
+<span class="fc" id="L114">        h.ratingBadge.getBackground().setColorFilter(ratingColor, android.graphics.PorterDuff.Mode.SRC_IN);</span>
+
+        // Author avatar — circular CardView with a deterministic colour + initial
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">        String name = post.authorName != null ? post.authorName : &quot;&quot;;</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">        h.authorInitial.setText(!name.isEmpty() ? String.valueOf(name.charAt(0)) : &quot;?&quot;);</span>
+<span class="fc" id="L119">        h.authorAvatar.setCardBackgroundColor(RatingUtility.getUserColor(name));</span>
+
+        // Post metadata
+<span class="fc" id="L122">        h.authorName.setText(post.authorName);</span>
+<span class="fc" id="L123">        h.mediaType.setText(post.mediaType);</span>
+<span class="fc" id="L124">        h.mediaTitle.setText(post.mediaTitle);</span>
+<span class="fc" id="L125">        h.timestamp.setText(RatingUtility.timeAgo(post.publishedAt));</span>
+
+        // Caption is optional — hide the view when empty to avoid blank space
+<span class="pc bpc" id="L128" title="1 of 4 branches missed.">        if (post.caption != null &amp;&amp; !post.caption.isEmpty()) {</span>
+<span class="fc" id="L129">            h.caption.setText(post.caption);</span>
+<span class="fc" id="L130">            h.caption.setVisibility(View.VISIBLE);</span>
+        } else {
+<span class="fc" id="L132">            h.caption.setVisibility(View.GONE);</span>
+        }
+
+        // Social counters
+<span class="fc" id="L136">        h.likeCount.setText(&quot;♡ &quot; + post.likeCount);</span>
+<span class="fc" id="L137">        h.commentCount.setText(&quot;💬 &quot; + post.commentCount);</span>
+
+<span class="pc" id="L139">        h.itemView.setOnClickListener(v -&gt; listener.onPostClick(post));</span>
+<span class="fc" id="L140">    }</span>
+
+    /**
+     * Populates a media cover-art card (album, book, game, movie, or artist).
+     *
+     * &lt;p&gt;Cover image is loaded asynchronously via {@link ApiClient#loadImage}.
+     * The card border is tinted by the media's average community rating.
+     */
+    private void bindMedia(MediaViewHolder h, DTOmodels.FeedMedia media) {
+<span class="fc" id="L149">        int ratingColor = RatingUtility.getRatingColor(media.rating);</span>
+
+        // Card border tint + rating badge
+<span class="fc" id="L152">        h.cardRoot.setCardBackgroundColor(ratingColor);</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">        h.ratingBadge.setText(media.rating &gt; 0 ? String.valueOf(media.rating) : &quot;-&quot;);</span>
+<span class="fc" id="L154">        h.ratingBadge.getBackground().setColorFilter(ratingColor, android.graphics.PorterDuff.Mode.SRC_IN);</span>
+
+        // Media details
+<span class="fc" id="L157">        h.mediaType.setText(media.mediaType);</span>
+<span class="fc" id="L158">        h.title.setText(media.title);</span>
+<span class="fc" id="L159">        h.subtitle.setText(media.subtitle);</span>
+<span class="fc" id="L160">        h.extraInfo.setText(media.extraInfo);</span>
+
+        // Async cover image — falls back to placeholder if null/empty
+<span class="fc" id="L163">        ApiClient.loadImage(context, media.imageUrl, h.coverImg);</span>
+
+<span class="pc" id="L165">        h.itemView.setOnClickListener(v -&gt; listener.onMediaClick(media));</span>
+<span class="fc" id="L166">    }</span>
+
+    // =========================================================================
+    // Click listener interface
+    // =========================================================================
+
+    /**
+     * Implemented by FeedFragment to handle item taps.
+     * Post clicks open PostViewActivity; media clicks open MediaDetailActivity.
+     */
+    public interface OnItemClickListener {
+        void onPostClick(DTOmodels.FeedPost post);
+        void onMediaClick(DTOmodels.FeedMedia media);
+    }
+
+    // =========================================================================
+    // ViewHolder classes
+    // =========================================================================
+
+    /**
+     * ViewHolder for a published user post ({@code item_feed_user_post.xml}).
+     *
+     * &lt;p&gt;The card border is tinted by the rating colour. The inner surface stays
+     * white via {@code rounded_inner_bg}. The rating badge overlays the bottom-right corner.
+     * Caption is set to {@code GONE} when blank.
+     */
+    static class PostViewHolder extends RecyclerView.ViewHolder {
+        CardView cardRoot;       // outer card — background tinted by rating
+        CardView authorAvatar;   // circular avatar card
+        TextView authorInitial;  // first letter of the author's name
+        TextView authorName;
+        TextView mediaType;      // e.g. &quot;ALBUM&quot;, &quot;MOVIE&quot;
+        TextView timestamp;      // relative time string from RatingUtility.timeAgo()
+        TextView mediaTitle;
+        TextView caption;        // optional — hidden when blank
+        TextView likeCount;
+        TextView commentCount;
+        TextView ratingBadge;    // bottom-right overlay showing numeric score
+
+        PostViewHolder(View v) {
+<span class="fc" id="L206">            super(v);</span>
+<span class="fc" id="L207">            cardRoot      = v.findViewById(R.id.card_root);</span>
+<span class="fc" id="L208">            authorAvatar  = v.findViewById(R.id.feed_author_avatar);</span>
+<span class="fc" id="L209">            authorInitial = v.findViewById(R.id.feed_author_initial);</span>
+<span class="fc" id="L210">            authorName    = v.findViewById(R.id.feed_author_name);</span>
+<span class="fc" id="L211">            mediaType     = v.findViewById(R.id.feed_media_type);</span>
+<span class="fc" id="L212">            timestamp     = v.findViewById(R.id.feed_timestamp);</span>
+<span class="fc" id="L213">            mediaTitle    = v.findViewById(R.id.feed_media_title);</span>
+<span class="fc" id="L214">            caption       = v.findViewById(R.id.feed_caption);</span>
+<span class="fc" id="L215">            likeCount     = v.findViewById(R.id.feed_like_count);</span>
+<span class="fc" id="L216">            commentCount  = v.findViewById(R.id.feed_comment_count);</span>
+<span class="fc" id="L217">            ratingBadge   = v.findViewById(R.id.feed_rating_badge);</span>
+<span class="fc" id="L218">        }</span>
+    }
+
+    /**
+     * ViewHolder for a media cover-art card ({@code item_feed_post.xml}).
+     *
+     * &lt;p&gt;The card border is tinted by the community rating colour. Cover image (90×90 dp)
+     * is loaded asynchronously by {@link ApiClient#loadImage}. The rating badge overlays
+     * the bottom-right corner.
+     */
+    static class MediaViewHolder extends RecyclerView.ViewHolder {
+        CardView  cardRoot;    // outer card — background tinted by rating
+        ImageView coverImg;    // album art / movie poster / game cover
+        TextView  mediaType;   // e.g. &quot;ALBUM&quot;, &quot;GAME&quot;
+        TextView  title;
+        TextView  subtitle;    // artist name / director / author / developer
+        TextView  extraInfo;   // genre / release date
+        TextView  ratingBadge; // bottom-right overlay showing numeric score
+
+        MediaViewHolder(View v) {
+<span class="fc" id="L238">            super(v);</span>
+<span class="fc" id="L239">            cardRoot    = v.findViewById(R.id.card_root);</span>
+<span class="fc" id="L240">            coverImg    = v.findViewById(R.id.feed_cover_img);</span>
+<span class="fc" id="L241">            mediaType   = v.findViewById(R.id.feed_media_type);</span>
+<span class="fc" id="L242">            title       = v.findViewById(R.id.feed_title);</span>
+<span class="fc" id="L243">            subtitle    = v.findViewById(R.id.feed_subtitle);</span>
+<span class="fc" id="L244">            extraInfo   = v.findViewById(R.id.feed_extra_info);</span>
+<span class="fc" id="L245">            ratingBadge = v.findViewById(R.id.feed_rating_badge);</span>
+<span class="fc" id="L246">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

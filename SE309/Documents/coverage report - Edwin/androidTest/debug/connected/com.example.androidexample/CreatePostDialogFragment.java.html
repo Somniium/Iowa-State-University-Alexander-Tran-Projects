@@ -1,0 +1,920 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CreatePostDialogFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">CreatePostDialogFragment.java</span></div><h1>CreatePostDialogFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.app.Dialog;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import android.content.DialogInterface;
+
+<span class="nc" id="L33">public class CreatePostDialogFragment extends DialogFragment {</span>
+
+<span class="nc" id="L35">    private final List&lt;DTOmodels.SearchResult&gt; allMediaResults = new ArrayList&lt;&gt;();</span>
+    private View searchPhase, reviewPhase;
+    private TextView headerText;
+    private ImageView backBtn, closeBtn;
+    private EditText searchInput;
+    private RecyclerView resultsRecycler;
+    private SearchResultAdapter resultAdapter;
+    private List&lt;DTOmodels.SearchResult&gt; searchResults;
+    private ImageView selectedCover;
+    private TextView selectedTitle, selectedSubtitle;
+    private EditText ratingInput, bodyInput, captionInput;
+    private Button publishBtn;
+    private TextView chipAll, chipMusic, chipGames, chipMovies, chipBooks, chipArtists;
+<span class="nc" id="L48">    private String selectedChip = &quot;ALL&quot;;</span>
+    private DTOmodels.SearchResult selectedMedia;
+    private int currentUserId;
+<span class="nc" id="L51">    private int pendingSearches = 0;</span>
+    private OnPostPublishedListener publishListener;
+    private OnDismissListener dismissListener;
+
+    public void setOnPostPublishedListener(OnPostPublishedListener listener) {
+<span class="nc" id="L56">        this.publishListener = listener;</span>
+<span class="nc" id="L57">    }</span>
+
+    public void setOnDismissListener(OnDismissListener listener) {
+<span class="nc" id="L60">        this.dismissListener = listener;</span>
+<span class="nc" id="L61">    }</span>
+
+    @Override
+    public void onDismiss(@NonNull android.content.DialogInterface dialog) {
+<span class="nc" id="L65">        super.onDismiss(dialog);</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (dismissListener != null) {</span>
+<span class="nc" id="L67">            dismissListener.onDismissed();</span>
+        }
+<span class="nc" id="L69">    }</span>
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+<span class="nc" id="L73">        super.onCreate(savedInstanceState);</span>
+<span class="nc" id="L74">        setStyle(DialogFragment.STYLE_NO_FRAME, android.R.style.Theme_DeviceDefault_Light_Dialog_MinWidth);</span>
+<span class="nc" id="L75">    }</span>
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+<span class="nc" id="L80">        Dialog dialog = super.onCreateDialog(savedInstanceState);</span>
+<span class="nc" id="L81">        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);</span>
+<span class="nc" id="L82">        return dialog;</span>
+    }
+
+    @Override
+    public void onStart() {
+<span class="nc" id="L87">        super.onStart();</span>
+<span class="nc bnc" id="L88" title="All 4 branches missed.">        if (getDialog() != null &amp;&amp; getDialog().getWindow() != null) {</span>
+<span class="nc" id="L89">            getDialog().getWindow().setLayout(</span>
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+<span class="nc" id="L91">                    (int) (getResources().getDisplayMetrics().heightPixels * 0.85));</span>
+<span class="nc" id="L92">            getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);</span>
+        }
+<span class="nc" id="L94">    }</span>
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+<span class="nc" id="L99">        View view = inflater.inflate(R.layout.dialog_create_post, container, false);</span>
+
+<span class="nc bnc" id="L101" title="All 4 branches missed.">        if (getActivity() != null &amp;&amp; getActivity().getIntent() != null) {</span>
+<span class="nc" id="L102">            currentUserId = getActivity().getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+        } else {
+<span class="nc" id="L104">            currentUserId = -1;</span>
+        }
+
+<span class="nc" id="L107">        headerText = view.findViewById(R.id.create_post_header);</span>
+<span class="nc" id="L108">        backBtn = view.findViewById(R.id.create_post_back);</span>
+<span class="nc" id="L109">        closeBtn = view.findViewById(R.id.create_post_close);</span>
+<span class="nc" id="L110">        searchPhase = view.findViewById(R.id.search_phase);</span>
+<span class="nc" id="L111">        reviewPhase = view.findViewById(R.id.review_phase);</span>
+<span class="nc" id="L112">        searchInput = view.findViewById(R.id.search_input);</span>
+<span class="nc" id="L113">        resultsRecycler = view.findViewById(R.id.search_results_recycler);</span>
+
+<span class="nc" id="L115">        selectedCover = view.findViewById(R.id.selected_media_cover);</span>
+<span class="nc" id="L116">        selectedTitle = view.findViewById(R.id.selected_media_title);</span>
+<span class="nc" id="L117">        selectedSubtitle = view.findViewById(R.id.selected_media_subtitle);</span>
+<span class="nc" id="L118">        ratingInput = view.findViewById(R.id.review_rating);</span>
+<span class="nc" id="L119">        bodyInput = view.findViewById(R.id.review_body);</span>
+<span class="nc" id="L120">        captionInput = view.findViewById(R.id.review_caption);</span>
+<span class="nc" id="L121">        publishBtn = view.findViewById(R.id.btn_publish);</span>
+
+<span class="nc" id="L123">        chipAll = view.findViewById(R.id.chip_all);</span>
+<span class="nc" id="L124">        chipMusic = view.findViewById(R.id.chip_music);</span>
+<span class="nc" id="L125">        chipGames = view.findViewById(R.id.chip_games);</span>
+<span class="nc" id="L126">        chipMovies = view.findViewById(R.id.chip_movies);</span>
+<span class="nc" id="L127">        chipBooks = view.findViewById(R.id.chip_books);</span>
+<span class="nc" id="L128">        chipArtists = view.findViewById(R.id.chip_artists);</span>
+
+<span class="nc" id="L130">        searchResults = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L131">        resultAdapter = new SearchResultAdapter(getContext(), searchResults, result -&gt; {</span>
+<span class="nc" id="L132">            selectedMedia = result;</span>
+<span class="nc" id="L133">            showReviewPhase();</span>
+<span class="nc" id="L134">        });</span>
+
+<span class="nc" id="L136">        resultsRecycler.setLayoutManager(new LinearLayoutManager(getContext()));</span>
+<span class="nc" id="L137">        resultsRecycler.setAdapter(resultAdapter);</span>
+
+        // Chip listeners — filter the already-loaded list
+<span class="nc" id="L140">        View.OnClickListener chipListener = v -&gt; {</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">            if (v == chipAll) selectedChip = &quot;ALL&quot;;</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">            else if (v == chipMusic) selectedChip = &quot;MUSIC&quot;;</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            else if (v == chipGames) selectedChip = &quot;GAME&quot;;</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">            else if (v == chipMovies) selectedChip = &quot;MOVIE&quot;;</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">            else if (v == chipBooks) selectedChip = &quot;BOOK&quot;;</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">            else if (v == chipArtists) selectedChip = &quot;ARTIST&quot;;</span>
+<span class="nc" id="L147">            updateChipColors();</span>
+<span class="nc" id="L148">            searchInput.setText(&quot;&quot;);</span>
+
+<span class="nc bnc" id="L150" title="All 2 branches missed.">            if (!allMediaResults.isEmpty()) {</span>
+<span class="nc" id="L151">                filterByChip();</span>
+            } else {
+<span class="nc" id="L153">                loadAllMedia();</span>
+            }
+<span class="nc" id="L155">        };</span>
+
+<span class="nc" id="L157">        chipAll.setOnClickListener(chipListener);</span>
+<span class="nc" id="L158">        chipMusic.setOnClickListener(chipListener);</span>
+<span class="nc" id="L159">        chipGames.setOnClickListener(chipListener);</span>
+<span class="nc" id="L160">        chipMovies.setOnClickListener(chipListener);</span>
+<span class="nc" id="L161">        chipBooks.setOnClickListener(chipListener);</span>
+<span class="nc" id="L162">        chipArtists.setOnClickListener(chipListener);</span>
+
+        // Search bar — filters locally first, then API fallback
+<span class="nc" id="L165">        searchInput.setOnEditorActionListener((v, actionId, event) -&gt; {</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">            if (actionId == EditorInfo.IME_ACTION_SEARCH) {</span>
+<span class="nc" id="L167">                String query = searchInput.getText().toString().trim();</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                if (!query.isEmpty()) {</span>
+<span class="nc" id="L169">                    filterLocalResults(query);</span>
+                } else {
+                    // Empty search — reset to chip filter
+<span class="nc" id="L172">                    filterByChip();</span>
+                }
+<span class="nc" id="L174">                return true;</span>
+            }
+<span class="nc" id="L176">            return false;</span>
+        });
+
+<span class="nc" id="L179">        backBtn.setOnClickListener(v -&gt; {</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">            if (reviewPhase.getVisibility() == View.VISIBLE) {</span>
+<span class="nc" id="L181">                showSearchPhase();</span>
+            } else {
+<span class="nc" id="L183">                dismiss();</span>
+            }
+<span class="nc" id="L185">        });</span>
+
+<span class="nc" id="L187">        closeBtn.setOnClickListener(v -&gt; dismiss());</span>
+<span class="nc" id="L188">        publishBtn.setOnClickListener(v -&gt; publish());</span>
+
+        // Load all media when dialog opens
+<span class="nc" id="L191">        loadAllMedia();</span>
+
+<span class="nc" id="L193">        return view;</span>
+    }
+
+    private void updateChipColors() {
+<span class="nc" id="L197">        int inactiveColor = android.graphics.Color.parseColor(&quot;#F0F0F0&quot;);</span>
+<span class="nc" id="L198">        int allColor = android.graphics.Color.parseColor(&quot;#E53935&quot;);</span>
+<span class="nc" id="L199">        int musicColor = android.graphics.Color.parseColor(&quot;#E53935&quot;);</span>
+<span class="nc" id="L200">        int gameColor = android.graphics.Color.parseColor(&quot;#8E24AA&quot;);</span>
+<span class="nc" id="L201">        int movieColor = android.graphics.Color.parseColor(&quot;#1E88E5&quot;);</span>
+<span class="nc" id="L202">        int bookColor = android.graphics.Color.parseColor(&quot;#43A047&quot;);</span>
+<span class="nc" id="L203">        int artistColor = android.graphics.Color.parseColor(&quot;#FB8C00&quot;);</span>
+
+
+<span class="nc" id="L206">        chipAll.setBackgroundTintList(android.content.res.ColorStateList.valueOf(</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">                selectedChip.equals(&quot;ALL&quot;) ? allColor : inactiveColor));</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">        chipAll.setTextColor(selectedChip.equals(&quot;ALL&quot;) ? 0xFFFFFFFF : 0xFF000000);</span>
+
+<span class="nc" id="L210">        chipMusic.setBackgroundTintList(android.content.res.ColorStateList.valueOf(</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">                selectedChip.equals(&quot;MUSIC&quot;) ? musicColor : inactiveColor));</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        chipMusic.setTextColor(selectedChip.equals(&quot;MUSIC&quot;) ? 0xFFFFFFFF : 0xFF000000);</span>
+
+<span class="nc" id="L214">        chipGames.setBackgroundTintList(android.content.res.ColorStateList.valueOf(</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">                selectedChip.equals(&quot;GAME&quot;) ? gameColor : inactiveColor));</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        chipGames.setTextColor(selectedChip.equals(&quot;GAME&quot;) ? 0xFFFFFFFF : 0xFF000000);</span>
+
+<span class="nc" id="L218">        chipMovies.setBackgroundTintList(android.content.res.ColorStateList.valueOf(</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">                selectedChip.equals(&quot;MOVIE&quot;) ? movieColor : inactiveColor));</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">        chipMovies.setTextColor(selectedChip.equals(&quot;MOVIE&quot;) ? 0xFFFFFFFF : 0xFF000000);</span>
+
+<span class="nc" id="L222">        chipBooks.setBackgroundTintList(android.content.res.ColorStateList.valueOf(</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">                selectedChip.equals(&quot;BOOK&quot;) ? bookColor : inactiveColor));</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">        chipBooks.setTextColor(selectedChip.equals(&quot;BOOK&quot;) ? 0xFFFFFFFF : 0xFF000000);</span>
+
+<span class="nc" id="L226">        chipArtists.setBackgroundTintList(android.content.res.ColorStateList.valueOf(</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">                selectedChip.equals(&quot;ARTIST&quot;) ? artistColor : 0x33FB8C00));</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        chipArtists.setTextColor(selectedChip.equals(&quot;ARTIST&quot;) ? 0xFFFFFFFF : artistColor);</span>
+<span class="nc" id="L229">    }</span>
+
+    private void showSearchPhase() {
+<span class="nc" id="L232">        searchPhase.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L233">        reviewPhase.setVisibility(View.GONE);</span>
+<span class="nc" id="L234">        headerText.setText(&quot;Select media&quot;);</span>
+<span class="nc" id="L235">        backBtn.setVisibility(View.GONE);</span>
+<span class="nc" id="L236">    }</span>
+
+    // ==================== UI STATE ====================
+
+    private void showReviewPhase() {
+<span class="nc" id="L241">        searchPhase.setVisibility(View.GONE);</span>
+<span class="nc" id="L242">        reviewPhase.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L243">        headerText.setText(&quot;Write your review&quot;);</span>
+<span class="nc" id="L244">        backBtn.setVisibility(View.VISIBLE);</span>
+
+<span class="nc" id="L246">        selectedTitle.setText(selectedMedia.title);</span>
+<span class="nc" id="L247">        selectedSubtitle.setText(selectedMedia.subtitle + &quot; · &quot; + selectedMedia.mediaType);</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">        if (selectedMedia.imageUrl != null) {</span>
+<span class="nc" id="L249">            ApiClient.loadImage(getContext(), selectedMedia.imageUrl, selectedCover);</span>
+        }
+<span class="nc" id="L251">    }</span>
+
+    private void loadAllMedia() {
+<span class="nc" id="L254">        searchResults.clear();</span>
+<span class="nc" id="L255">        allMediaResults.clear();</span>
+<span class="nc" id="L256">        resultAdapter.notifyDataSetChanged();</span>
+<span class="nc" id="L257">        pendingSearches = 5;</span>
+
+        // Albums
+<span class="nc" id="L260">        ApiClient.getArray(getContext(), &quot;/albums&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L264">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L266">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L267">                        DTOmodels.album album = gson.fromJson(obj.toString(), DTOmodels.album.class);</span>
+<span class="nc" id="L268">                        synchronized (allMediaResults) {</span>
+<span class="nc" id="L269">                            allMediaResults.add(new DTOmodels.SearchResult(</span>
+<span class="nc" id="L270">                                    album.albumId, album.name, album.genre, &quot;MUSIC&quot;, album.coverURL));</span>
+<span class="nc" id="L271">                        }</span>
+                    }
+<span class="nc" id="L273">                    Log.d(&quot;CreatePost&quot;, &quot;Loaded &quot; + response.length() + &quot; albums&quot;);</span>
+<span class="nc" id="L274">                } catch (Exception e) {</span>
+<span class="nc" id="L275">                    Log.e(&quot;CreatePost&quot;, &quot;Error loading albums: &quot; + e.getMessage());</span>
+<span class="nc" id="L276">                }</span>
+<span class="nc" id="L277">                checkMediaLoaded();</span>
+<span class="nc" id="L278">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L282">                Log.e(&quot;CreatePost&quot;, &quot;Albums load failed: &quot; + message);</span>
+<span class="nc" id="L283">                checkMediaLoaded();</span>
+<span class="nc" id="L284">            }</span>
+        });
+
+        // Games
+<span class="nc" id="L288">        ApiClient.getArray(getContext(), &quot;/games&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L292">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L294">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L295">                        DTOmodels.game game = gson.fromJson(obj.toString(), DTOmodels.game.class);</span>
+<span class="nc" id="L296">                        synchronized (allMediaResults) {</span>
+<span class="nc" id="L297">                            allMediaResults.add(new DTOmodels.SearchResult(</span>
+                                    game.id, game.title, game.developer, &quot;GAME&quot;, game.coverUrl));
+<span class="nc" id="L299">                        }</span>
+                    }
+<span class="nc" id="L301">                    Log.d(&quot;CreatePost&quot;, &quot;Loaded &quot; + response.length() + &quot; games&quot;);</span>
+<span class="nc" id="L302">                } catch (Exception e) {</span>
+<span class="nc" id="L303">                    Log.e(&quot;CreatePost&quot;, &quot;Error loading games: &quot; + e.getMessage());</span>
+<span class="nc" id="L304">                }</span>
+<span class="nc" id="L305">                checkMediaLoaded();</span>
+<span class="nc" id="L306">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L310">                Log.e(&quot;CreatePost&quot;, &quot;Games load failed: &quot; + message);</span>
+<span class="nc" id="L311">                checkMediaLoaded();</span>
+<span class="nc" id="L312">            }</span>
+        });
+
+        // Movies
+<span class="nc" id="L316">        ApiClient.getArray(getContext(), &quot;/movies&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L320">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L322">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L323">                        DTOmodels.movie movie = gson.fromJson(obj.toString(), DTOmodels.movie.class);</span>
+<span class="nc" id="L324">                        synchronized (allMediaResults) {</span>
+<span class="nc" id="L325">                            allMediaResults.add(new DTOmodels.SearchResult(</span>
+                                    movie.id, movie.title, movie.director, &quot;MOVIE&quot;, movie.posterUrl));
+<span class="nc" id="L327">                        }</span>
+                    }
+<span class="nc" id="L329">                    Log.d(&quot;CreatePost&quot;, &quot;Loaded &quot; + response.length() + &quot; movies&quot;);</span>
+<span class="nc" id="L330">                } catch (Exception e) {</span>
+<span class="nc" id="L331">                    Log.e(&quot;CreatePost&quot;, &quot;Error loading movies: &quot; + e.getMessage());</span>
+<span class="nc" id="L332">                }</span>
+<span class="nc" id="L333">                checkMediaLoaded();</span>
+<span class="nc" id="L334">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L338">                Log.e(&quot;CreatePost&quot;, &quot;Movies load failed: &quot; + message);</span>
+<span class="nc" id="L339">                checkMediaLoaded();</span>
+<span class="nc" id="L340">            }</span>
+        });
+
+        // Books
+<span class="nc" id="L344">        ApiClient.getArray(getContext(), &quot;/books&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L348">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L349" title="All 2 branches missed.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L350">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L351">                        DTOmodels.book book = gson.fromJson(obj.toString(), DTOmodels.book.class);</span>
+<span class="nc" id="L352">                        String thumbnail = book.thumbnailurl;</span>
+<span class="nc bnc" id="L353" title="All 4 branches missed.">                        if (thumbnail != null &amp;&amp; thumbnail.isEmpty()) thumbnail = null;</span>
+<span class="nc" id="L354">                        synchronized (allMediaResults) {</span>
+<span class="nc" id="L355">                            allMediaResults.add(new DTOmodels.SearchResult(</span>
+                                    book.id, book.title, book.authors, &quot;BOOK&quot;, thumbnail));
+<span class="nc" id="L357">                        }</span>
+                    }
+<span class="nc" id="L359">                    Log.d(&quot;CreatePost&quot;, &quot;Loaded &quot; + response.length() + &quot; books&quot;);</span>
+<span class="nc" id="L360">                } catch (Exception e) {</span>
+<span class="nc" id="L361">                    Log.e(&quot;CreatePost&quot;, &quot;Error loading books: &quot; + e.getMessage());</span>
+<span class="nc" id="L362">                }</span>
+<span class="nc" id="L363">                checkMediaLoaded();</span>
+<span class="nc" id="L364">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L368">                Log.e(&quot;CreatePost&quot;, &quot;Books load failed: &quot; + message);</span>
+<span class="nc" id="L369">                checkMediaLoaded();</span>
+<span class="nc" id="L370">            }</span>
+        });
+
+        // Artists
+<span class="nc" id="L374">        ApiClient.getArray(getContext(), &quot;/artists&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L378">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L380">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L381">                        DTOmodels.artist artist = gson.fromJson(obj.toString(), DTOmodels.artist.class);</span>
+<span class="nc" id="L382">                        synchronized (allMediaResults) {</span>
+<span class="nc" id="L383">                            allMediaResults.add(new DTOmodels.SearchResult(</span>
+                                    artist.artistId, artist.name, artist.genre, &quot;ARTIST&quot;, artist.photoURL));
+<span class="nc" id="L385">                        }</span>
+                    }
+<span class="nc" id="L387">                    Log.d(&quot;CreatePost&quot;, &quot;Loaded &quot; + response.length() + &quot; artists&quot;);</span>
+<span class="nc" id="L388">                } catch (Exception e) {</span>
+<span class="nc" id="L389">                    Log.e(&quot;CreatePost&quot;, &quot;Error loading artists: &quot; + e.getMessage());</span>
+<span class="nc" id="L390">                }</span>
+<span class="nc" id="L391">                checkMediaLoaded();</span>
+<span class="nc" id="L392">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L396">                Log.e(&quot;CreatePost&quot;, &quot;Artists load failed: &quot; + message);</span>
+<span class="nc" id="L397">                checkMediaLoaded();</span>
+<span class="nc" id="L398">            }</span>
+        });
+<span class="nc" id="L400">    }</span>
+
+    private synchronized void checkMediaLoaded() {
+<span class="nc" id="L403">        pendingSearches--;</span>
+<span class="nc bnc" id="L404" title="All 2 branches missed.">        if (pendingSearches &gt; 0) return;</span>
+
+<span class="nc" id="L406">        filterByChip();</span>
+<span class="nc" id="L407">        Log.d(&quot;CreatePost&quot;, &quot;All media loaded: &quot; + allMediaResults.size() + &quot; total&quot;);</span>
+<span class="nc" id="L408">    }</span>
+
+    // ==================== LOAD ALL MEDIA ====================
+
+    private void filterByChip() {
+<span class="nc" id="L413">        searchResults.clear();</span>
+<span class="nc bnc" id="L414" title="All 2 branches missed.">        if (selectedChip.equals(&quot;ALL&quot;)) {</span>
+<span class="nc" id="L415">            searchResults.addAll(allMediaResults);</span>
+        } else {
+<span class="nc bnc" id="L417" title="All 2 branches missed.">            for (DTOmodels.SearchResult item : allMediaResults) {</span>
+<span class="nc bnc" id="L418" title="All 2 branches missed.">                if (selectedChip.equals(item.mediaType)) {</span>
+<span class="nc" id="L419">                    searchResults.add(item);</span>
+                }
+<span class="nc" id="L421">            }</span>
+        }
+<span class="nc" id="L423">        resultAdapter.notifyDataSetChanged();</span>
+<span class="nc" id="L424">        Log.d(&quot;CreatePost&quot;, &quot;Showing &quot; + searchResults.size() + &quot; results for chip: &quot; + selectedChip);</span>
+<span class="nc" id="L425">    }</span>
+
+    private void filterLocalResults(String query) {
+<span class="nc" id="L428">        searchResults.clear();</span>
+<span class="nc" id="L429">        String lower = query.toLowerCase();</span>
+
+        // Filter from allMediaResults, respecting current chip
+<span class="nc bnc" id="L432" title="All 2 branches missed.">        for (DTOmodels.SearchResult item : allMediaResults) {</span>
+<span class="nc bnc" id="L433" title="All 4 branches missed.">            if (!selectedChip.equals(&quot;ALL&quot;) &amp;&amp; !selectedChip.equals(item.mediaType)) continue;</span>
+<span class="nc bnc" id="L434" title="All 4 branches missed.">            if (item.title != null &amp;&amp; item.title.toLowerCase().contains(lower)) {</span>
+<span class="nc" id="L435">                searchResults.add(item);</span>
+            }
+<span class="nc" id="L437">        }</span>
+<span class="nc" id="L438">        resultAdapter.notifyDataSetChanged();</span>
+
+        // Always search external APIs too, results will be added alongside local ones
+<span class="nc" id="L441">        Log.d(&quot;CreatePost&quot;, &quot;Local results: &quot; + searchResults.size() + &quot;, also searching APIs...&quot;);</span>
+<span class="nc" id="L442">        searchMedia(query);</span>
+<span class="nc" id="L443">    }</span>
+
+    // ==================== FILTERING ====================
+
+    private void searchMedia(String query) {
+<span class="nc" id="L448">        pendingSearches = 0;</span>
+
+<span class="nc bnc" id="L450" title="All 4 branches missed.">        if (selectedChip.equals(&quot;ALL&quot;) || selectedChip.equals(&quot;MUSIC&quot;)) {</span>
+<span class="nc" id="L451">            pendingSearches++;</span>
+<span class="nc" id="L452">            searchAlbums(query);</span>
+        }
+<span class="nc bnc" id="L454" title="All 4 branches missed.">        if (selectedChip.equals(&quot;ALL&quot;) || selectedChip.equals(&quot;GAME&quot;)) {</span>
+<span class="nc" id="L455">            pendingSearches++;</span>
+<span class="nc" id="L456">            searchGames(query);</span>
+        }
+<span class="nc bnc" id="L458" title="All 4 branches missed.">        if (selectedChip.equals(&quot;ALL&quot;) || selectedChip.equals(&quot;MOVIE&quot;)) {</span>
+<span class="nc" id="L459">            pendingSearches++;</span>
+<span class="nc" id="L460">            searchMovies(query);</span>
+        }
+<span class="nc bnc" id="L462" title="All 4 branches missed.">        if (selectedChip.equals(&quot;ALL&quot;) || selectedChip.equals(&quot;BOOK&quot;)) {</span>
+<span class="nc" id="L463">            pendingSearches++;</span>
+<span class="nc" id="L464">            searchBooks(query);</span>
+        }
+<span class="nc bnc" id="L466" title="All 4 branches missed.">        if (selectedChip.equals(&quot;ALL&quot;) || selectedChip.equals(&quot;ARTIST&quot;)) {</span>
+<span class="nc" id="L467">            pendingSearches++;</span>
+<span class="nc" id="L468">            searchArtist(query);</span>
+        }
+<span class="nc" id="L470">    }</span>
+
+    private void searchAlbums(String query) {
+<span class="nc" id="L473">        ApiClient.get(getContext(), &quot;/search-albums-and-save?album_name=&quot; + query, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L477">                    DTOmodels.album album = new Gson().fromJson(response.toString(), DTOmodels.album.class);</span>
+<span class="nc" id="L478">                    addSearchResult(new DTOmodels.SearchResult(</span>
+<span class="nc" id="L479">                            album.albumId, album.name, album.genre, &quot;MUSIC&quot;, album.coverURL));</span>
+<span class="nc" id="L480">                    Log.d(&quot;CreatePost&quot;, &quot;Album found via API: &quot; + album.name);</span>
+<span class="nc" id="L481">                } catch (Exception e) {</span>
+<span class="nc" id="L482">                    Log.e(&quot;CreatePost&quot;, &quot;Album parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L483">                }</span>
+<span class="nc" id="L484">                checkSearchDone();</span>
+<span class="nc" id="L485">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L489">                Log.e(&quot;CreatePost&quot;, &quot;Album search failed: &quot; + message);</span>
+<span class="nc" id="L490">                checkSearchDone();</span>
+<span class="nc" id="L491">            }</span>
+        });
+<span class="nc" id="L493">    }</span>
+
+    // ==================== API SEARCH (fallback for new media) ====================
+
+    private void searchGames(String query) {
+<span class="nc" id="L498">        ApiClient.getArray(getContext(), &quot;/search-games?q=&quot; + query, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L502">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L503" title="All 2 branches missed.">                    for (int i = 0; i &lt; Math.min(response.length(), 5); i++) {</span>
+<span class="nc" id="L504">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L505">                        DTOmodels.game game = gson.fromJson(obj.toString(), DTOmodels.game.class);</span>
+<span class="nc" id="L506">                        addSearchResult(new DTOmodels.SearchResult(</span>
+                                game.id, game.title, game.developer, &quot;GAME&quot;, game.coverUrl, game.rawgId));
+                    }
+<span class="nc" id="L509">                    Log.d(&quot;CreatePost&quot;, &quot;Games found via API: &quot; + response.length());</span>
+<span class="nc" id="L510">                } catch (Exception e) {</span>
+<span class="nc" id="L511">                    Log.e(&quot;CreatePost&quot;, &quot;Game parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L512">                }</span>
+<span class="nc" id="L513">                checkSearchDone();</span>
+<span class="nc" id="L514">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L518">                Log.e(&quot;CreatePost&quot;, &quot;Game search failed: &quot; + message);</span>
+<span class="nc" id="L519">                checkSearchDone();</span>
+<span class="nc" id="L520">            }</span>
+        });
+<span class="nc" id="L522">    }</span>
+
+    private void searchMovies(String query) {
+<span class="nc" id="L525">        ApiClient.getArray(getContext(), &quot;/search-movies?q=&quot; + query, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L529">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L530" title="All 2 branches missed.">                    for (int i = 0; i &lt; Math.min(response.length(), 5); i++) {</span>
+<span class="nc" id="L531">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L532">                        DTOmodels.movie movie = gson.fromJson(obj.toString(), DTOmodels.movie.class);</span>
+<span class="nc" id="L533">                        addSearchResult(new DTOmodels.SearchResult(</span>
+                                movie.id, movie.title, movie.director, &quot;MOVIE&quot;, movie.posterUrl, movie.tmdbId));
+                    }
+<span class="nc" id="L536">                    Log.d(&quot;CreatePost&quot;, &quot;Movies found via API: &quot; + response.length());</span>
+<span class="nc" id="L537">                } catch (Exception e) {</span>
+<span class="nc" id="L538">                    Log.e(&quot;CreatePost&quot;, &quot;Movie parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L539">                }</span>
+<span class="nc" id="L540">                checkSearchDone();</span>
+<span class="nc" id="L541">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L545">                Log.e(&quot;CreatePost&quot;, &quot;Movie search failed: &quot; + message);</span>
+<span class="nc" id="L546">                checkSearchDone();</span>
+<span class="nc" id="L547">            }</span>
+        });
+<span class="nc" id="L549">    }</span>
+
+    private void searchBooks(String query) {
+<span class="nc" id="L552">        ApiClient.getArray(getContext(), &quot;/search-books?q=&quot; + query, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L556">                    Gson gson = new Gson();</span>
+<span class="nc bnc" id="L557" title="All 2 branches missed.">                    for (int i = 0; i &lt; Math.min(response.length(), 5); i++) {</span>
+<span class="nc" id="L558">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L559">                        DTOmodels.book book = gson.fromJson(obj.toString(), DTOmodels.book.class);</span>
+<span class="nc" id="L560">                        String thumbnail = book.thumbnailurl;</span>
+<span class="nc bnc" id="L561" title="All 4 branches missed.">                        if (thumbnail != null &amp;&amp; thumbnail.isEmpty()) thumbnail = null;</span>
+<span class="nc" id="L562">                        addSearchResult(new DTOmodels.SearchResult(</span>
+                                book.id, book.title, book.authors, &quot;BOOK&quot;, thumbnail, book.volumeid));
+                    }
+<span class="nc" id="L565">                    Log.d(&quot;CreatePost&quot;, &quot;Books found via API: &quot; + response.length());</span>
+<span class="nc" id="L566">                } catch (Exception e) {</span>
+<span class="nc" id="L567">                    Log.e(&quot;CreatePost&quot;, &quot;Book parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L568">                }</span>
+<span class="nc" id="L569">                checkSearchDone();</span>
+<span class="nc" id="L570">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L574">                Log.e(&quot;CreatePost&quot;, &quot;Book search failed: &quot; + message);</span>
+<span class="nc" id="L575">                checkSearchDone();</span>
+<span class="nc" id="L576">            }</span>
+        });
+<span class="nc" id="L578">    }</span>
+
+    private void searchArtist(String query) {
+<span class="nc" id="L581">        ApiClient.get(getContext(), &quot;/search-artist-and-save?artist_name=&quot; + query, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L585">                    DTOmodels.artist artist = new Gson().fromJson(response.toString(), DTOmodels.artist.class);</span>
+<span class="nc" id="L586">                    addSearchResult(new DTOmodels.SearchResult(</span>
+                            artist.artistId, artist.name, artist.genre, &quot;ARTIST&quot;, artist.photoURL));
+<span class="nc" id="L588">                    Log.d(&quot;CreatePost&quot;, &quot;Artist found via API: &quot; + artist.name);</span>
+<span class="nc" id="L589">                } catch (Exception e) {</span>
+<span class="nc" id="L590">                    Log.e(&quot;CreatePost&quot;, &quot;Artist parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L591">                }</span>
+<span class="nc" id="L592">                checkSearchDone();</span>
+<span class="nc" id="L593">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L597">                Log.e(&quot;CreatePost&quot;, &quot;Artist search failed: &quot; + message);</span>
+<span class="nc" id="L598">                checkSearchDone();</span>
+<span class="nc" id="L599">            }</span>
+        });
+<span class="nc" id="L601">    }</span>
+    private synchronized void checkSearchDone() {
+<span class="nc" id="L603">        pendingSearches--;</span>
+<span class="nc bnc" id="L604" title="All 6 branches missed.">        if (pendingSearches &lt;= 0 &amp;&amp; searchResults.isEmpty() &amp;&amp; getContext() != null) {</span>
+<span class="nc" id="L605">            Toast.makeText(getContext(), &quot;No results found&quot;, Toast.LENGTH_SHORT).show();</span>
+        }
+<span class="nc" id="L607">    }</span>
+
+    private void addSearchResult(DTOmodels.SearchResult result) {
+<span class="nc bnc" id="L610" title="All 2 branches missed.">        for (DTOmodels.SearchResult existing : searchResults) {</span>
+            // Skip if same title AND same type
+<span class="nc bnc" id="L612" title="All 4 branches missed.">            if (existing.title.equals(result.title) &amp;&amp; existing.mediaType.equals(result.mediaType)) {</span>
+<span class="nc" id="L613">                return;</span>
+            }
+            // Skip if same external ID
+<span class="nc bnc" id="L616" title="All 4 branches missed.">            if (existing.externalId != null &amp;&amp; result.externalId != null</span>
+<span class="nc bnc" id="L617" title="All 2 branches missed.">                    &amp;&amp; existing.externalId.equals(result.externalId)) {</span>
+<span class="nc" id="L618">                return;</span>
+            }
+<span class="nc" id="L620">        }</span>
+<span class="nc" id="L621">        searchResults.add(result);</span>
+<span class="nc" id="L622">        resultAdapter.notifyDataSetChanged();</span>
+<span class="nc" id="L623">    }</span>
+
+    private void publish() {
+<span class="nc" id="L626">        String ratingStr = ratingInput.getText().toString().trim();</span>
+<span class="nc" id="L627">        String body = bodyInput.getText().toString().trim();</span>
+<span class="nc" id="L628">        String caption = captionInput.getText().toString().trim();</span>
+
+<span class="nc bnc" id="L630" title="All 2 branches missed.">        if (ratingStr.isEmpty()) {</span>
+<span class="nc" id="L631">            Toast.makeText(getContext(), &quot;Please enter a rating&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L632">            return;</span>
+        }
+
+        int rating;
+        try {
+<span class="nc" id="L637">            rating = Integer.parseInt(ratingStr);</span>
+<span class="nc bnc" id="L638" title="All 4 branches missed.">            if (rating &lt; 0 || rating &gt; 100) {</span>
+<span class="nc" id="L639">                Toast.makeText(getContext(), &quot;Rating must be 0-100&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L640">                return;</span>
+            }
+<span class="nc" id="L642">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L643">            Toast.makeText(getContext(), &quot;Invalid rating&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L644">            return;</span>
+<span class="nc" id="L645">        }</span>
+
+<span class="nc bnc" id="L647" title="All 2 branches missed.">        if (caption.isEmpty()) {</span>
+<span class="nc" id="L648">            Toast.makeText(getContext(), &quot;Caption is required&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L649">            return;</span>
+        }
+
+<span class="nc" id="L652">        publishBtn.setEnabled(false);</span>
+<span class="nc" id="L653">        publishBtn.setText(&quot;Publishing...&quot;);</span>
+
+        String mediaType;
+<span class="nc bnc" id="L656" title="All 6 branches missed.">        switch (selectedMedia.mediaType) {</span>
+<span class="nc" id="L657">            case &quot;MUSIC&quot;: mediaType = &quot;MUSIC&quot;; break;</span>
+<span class="nc" id="L658">            case &quot;GAME&quot;:  mediaType = &quot;GAME&quot;; break;</span>
+<span class="nc" id="L659">            case &quot;MOVIE&quot;: mediaType = &quot;MOVIE&quot;; break;</span>
+<span class="nc" id="L660">            case &quot;SHOW&quot;:  mediaType = &quot;MOVIE&quot;; break;</span>
+<span class="nc" id="L661">            case &quot;BOOK&quot;:  mediaType = &quot;BOOK&quot;; break;</span>
+<span class="nc" id="L662">            default:      mediaType = &quot;MUSIC&quot;; break;</span>
+        }
+
+        // If external media not yet saved, save first
+<span class="nc bnc" id="L666" title="All 6 branches missed.">        if (selectedMedia.externalId != null &amp;&amp; !selectedMedia.externalId.isEmpty() &amp;&amp; selectedMedia.id == 0) {</span>
+<span class="nc" id="L667">            saveMediaThenPublish(rating, body, caption, mediaType);</span>
+<span class="nc" id="L668">            return;</span>
+        }
+
+<span class="nc" id="L671">        createReview(rating, body, caption, mediaType);</span>
+<span class="nc" id="L672">    }</span>
+
+    private void createReview(int rating, String body, String caption, String mediaType) {
+<span class="nc" id="L675">        Log.d(&quot;CreatePost&quot;, &quot;Publishing: &quot; + selectedMedia.title + &quot; rating=&quot; + rating + &quot; id=&quot; + selectedMedia.id);</span>
+
+<span class="nc" id="L677">        DTOmodels.review reviewRequest = new DTOmodels.review(mediaType, selectedMedia.title, rating, body);</span>
+
+<span class="nc" id="L679">        ApiClient.post(getContext(), &quot;/reviews&quot;, reviewRequest, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L682">                Log.d(&quot;CreatePost&quot;, &quot;Review created, finding ID...&quot;);</span>
+<span class="nc" id="L683">                findReviewByTitle(selectedMedia.title, caption);</span>
+<span class="nc" id="L684">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L688">                Log.e(&quot;CreatePost&quot;, &quot;Review creation failed: &quot; + message);</span>
+<span class="nc" id="L689">                publishFailed();</span>
+<span class="nc" id="L690">            }</span>
+        });
+<span class="nc" id="L692">    }</span>
+
+    private void findReviewByTitle(String title, String caption) {
+<span class="nc" id="L695">        ApiClient.getArray(getContext(), &quot;/reviews&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L699">                    int reviewId = -1;</span>
+<span class="nc bnc" id="L700" title="All 2 branches missed.">                    for (int i = response.length() - 1; i &gt;= 0; i--) {</span>
+<span class="nc" id="L701">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc bnc" id="L702" title="All 2 branches missed.">                        if (title.equals(obj.getString(&quot;title&quot;))) {</span>
+<span class="nc" id="L703">                            reviewId = obj.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L704">                            break;</span>
+                        }
+                    }
+
+<span class="nc bnc" id="L708" title="All 2 branches missed.">                    if (reviewId == -1) {</span>
+<span class="nc" id="L709">                        Log.e(&quot;CreatePost&quot;, &quot;Could not find created review&quot;);</span>
+<span class="nc" id="L710">                        publishFailed();</span>
+<span class="nc" id="L711">                        return;</span>
+                    }
+
+<span class="nc" id="L714">                    Log.d(&quot;CreatePost&quot;, &quot;Found review id: &quot; + reviewId);</span>
+<span class="nc" id="L715">                    linkReviewToUser(reviewId, caption);</span>
+<span class="nc" id="L716">                } catch (Exception e) {</span>
+<span class="nc" id="L717">                    Log.e(&quot;CreatePost&quot;, &quot;Error finding review: &quot; + e.getMessage());</span>
+<span class="nc" id="L718">                    publishFailed();</span>
+<span class="nc" id="L719">                }</span>
+<span class="nc" id="L720">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L724">                Log.e(&quot;CreatePost&quot;, &quot;Failed to fetch reviews: &quot; + message);</span>
+<span class="nc" id="L725">                publishFailed();</span>
+<span class="nc" id="L726">            }</span>
+        });
+<span class="nc" id="L728">    }</span>
+
+    // ==================== PUBLISH FLOW ====================
+
+    private void linkReviewToUser(int reviewId, String caption) {
+<span class="nc" id="L733">        ApiClient.putString(getContext(), &quot;/reviews/&quot; + reviewId + &quot;/user/&quot; + currentUserId, &quot;&quot;, new Api_String_Interface() {</span>
+            @Override
+            public void onSuccess(String response) {
+<span class="nc" id="L736">                Log.d(&quot;CreatePost&quot;, &quot;Review linked to user&quot;);</span>
+<span class="nc" id="L737">                linkReviewToMedia(reviewId, caption);</span>
+<span class="nc" id="L738">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L742">                Log.e(&quot;CreatePost&quot;, &quot;User link failed: &quot; + message);</span>
+<span class="nc" id="L743">                publishPost(reviewId, caption);</span>
+<span class="nc" id="L744">            }</span>
+        });
+<span class="nc" id="L746">    }</span>
+
+    private void linkReviewToMedia(int reviewId, String caption) {
+<span class="nc" id="L749">        String endpoint = null;</span>
+
+<span class="nc bnc" id="L751" title="All 5 branches missed.">        switch (selectedMedia.mediaType) {</span>
+            case &quot;MUSIC&quot;:
+<span class="nc" id="L753">                endpoint = &quot;/reviews/&quot; + reviewId + &quot;/album/&quot; + selectedMedia.id;</span>
+<span class="nc" id="L754">                break;</span>
+            case &quot;GAME&quot;:
+<span class="nc" id="L756">                endpoint = &quot;/reviews/&quot; + reviewId + &quot;/game/&quot; + selectedMedia.id;</span>
+<span class="nc" id="L757">                break;</span>
+            case &quot;MOVIE&quot;:
+<span class="nc" id="L759">                endpoint = &quot;/reviews/&quot; + reviewId + &quot;/movie/&quot; + selectedMedia.id;</span>
+<span class="nc" id="L760">                break;</span>
+            case &quot;BOOK&quot;:
+<span class="nc" id="L762">                endpoint = &quot;/reviews/&quot; + reviewId + &quot;/book/&quot; + selectedMedia.id;</span>
+                break;
+        }
+
+<span class="nc bnc" id="L766" title="All 2 branches missed.">        if (endpoint == null) {</span>
+<span class="nc" id="L767">            publishPost(reviewId, caption);</span>
+<span class="nc" id="L768">            return;</span>
+        }
+
+<span class="nc" id="L771">        Log.d(&quot;CreatePost&quot;, &quot;Linking review to media: &quot; + endpoint);</span>
+
+<span class="nc" id="L773">        ApiClient.putString(getContext(), endpoint, &quot;&quot;, new Api_String_Interface() {</span>
+            @Override
+            public void onSuccess(String response) {
+<span class="nc" id="L776">                Log.d(&quot;CreatePost&quot;, &quot;Review linked to media&quot;);</span>
+<span class="nc" id="L777">                publishPost(reviewId, caption);</span>
+<span class="nc" id="L778">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L782">                Log.e(&quot;CreatePost&quot;, &quot;Media link failed: &quot; + message);</span>
+<span class="nc" id="L783">                publishPost(reviewId, caption);</span>
+<span class="nc" id="L784">            }</span>
+        });
+<span class="nc" id="L786">    }</span>
+
+    private void publishPost(int reviewId, String caption) {
+<span class="nc" id="L789">        String endpoint = &quot;/reviews/&quot; + reviewId + &quot;/publish?authorId=&quot; + currentUserId;</span>
+<span class="nc" id="L790">        DTOmodels.PostPublishRequest request = new DTOmodels.PostPublishRequest(caption, &quot;PUBLIC&quot;);</span>
+
+<span class="nc" id="L792">        ApiClient.post(getContext(), endpoint, request, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="nc" id="L795">                Log.d(&quot;CreatePost&quot;, &quot;Post published!&quot;);</span>
+<span class="nc" id="L796">                updateMediaRating();</span>
+<span class="nc bnc" id="L797" title="All 2 branches missed.">                if (getContext() != null) {</span>
+<span class="nc" id="L798">                    Toast.makeText(getContext(), &quot;Post published!&quot;, Toast.LENGTH_SHORT).show();</span>
+                }
+<span class="nc bnc" id="L800" title="All 2 branches missed.">                if (publishListener != null) {</span>
+<span class="nc" id="L801">                    publishListener.onPostPublished();</span>
+                }
+<span class="nc" id="L803">                dismiss();</span>
+<span class="nc" id="L804">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L808">                Log.e(&quot;CreatePost&quot;, &quot;Publish failed: &quot; + message);</span>
+<span class="nc" id="L809">                publishFailed();</span>
+<span class="nc" id="L810">            }</span>
+        });
+<span class="nc" id="L812">    }</span>
+
+    private void publishFailed() {
+<span class="nc" id="L815">        publishBtn.setEnabled(true);</span>
+<span class="nc" id="L816">        publishBtn.setText(&quot;Publish&quot;);</span>
+<span class="nc bnc" id="L817" title="All 2 branches missed.">        if (getContext() != null) {</span>
+<span class="nc" id="L818">            Toast.makeText(getContext(), &quot;Failed to publish&quot;, Toast.LENGTH_SHORT).show();</span>
+        }
+<span class="nc" id="L820">    }</span>
+
+    private void saveMediaThenPublish(int rating, String body, String caption, String mediaType) {
+<span class="nc" id="L823">        String saveEndpoint = null;</span>
+
+<span class="nc bnc" id="L825" title="All 5 branches missed.">        switch (selectedMedia.mediaType) {</span>
+            case &quot;GAME&quot;:
+<span class="nc" id="L827">                saveEndpoint = &quot;/games/save?rawgId=&quot; + selectedMedia.externalId;</span>
+<span class="nc" id="L828">                break;</span>
+            case &quot;MOVIE&quot;:
+<span class="nc" id="L830">                saveEndpoint = &quot;/movies/save?tmdbId=&quot; + selectedMedia.externalId + &quot;&amp;type=movie&quot;;</span>
+<span class="nc" id="L831">                break;</span>
+            case &quot;SHOW&quot;:
+<span class="nc" id="L833">                saveEndpoint = &quot;/movies/save?tmdbId=&quot; + selectedMedia.externalId + &quot;&amp;type=tv&quot;;</span>
+<span class="nc" id="L834">                break;</span>
+            case &quot;BOOK&quot;:
+<span class="nc" id="L836">                saveEndpoint = &quot;/books/save?hardcoverId=&quot; + selectedMedia.externalId;</span>
+<span class="nc" id="L837">                break;</span>
+            default:
+                // Albums and artists auto-save, shouldn't reach here
+<span class="nc" id="L840">                Log.e(&quot;CreatePost&quot;, &quot;Unknown media type for save: &quot; + selectedMedia.mediaType);</span>
+<span class="nc" id="L841">                publishFailed();</span>
+<span class="nc" id="L842">                return;</span>
+        }
+
+<span class="nc" id="L845">        Log.d(&quot;CreatePost&quot;, &quot;Saving media to database: &quot; + saveEndpoint);</span>
+
+<span class="nc" id="L847">        ApiClient.post(getContext(), saveEndpoint, null, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+                    // Get the database ID from the saved response
+<span class="nc" id="L852">                    long savedId = response.optLong(&quot;id&quot;, 0);</span>
+<span class="nc bnc" id="L853" title="All 2 branches missed.">                    if (savedId == 0) savedId = response.optLong(&quot;gameId&quot;, 0);</span>
+<span class="nc bnc" id="L854" title="All 2 branches missed.">                    if (savedId == 0) savedId = response.optLong(&quot;movieId&quot;, 0);</span>
+<span class="nc bnc" id="L855" title="All 2 branches missed.">                    if (savedId == 0) savedId = response.optLong(&quot;bookId&quot;, 0);</span>
+
+<span class="nc" id="L857">                    selectedMedia.id = savedId;</span>
+<span class="nc" id="L858">                    Log.d(&quot;CreatePost&quot;, &quot;Media saved with id: &quot; + savedId);</span>
+
+                    // Now create the review with the real database ID
+<span class="nc" id="L861">                    createReview(rating, body, caption, mediaType);</span>
+<span class="nc" id="L862">                } catch (Exception e) {</span>
+<span class="nc" id="L863">                    Log.e(&quot;CreatePost&quot;, &quot;Error parsing save response: &quot; + e.getMessage());</span>
+<span class="nc" id="L864">                    publishFailed();</span>
+<span class="nc" id="L865">                }</span>
+<span class="nc" id="L866">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L870">                Log.e(&quot;CreatePost&quot;, &quot;Save media failed: &quot; + message);</span>
+<span class="nc" id="L871">                publishFailed();</span>
+<span class="nc" id="L872">            }</span>
+        });
+<span class="nc" id="L874">    }</span>
+
+    private void updateMediaRating() {
+<span class="nc" id="L877">        String endpoint = null;</span>
+
+<span class="nc bnc" id="L879" title="All 5 branches missed.">        switch (selectedMedia.mediaType) {</span>
+            case &quot;MUSIC&quot;:
+<span class="nc" id="L881">                endpoint = &quot;/album/update-average-rating/&quot; + selectedMedia.id;</span>
+<span class="nc" id="L882">                break;</span>
+            case &quot;GAME&quot;:
+<span class="nc" id="L884">                endpoint = &quot;/games/&quot; + selectedMedia.id + &quot;/update-rating&quot;;</span>
+<span class="nc" id="L885">                break;</span>
+            case &quot;MOVIE&quot;:
+<span class="nc" id="L887">                endpoint = &quot;/movies/&quot; + selectedMedia.id + &quot;/update-rating&quot;;</span>
+<span class="nc" id="L888">                break;</span>
+            case &quot;BOOK&quot;:
+<span class="nc" id="L890">                endpoint = &quot;/books/&quot; + selectedMedia.id + &quot;/update-rating&quot;;</span>
+                break;
+        }
+
+<span class="nc bnc" id="L894" title="All 2 branches missed.">        if (endpoint == null) return;</span>
+
+<span class="nc" id="L896">        Log.d(&quot;CreatePost&quot;, &quot;Updating media rating: &quot; + endpoint);</span>
+
+<span class="nc" id="L898">        ApiClient.putString(getContext(), endpoint, &quot;&quot;, new Api_String_Interface() {</span>
+            @Override
+            public void onSuccess(String response) {
+<span class="nc" id="L901">                Log.d(&quot;CreatePost&quot;, &quot;Media rating updated&quot;);</span>
+<span class="nc" id="L902">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L906">                Log.e(&quot;CreatePost&quot;, &quot;Rating update failed: &quot; + message);</span>
+<span class="nc" id="L907">            }</span>
+        });
+<span class="nc" id="L909">    }</span>
+
+    // Listeners
+    public interface OnPostPublishedListener {
+        void onPostPublished();
+    }
+
+    public interface OnDismissListener {
+        void onDismissed();
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

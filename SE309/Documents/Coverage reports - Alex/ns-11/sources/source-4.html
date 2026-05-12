@@ -1,0 +1,241 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > NotificationWebSocketHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Notifications</a>
+</div>
+
+<h1>Coverage Summary for Class: NotificationWebSocketHandler (onetoone.Notifications)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">NotificationWebSocketHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    33.3%
+  </span>
+  <span class="absValue">
+    (3/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    3.3%
+  </span>
+  <span class="absValue">
+    (1/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    12.2%
+  </span>
+  <span class="absValue">
+    (5/41)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Notifications;
+&nbsp;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.web.socket.CloseStatus;
+&nbsp;import org.springframework.web.socket.TextMessage;
+&nbsp;import org.springframework.web.socket.WebSocketSession;
+&nbsp;import org.springframework.web.socket.handler.TextWebSocketHandler;
+&nbsp;
+&nbsp;import java.io.IOException;
+&nbsp;import java.util.Map;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.concurrent.ConcurrentHashMap;
+&nbsp;import java.util.concurrent.CopyOnWriteArraySet;
+&nbsp;
+&nbsp;/**
+&nbsp; * Handles WebSocket connections for live notifications.
+&nbsp; *
+&nbsp; * Each user connects with their userId in the URL path:
+&nbsp; *   ws://localhost:8080/ws/notifications/{userId}
+&nbsp; *
+&nbsp; * Other parts of the app call NotificationWebSocketHandler.sendToUser(userId, message)
+&nbsp; * to push a notification to a specific connected user.
+&nbsp; *
+&nbsp; * A user can have multiple concurrent sessions (phone + browser, two tabs, etc.) — each
+&nbsp; * one is tracked separately and a notification fans out to all of them.
+&nbsp; */
+<b class="fc">&nbsp;public class NotificationWebSocketHandler extends TextWebSocketHandler {</b>
+&nbsp;
+<b class="fc">&nbsp;    private static final Logger log = LoggerFactory.getLogger(NotificationWebSocketHandler.class);</b>
+&nbsp;
+&nbsp;    // userId (as String) -&gt; set of active WebSocket sessions for that user.
+&nbsp;    // CopyOnWriteArraySet keeps iteration during broadcast() safe even when sessions
+&nbsp;    // open/close concurrently.
+<b class="fc">&nbsp;    private static final Map&lt;String, Set&lt;WebSocketSession&gt;&gt; sessions = new ConcurrentHashMap&lt;&gt;();</b>
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void afterConnectionEstablished(WebSocketSession session) {
+<b class="nc">&nbsp;        String userId = extractUserId(session);</b>
+<b class="nc">&nbsp;        if (userId == null) {</b>
+<b class="nc">&nbsp;            log.warn(&quot;WebSocket rejected: could not parse userId from path {}&quot;,</b>
+<b class="nc">&nbsp;                    session.getUri() != null ? session.getUri().getPath() : &quot;null&quot;);</b>
+<b class="nc">&nbsp;            try { session.close(CloseStatus.BAD_DATA); } catch (IOException ignored) {}</b>
+&nbsp;            return;
+&nbsp;        }
+<b class="nc">&nbsp;        sessions.computeIfAbsent(userId, k -&gt; new CopyOnWriteArraySet&lt;&gt;()).add(session);</b>
+<b class="nc">&nbsp;        log.info(&quot;WebSocket connected: userId={} sessionId={} (user now has {} active sessions)&quot;,</b>
+<b class="nc">&nbsp;                userId, session.getId(), sessions.get(userId).size());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+<b class="nc">&nbsp;        String userId = extractUserId(session);</b>
+<b class="nc">&nbsp;        if (userId == null) return;</b>
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;WebSocketSession&gt; userSessions = sessions.get(userId);</b>
+<b class="nc">&nbsp;        if (userSessions != null) {</b>
+<b class="nc">&nbsp;            userSessions.remove(session);</b>
+&nbsp;            // Drop the entry entirely once the user has no live sessions, so the map doesn&#39;t grow unbounded.
+<b class="nc">&nbsp;            if (userSessions.isEmpty()) {</b>
+<b class="nc">&nbsp;                sessions.remove(userId, userSessions);</b>
+&nbsp;            }
+&nbsp;        }
+<b class="nc">&nbsp;        log.info(&quot;WebSocket disconnected: userId={} sessionId={} status={}&quot;,</b>
+<b class="nc">&nbsp;                userId, session.getId(), status);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+&nbsp;        // Clients can send a ping; server echoes back to confirm connection
+&nbsp;        try {
+<b class="nc">&nbsp;            session.sendMessage(new TextMessage(&quot;{\&quot;type\&quot;:\&quot;pong\&quot;}&quot;));</b>
+&nbsp;        } catch (IOException e) {
+<b class="nc">&nbsp;            log.warn(&quot;Error sending pong to sessionId={}: {}&quot;, session.getId(), e.getMessage());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Send a JSON notification string to a specific user. Fans out across all
+&nbsp;     * of that user&#39;s currently-connected devices/tabs.
+&nbsp;     * Called by NotificationService whenever an event occurs.
+&nbsp;     */
+&nbsp;    public void sendToUser(String userId, String jsonMessage) {
+<b class="fc">&nbsp;        Set&lt;WebSocketSession&gt; userSessions = sessions.get(userId);</b>
+<b class="pc">&nbsp;        if (userSessions == null || userSessions.isEmpty()) return;</b>
+&nbsp;
+<b class="nc">&nbsp;        for (WebSocketSession session : userSessions) {</b>
+<b class="nc">&nbsp;            if (!session.isOpen()) continue;</b>
+&nbsp;            try {
+<b class="nc">&nbsp;                session.sendMessage(new TextMessage(jsonMessage));</b>
+&nbsp;            } catch (IOException e) {
+<b class="nc">&nbsp;                log.warn(&quot;Failed to send notification to userId={} sessionId={}: {}&quot;,</b>
+<b class="nc">&nbsp;                        userId, session.getId(), e.getMessage());</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    /**
+&nbsp;     * Broadcast a message to every connected session of every user.
+&nbsp;     */
+&nbsp;    public void broadcast(String jsonMessage) {
+<b class="nc">&nbsp;        sessions.forEach((userId, userSessions) -&gt; {</b>
+<b class="nc">&nbsp;            for (WebSocketSession session : userSessions) {</b>
+<b class="nc">&nbsp;                if (!session.isOpen()) continue;</b>
+&nbsp;                try {
+<b class="nc">&nbsp;                    session.sendMessage(new TextMessage(jsonMessage));</b>
+&nbsp;                } catch (IOException e) {
+<b class="nc">&nbsp;                    log.warn(&quot;Broadcast failed for userId={} sessionId={}: {}&quot;,</b>
+<b class="nc">&nbsp;                            userId, session.getId(), e.getMessage());</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        });
+&nbsp;    }
+&nbsp;
+&nbsp;    /** Extracts {userId} from the WebSocket URI path. Returns null if the path is malformed or empty. */
+&nbsp;    private String extractUserId(WebSocketSession session) {
+<b class="nc">&nbsp;        String path = session.getUri() != null ? session.getUri().getPath() : null;</b>
+<b class="nc">&nbsp;        if (path == null) return null;</b>
+&nbsp;        // path = /ws/notifications/{userId}
+<b class="nc">&nbsp;        String[] parts = path.split(&quot;/&quot;);</b>
+<b class="nc">&nbsp;        if (parts.length == 0) return null;</b>
+<b class="nc">&nbsp;        String last = parts[parts.length - 1];</b>
+<b class="nc">&nbsp;        return last.isEmpty() ? null : last;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-05-06 02:22</div>
+</div>
+</body>
+</html>

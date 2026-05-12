@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FollowingFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">FollowingFragment.java</span></div><h1>FollowingFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ListView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.fragment.app.Fragment;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+
+<span class="nc" id="L28">public class FollowingFragment extends Fragment {</span>
+    int unfollowId;
+    int userId;
+    ListView groupList;
+    Button returnButton;
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+<span class="nc" id="L36">        View view = inflater.inflate(R.layout.fragment_following, container, false);</span>
+<span class="nc" id="L37">        userId = getActivity().getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+<span class="nc" id="L38">        groupList = view.findViewById(R.id.following_list);</span>
+<span class="nc" id="L39">        returnButton = view.findViewById(R.id.return_button);</span>
+<span class="nc" id="L40">        ArrayList&lt;String&gt; followedAccounts = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L41">        ApiClient.getArray(FollowingFragment.this.getContext(), &quot;/follower/get-following/&quot; + userId, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L45">                    String stringedResponse = response.toString();</span>
+<span class="nc" id="L46">                    JSONArray groupData = new JSONArray(stringedResponse);</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">                    for (int i = 0; i &lt; groupData.length(); i++) {</span>
+                        try {
+<span class="nc" id="L49">                            String singleFollowedName = groupData.getJSONObject(i).getString(&quot;name&quot;);</span>
+<span class="nc" id="L50">                            followedAccounts.add(singleFollowedName);</span>
+<span class="nc" id="L51">                            Log.d(&quot;test: &quot;, followedAccounts.get(i));</span>
+<span class="nc" id="L52">                        } catch (JSONException e) {</span>
+<span class="nc" id="L53">                            throw new RuntimeException(e);</span>
+<span class="nc" id="L54">                        }</span>
+                    }
+
+<span class="nc" id="L57">                    String[] studentGroupsArray = new String[followedAccounts.size()];</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">                    for (int i = 0; i &lt; followedAccounts.size(); i++) {</span>
+<span class="nc" id="L59">                        studentGroupsArray[i] = followedAccounts.get(i);</span>
+<span class="nc" id="L60">                        Log.d(&quot;test2: &quot;, studentGroupsArray[i]);</span>
+                    }
+
+<span class="nc" id="L63">                    ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;String&gt;(getContext(), android.R.layout.simple_list_item_1, studentGroupsArray);</span>
+<span class="nc" id="L64">                    groupList.setAdapter(adapter);</span>
+
+<span class="nc" id="L66">                } catch (JSONException e) {</span>
+<span class="nc" id="L67">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L68">                }</span>
+
+<span class="nc" id="L70">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L74">            }</span>
+        });
+
+<span class="nc" id="L77">        groupList.setOnItemClickListener(new AdapterView.OnItemClickListener() {</span>
+            @Override
+            public void onItemClick(AdapterView&lt;?&gt; adapterView, View view, int i, long l) {
+<span class="nc" id="L80">                String friend = adapterView.getItemAtPosition(i).toString();</span>
+<span class="nc" id="L81">                new AlertDialog.Builder(getActivity())</span>
+<span class="nc" id="L82">                        .setTitle(&quot;Unfollow&quot;)</span>
+<span class="nc" id="L83">                        .setMessage(&quot;Are you sure you want to unfollow &quot; + friend + &quot;?&quot;)</span>
+<span class="nc" id="L84">                        .setPositiveButton(&quot;Unfollow&quot;, (dialog, which) -&gt; {</span>
+<span class="nc" id="L85">                            getUserIdByName(friend);</span>
+<span class="nc" id="L86">                        })</span>
+
+<span class="nc" id="L88">                        .setNegativeButton(android.R.string.cancel, null)</span>
+<span class="nc" id="L89">                        .setIconAttribute(android.R.attr.alertDialogIcon)</span>
+<span class="nc" id="L90">                        .show();</span>
+<span class="nc" id="L91">            }</span>
+        });
+
+<span class="nc" id="L94">        returnButton.setOnClickListener(v -&gt; {</span>
+<span class="nc" id="L95">            ((MainFeedActivity) getActivity()).loadFragment(new UserProfileFragment());</span>
+<span class="nc" id="L96">        });</span>
+
+<span class="nc" id="L98">        return view;</span>
+    }
+
+    private void getUserIdByName(String name) {
+<span class="nc" id="L102">        ApiClient.get(getContext(), &quot;/users/name/&quot; + name, new Api_Interface() {</span>
+
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="nc" id="L107">                    unfollowId = response.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L108">                } catch (JSONException e) {</span>
+<span class="nc" id="L109">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L110">                }</span>
+<span class="nc" id="L111">                unfollowUser(unfollowId);</span>
+<span class="nc" id="L112">            }</span>
+
+            @Override
+            public void onError(String message) {
+
+<span class="nc" id="L117">            }</span>
+        });
+<span class="nc" id="L119">    }</span>
+
+    private void unfollowUser(int friendId) {
+<span class="nc" id="L122">        String endpoint = String.format(&quot;/follower/remove-follower/currUser/%d/followUser/%d&quot;, userId, friendId);</span>
+<span class="nc" id="L123">        ApiClient.deleteString(getContext(), endpoint, new Api_String_Interface() {</span>
+
+            @Override
+            public void onSuccess(String response) {
+<span class="nc" id="L127">                updateFriendsList();</span>
+<span class="nc" id="L128">                Toast.makeText(getContext(), &quot;Unfollowed.&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L129">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L133">                Log.e(&quot;Unfollow Error&quot;, message);</span>
+<span class="nc" id="L134">                Toast.makeText(getContext(), &quot;Could not unfollow user&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L135">            }</span>
+        });
+<span class="nc" id="L137">    }</span>
+
+    private void updateFriendsList() {
+<span class="nc" id="L140">        ArrayList&lt;String&gt; newFollowedAccounts = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L141">        ApiClient.getArray(FollowingFragment.this.getContext(), &quot;/follower/get-following/&quot; + userId, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="nc" id="L145">                    String stringedResponse = response.toString();</span>
+<span class="nc" id="L146">                    JSONArray groupData = new JSONArray(stringedResponse);</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">                    for (int i = 0; i &lt; groupData.length(); i++) {</span>
+                        try {
+<span class="nc" id="L149">                            String singleFollowedName = groupData.getJSONObject(i).getString(&quot;name&quot;);</span>
+<span class="nc" id="L150">                            newFollowedAccounts.add(singleFollowedName);</span>
+<span class="nc" id="L151">                            Log.d(&quot;test: &quot;, newFollowedAccounts.get(i));</span>
+<span class="nc" id="L152">                        } catch (JSONException e) {</span>
+<span class="nc" id="L153">                            throw new RuntimeException(e);</span>
+<span class="nc" id="L154">                        }</span>
+                    }
+
+<span class="nc" id="L157">                    String[] studentGroupsArray = new String[newFollowedAccounts.size()];</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">                    for (int i = 0; i &lt; newFollowedAccounts.size(); i++) {</span>
+<span class="nc" id="L159">                        studentGroupsArray[i] = newFollowedAccounts.get(i);</span>
+<span class="nc" id="L160">                        Log.d(&quot;test2: &quot;, studentGroupsArray[i]);</span>
+                    }
+
+<span class="nc" id="L163">                    ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;String&gt;(getContext(), android.R.layout.simple_list_item_1, studentGroupsArray);</span>
+<span class="nc" id="L164">                    groupList.setAdapter(adapter);</span>
+
+<span class="nc" id="L166">                } catch (JSONException e) {</span>
+<span class="nc" id="L167">                    throw new RuntimeException(e);</span>
+<span class="nc" id="L168">                }</span>
+
+<span class="nc" id="L170">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L174">            }</span>
+        });
+<span class="nc" id="L176">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

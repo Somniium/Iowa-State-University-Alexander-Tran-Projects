@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DTOmodels.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">DTOmodels.java</span></div><h1>DTOmodels.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import java.util.List;
+
+/**
+ * @author Cristian Alvarez
+ * @version 1.2
+ * A central class that holds all the Data Transfer Objects.
+ * These static classes are the references that Gson uses
+ * to convert between Java objects and JSON with the Spring
+ * boot backend.
+ */
+<span class="nc" id="L13">public class DTOmodels {</span>
+
+    /**
+     * Represents the credentials inputted by the user in the Login Activity
+     * to be sent to the backend database for authentication.
+     */
+    public static class LoginRequest {
+        public String emailId;
+        public String password;
+
+<span class="nc" id="L23">        public LoginRequest(String emailId, String password) {</span>
+<span class="nc" id="L24">            this.emailId = emailId;</span>
+<span class="nc" id="L25">            this.password = password;</span>
+<span class="nc" id="L26">        }</span>
+    }
+
+    /**
+     * Represents the data received from the backend database after a successful
+     * Login Request. It contains essential user profile data.
+     */
+    public static class LoginResponse {
+        public int id;
+        public String name;
+        public String emailId;
+        public boolean active;
+
+<span class="nc" id="L39">        public LoginResponse() {</span>
+<span class="nc" id="L40">        }</span>
+    }
+
+    /**
+     * Represents the payload sent to the backend database when registering
+     * a new user account.
+     */
+    public static class SignUpRequest {
+        public String name;
+        public String emailId;
+        public String password;
+
+<span class="nc" id="L52">        public SignUpRequest(String name, String emailId, String password) {</span>
+<span class="nc" id="L53">            this.name = name;</span>
+<span class="nc" id="L54">            this.emailId = emailId;</span>
+<span class="nc" id="L55">            this.password = password;</span>
+<span class="nc" id="L56">        }</span>
+    }
+
+    /**
+     * Represents the payload used to update an existing user's profile
+     * information in the backend database.
+     */
+    public static class UserUpdate {
+        public int id;
+        public String name;
+        public String emailId;
+        public String password;
+
+<span class="nc" id="L69">        public UserUpdate() {</span>
+<span class="nc" id="L70">        }</span>
+
+<span class="nc" id="L72">        public UserUpdate(int id, String name, String emailId, String password) {</span>
+<span class="nc" id="L73">            this.id = id;</span>
+<span class="nc" id="L74">            this.name = name;</span>
+<span class="nc" id="L75">            this.emailId = emailId;</span>
+<span class="nc" id="L76">            this.password = password;</span>
+<span class="nc" id="L77">        }</span>
+    }
+
+    /**
+     * Represents an album, containing details such as the title, artist,
+     * genre, and its associated list of user reviews.
+     */
+    public static class album {
+        public Long albumId;
+        public int rating;
+        public String artist;
+        public String coverURL;
+        public String name;
+        public String releaseDate;
+        public String genre;
+        public String spotifyId;
+
+        public List&lt;review&gt; albumReviews;
+
+<span class="fc" id="L96">        public album() {</span>
+<span class="fc" id="L97">        }</span>
+    }
+
+    /**
+     * Represents a book retrieved from the Open Library API
+     * or stored in the local database.
+     */
+    public static class book {
+        public int id;
+        public String volumeid;
+        public String title;
+        public String authors;
+        public String publisheddate;
+        public String description;
+        public String thumbnailurl;
+        public String isbn13;
+
+<span class="fc" id="L114">        public book() {</span>
+<span class="fc" id="L115">        }</span>
+    }
+
+    public static class game {
+        public long id;
+        public String rawgId;
+        public String title;
+        public String genre;
+        public String releaseDate;
+        public String developer;
+        public String description;
+        public String coverUrl;
+        public int metacriticScore;
+        public int rating;
+
+<span class="fc" id="L130">        public game() {</span>
+<span class="fc" id="L131">        }</span>
+    }
+
+    public static class movie {
+        public long id;
+        public String tmdbId;
+        public String mediaType;
+        public String title;
+        public String genre;
+        public String releaseDate;
+        public String director;
+        public String overview;
+        public String posterUrl;
+        public double tmdbScore;
+        public int rating;
+
+<span class="fc" id="L147">        public movie() {</span>
+<span class="fc" id="L148">        }</span>
+    }
+
+    /**
+     * Represents a user review for a specific piece of media, detailing
+     * the rating score and text body submitted by the user.
+     *
+     * &lt;p&gt;The FK ID fields (userId, albumId, bookId, gameId, movieId) are populated
+     * by the server-side Review entity's convenience getters and are used on the
+     * client to filter reviews by specific media items (see MediaDetailActivity).
+     */
+    public static class review {
+        public int id;
+        public String mediaType;
+        public String title;
+        public int rating;
+        public String body;
+
+        // FK IDs exposed by server-side convenience getters on the Review entity
+        public Integer userId;
+        public Long albumId;
+        public Long bookId;
+        public Long gameId;
+        public Long movieId;
+
+<span class="fc" id="L173">        public review() {</span>
+<span class="fc" id="L174">        }</span>
+
+<span class="fc" id="L176">        public review(String mediaType, String title, int rating, String body) {</span>
+<span class="fc" id="L177">            this.mediaType = mediaType;</span>
+<span class="fc" id="L178">            this.title = title;</span>
+<span class="fc" id="L179">            this.rating = rating;</span>
+<span class="fc" id="L180">            this.body = body;</span>
+<span class="fc" id="L181">        }</span>
+    }
+
+    // =========================================================================
+    // Feed models
+    // =========================================================================
+
+    /**
+     * A single published post as returned by {@code GET /feed}.
+     *
+     * &lt;p&gt;A post is a user's review that has been made public. It carries
+     * the review's rating + media info alongside social metadata (likes,
+     * comments, author) so the feed card can be fully rendered from this
+     * object alone — no secondary API call required.
+     */
+<span class="fc" id="L196">    public static class FeedPost {</span>
+        public int    id;            // post ID (used to like, comment, etc.)
+        public String caption;       // optional user-written caption
+        public String visibility;    // &quot;PUBLIC&quot; | &quot;PRIVATE&quot; | &quot;FRIENDS&quot;
+        public String publishedAt;   // ISO-8601 datetime, e.g. &quot;2025-04-01T14:30:00&quot;
+        public String updatedAt;
+        public int    reviewId;      // the underlying review this post wraps
+        public int    authorId;      // user ID of the poster
+        public String authorName;    // display name of the poster
+        public String mediaTitle;    // title of the reviewed media
+        public String mediaType;     // &quot;ALBUM&quot; | &quot;BOOK&quot; | &quot;GAME&quot; | &quot;MOVIE&quot; | &quot;SHOW&quot; | &quot;ARTIST&quot;
+        public int    rating;        // 0 = unrated, 1–100 otherwise
+        public int    commentCount;
+        public int    likeCount;
+    }
+
+    /**
+     * A comment on a post as returned by {@code GET /posts/{postId}/comments}.
+     */
+<span class="fc" id="L215">    public static class FeedComment {</span>
+        public int    id;
+        public String body;
+        public int    authorId;
+        public String authorName;
+        public int    postId;
+        public String createdAt;
+        public String updatedAt;
+    }
+
+    /**
+     * A normalised media object used inside the feed.
+     *
+     * &lt;p&gt;Albums, books, games, movies, shows, and artists all have different
+     * backend shapes. The {@code FeedItem.from*()} factory methods flatten each
+     * type into this common struct so {@link FeedAdapter} only needs to know
+     * about one class.
+     *
+     * &lt;p&gt;Field mapping by media type:
+     * &lt;pre&gt;
+     *  mediaType | title       | subtitle   | imageUrl   | extraInfo
+     *  --------- | ----------- | ---------- | ---------- | ---------
+     *  ALBUM     | album name  | genre      | coverURL   | releaseDate
+     *  BOOK      | title       | authors    | thumbnailurl | publisheddate
+     *  GAME      | title       | developer  | coverUrl   | genre
+     *  MOVIE     | title       | director   | posterUrl  | genre
+     *  ARTIST    | name        | genre      | photoURL   | (empty)
+     * &lt;/pre&gt;
+     */
+    public static class FeedMedia {
+        public long   id;
+        public String mediaType;  // &quot;ALBUM&quot; | &quot;BOOK&quot; | &quot;GAME&quot; | &quot;MOVIE&quot; | &quot;SHOW&quot; | &quot;ARTIST&quot;
+        public String title;
+        public String subtitle;   // secondary line — see mapping above
+        public String imageUrl;   // cover / poster / photo URL
+        public String extraInfo;  // tertiary line — see mapping above
+        public int    rating;     // community average (0 = none)
+
+<span class="fc" id="L253">        public FeedMedia() {}</span>
+    }
+
+    /**
+     * Discriminated union used as the item type for the feed RecyclerView.
+     *
+     * &lt;p&gt;Each instance is either a user post or a media card:
+     * &lt;ul&gt;
+     *   &lt;li&gt;{@code type == TYPE_POST  (0)} → {@code post}  is populated, {@code media} is null&lt;/li&gt;
+     *   &lt;li&gt;{@code type == TYPE_MEDIA (1)} → {@code media} is populated, {@code post}  is null&lt;/li&gt;
+     * &lt;/ul&gt;
+     *
+     * &lt;p&gt;Use the static factory methods to construct instances — never set
+     * {@code type}, {@code post}, or {@code media} directly.
+     */
+<span class="fc" id="L268">    public static class FeedItem {</span>
+
+        /** Item is a published user post — adapter inflates {@code item_feed_user_post.xml}. */
+        public static final int TYPE_POST  = 0;
+        /** Item is a media card — adapter inflates {@code item_feed_post.xml}. */
+        public static final int TYPE_MEDIA = 1;
+
+        public int       type;   // TYPE_POST or TYPE_MEDIA
+        public FeedPost  post;   // non-null when type == TYPE_POST
+        public FeedMedia media;  // non-null when type == TYPE_MEDIA
+
+        // -----------------------------------------------------------------
+        // Factory methods
+        // -----------------------------------------------------------------
+
+        /** Wraps a {@link FeedPost} as a feed list item. */
+        public static FeedItem fromPost(FeedPost p) {
+<span class="fc" id="L285">            FeedItem item = new FeedItem();</span>
+<span class="fc" id="L286">            item.type = TYPE_POST;</span>
+<span class="fc" id="L287">            item.post = p;</span>
+<span class="fc" id="L288">            return item;</span>
+        }
+
+        /**
+         * Converts an {@link album} to a feed media card.
+         * subtitle = genre, extraInfo = releaseDate.
+         */
+        public static FeedItem fromAlbum(album a) {
+<span class="fc" id="L296">            FeedMedia media = new FeedMedia();</span>
+<span class="fc" id="L297">            media.id        = a.albumId;</span>
+<span class="fc" id="L298">            media.mediaType = &quot;ALBUM&quot;;</span>
+<span class="fc" id="L299">            media.title     = a.name;</span>
+<span class="fc" id="L300">            media.subtitle  = a.genre;</span>
+<span class="fc" id="L301">            media.imageUrl  = a.coverURL;</span>
+<span class="fc" id="L302">            media.extraInfo = a.releaseDate;</span>
+<span class="fc" id="L303">            media.rating    = a.rating;</span>
+<span class="fc" id="L304">            return wrapMedia(media);</span>
+        }
+
+        /**
+         * Converts a {@link book} to a feed media card.
+         * subtitle = authors, extraInfo = publisheddate.
+         * Rating is 0 — books do not yet carry a community score.
+         */
+        public static FeedItem fromBook(book b) {
+<span class="fc" id="L313">            FeedMedia media = new FeedMedia();</span>
+<span class="fc" id="L314">            media.id        = b.id;</span>
+<span class="fc" id="L315">            media.mediaType = &quot;BOOK&quot;;</span>
+<span class="fc" id="L316">            media.title     = b.title;</span>
+<span class="fc" id="L317">            media.subtitle  = b.authors;</span>
+<span class="fc" id="L318">            media.imageUrl  = b.thumbnailurl;</span>
+<span class="fc" id="L319">            media.extraInfo = b.publisheddate;</span>
+<span class="fc" id="L320">            media.rating    = 0;</span>
+<span class="fc" id="L321">            return wrapMedia(media);</span>
+        }
+
+        /**
+         * Converts a {@link game} to a feed media card.
+         * subtitle = developer, extraInfo = genre.
+         */
+        public static FeedItem fromGame(game g) {
+<span class="fc" id="L329">            FeedMedia media = new FeedMedia();</span>
+<span class="fc" id="L330">            media.id        = g.id;</span>
+<span class="fc" id="L331">            media.mediaType = &quot;GAME&quot;;</span>
+<span class="fc" id="L332">            media.title     = g.title;</span>
+<span class="fc" id="L333">            media.subtitle  = g.developer;</span>
+<span class="fc" id="L334">            media.imageUrl  = g.coverUrl;</span>
+<span class="fc" id="L335">            media.extraInfo = g.genre;</span>
+<span class="fc" id="L336">            media.rating    = g.rating;</span>
+<span class="fc" id="L337">            return wrapMedia(media);</span>
+        }
+
+        /**
+         * Converts a {@link movie} to a feed media card.
+         * subtitle = director, extraInfo = genre.
+         * Falls back to &quot;MOVIE&quot; if {@code movie.mediaType} is null (e.g. legacy rows).
+         */
+        public static FeedItem fromMovie(movie m) {
+<span class="fc" id="L346">            FeedMedia media = new FeedMedia();</span>
+<span class="fc" id="L347">            media.id        = m.id;</span>
+<span class="pc bpc" id="L348" title="1 of 2 branches missed.">            media.mediaType = m.mediaType != null ? m.mediaType : &quot;MOVIE&quot;;</span>
+<span class="fc" id="L349">            media.title     = m.title;</span>
+<span class="fc" id="L350">            media.subtitle  = m.director;</span>
+<span class="fc" id="L351">            media.imageUrl  = m.posterUrl;</span>
+<span class="fc" id="L352">            media.extraInfo = m.genre;</span>
+<span class="fc" id="L353">            media.rating    = m.rating;</span>
+<span class="fc" id="L354">            return wrapMedia(media);</span>
+        }
+
+        /**
+         * Converts an {@link artist} to a feed media card.
+         * subtitle = genre, extraInfo = &quot;&quot; (artists have no release date).
+         */
+        public static FeedItem fromArtist(artist a) {
+<span class="fc" id="L362">            FeedMedia media = new FeedMedia();</span>
+<span class="fc" id="L363">            media.id        = a.artistId;</span>
+<span class="fc" id="L364">            media.mediaType = &quot;ARTIST&quot;;</span>
+<span class="fc" id="L365">            media.title     = a.name;</span>
+<span class="fc" id="L366">            media.subtitle  = a.genre;</span>
+<span class="fc" id="L367">            media.imageUrl  = a.photoURL;</span>
+<span class="fc" id="L368">            media.extraInfo = &quot;&quot;;</span>
+<span class="fc" id="L369">            media.rating    = a.rating;</span>
+<span class="fc" id="L370">            return wrapMedia(media);</span>
+        }
+
+        /** Shared boilerplate for all fromX() methods that produce a media card. */
+        private static FeedItem wrapMedia(FeedMedia media) {
+<span class="fc" id="L375">            FeedItem item = new FeedItem();</span>
+<span class="fc" id="L376">            item.type  = TYPE_MEDIA;</span>
+<span class="fc" id="L377">            item.media = media;</span>
+<span class="fc" id="L378">            return item;</span>
+        }
+    }
+
+    public static class CommentRequest {
+        public String body;
+
+<span class="nc" id="L385">        public CommentRequest(String body) {</span>
+<span class="nc" id="L386">            this.body = body;</span>
+<span class="nc" id="L387">        }</span>
+    }
+
+    public static class PostUpdateRequest {
+        public String caption;
+        public String visibility;
+
+<span class="nc" id="L394">        public PostUpdateRequest(String caption) {</span>
+<span class="nc" id="L395">            this.caption = caption;</span>
+<span class="nc" id="L396">        }</span>
+    }
+
+    public static class ReviewUpdateRequest {
+        public int id;
+        public String mediaType;
+        public String title;
+        public int rating;
+        public String body;
+
+<span class="nc" id="L406">        public ReviewUpdateRequest(int id, String mediaType, String title, int rating, String body) {</span>
+<span class="nc" id="L407">            this.id = id;</span>
+<span class="nc" id="L408">            this.mediaType = mediaType;</span>
+<span class="nc" id="L409">            this.title = title;</span>
+<span class="nc" id="L410">            this.rating = rating;</span>
+<span class="nc" id="L411">            this.body = body;</span>
+<span class="nc" id="L412">        }</span>
+    }
+
+    public static class PostPublishRequest {
+        public String caption;
+        public String visibility;
+
+<span class="nc" id="L419">        public PostPublishRequest(String caption, String visibility) {</span>
+<span class="nc" id="L420">            this.caption = caption;</span>
+<span class="nc" id="L421">            this.visibility = visibility;</span>
+<span class="nc" id="L422">        }</span>
+    }
+
+    //not a DTO for JSON BUT AM REALLY LAZY
+    public static class SearchResult {
+        public long id;
+        public String title;
+        public String subtitle;
+        public String mediaType;
+        public String imageUrl;
+        public String externalId; // rawgId, tmdbId, volumeId, etc.
+
+<span class="nc" id="L434">        public SearchResult(long id, String title, String subtitle, String mediaType, String imageUrl) {</span>
+<span class="nc" id="L435">            this.id = id;</span>
+<span class="nc" id="L436">            this.title = title;</span>
+<span class="nc" id="L437">            this.subtitle = subtitle;</span>
+<span class="nc" id="L438">            this.mediaType = mediaType;</span>
+<span class="nc" id="L439">            this.imageUrl = imageUrl;</span>
+<span class="nc" id="L440">        }</span>
+
+<span class="nc" id="L442">        public SearchResult(long id, String title, String subtitle, String mediaType, String imageUrl, String externalId) {</span>
+<span class="nc" id="L443">            this.id = id;</span>
+<span class="nc" id="L444">            this.title = title;</span>
+<span class="nc" id="L445">            this.subtitle = subtitle;</span>
+<span class="nc" id="L446">            this.mediaType = mediaType;</span>
+<span class="nc" id="L447">            this.imageUrl = imageUrl;</span>
+<span class="nc" id="L448">            this.externalId = externalId;</span>
+<span class="nc" id="L449">        }</span>
+    }
+
+    public static class Notification {
+        public int id;
+        public int recipientId;
+        public String type;
+        public String message;
+        public boolean read;
+        public String createdAt;
+
+<span class="fc" id="L460">        public Notification() {}</span>
+    }
+
+    public static class artist {
+        public long artistId;
+        public String spotifyId;
+        public String name;
+        public String genre;
+        public String photoURL;
+        public int rating;
+
+<span class="fc" id="L471">        public artist() {}</span>
+    }
+
+    public static class MessageRequest {
+        long userId;
+        Long sessionId;
+        String message;
+<span class="nc" id="L478">        MessageRequest(long userId, Long sessionId, String message) {</span>
+<span class="nc" id="L479">            this.userId = userId; this.sessionId = sessionId; this.message = message;</span>
+<span class="nc" id="L480">        }</span>
+    }
+
+    public static class ProfileResponse {
+        public int profileId;
+        public String bio;
+        public String major;
+        public String hobbies;
+        public String gradDate;
+        public String linkedInURL;
+
+<span class="nc" id="L491">        public ProfileResponse() {}</span>
+    }
+
+    public static class ProfileRequest {
+        public String bio;
+        public String major;
+        public String hobbies;
+        public String gradDate;
+        public String linkedInURL;
+
+<span class="nc" id="L501">        public ProfileRequest(String bio, String major, String hobbies, String gradDate, String linkedInURL) {</span>
+<span class="nc" id="L502">            this.bio = bio;</span>
+<span class="nc" id="L503">            this.major = major;</span>
+<span class="nc" id="L504">            this.hobbies = hobbies;</span>
+<span class="nc" id="L505">            this.gradDate = gradDate;</span>
+<span class="nc" id="L506">            this.linkedInURL = linkedInURL;</span>
+<span class="nc" id="L507">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

@@ -1,0 +1,627 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FeedFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">FeedFragment.java</span></div><h1>FeedFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.PopupMenu;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+
+<span class="fc" id="L33">public class FeedFragment extends Fragment {</span>
+
+<span class="fc" id="L35">    private final List&lt;DTOmodels.FeedItem&gt; postItems = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L36">    private final List&lt;DTOmodels.FeedItem&gt; mediaItems = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L37">    private final List&lt;DTOmodels.FeedItem&gt; allItems = new ArrayList&lt;&gt;();</span>
+    private RecyclerView recyclerView;
+    private FeedAdapter adapter;
+    private List&lt;DTOmodels.FeedItem&gt; feedItems;
+    private EditText searchBar;
+<span class="fc" id="L42">    private int pendingCalls = 0;</span>
+<span class="fc" id="L43">    private String currentFilter = &quot;ALL&quot;;</span>
+<span class="fc" id="L44">    private String currentViewType = &quot;ALL&quot;;</span>
+
+    private SwipeRefreshLayout swipeRefresh;
+    private int currentUserId;
+
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+<span class="fc" id="L53">        View view = inflater.inflate(R.layout.fragment_feed, container, false);</span>
+
+<span class="fc" id="L55">        currentUserId = getActivity().getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+<span class="fc" id="L56">        recyclerView = view.findViewById(R.id.feed_recycler_view);</span>
+<span class="fc" id="L57">        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));</span>
+<span class="fc" id="L58">        searchBar = view.findViewById(R.id.feed_search_bar);</span>
+
+<span class="fc" id="L60">        swipeRefresh = view.findViewById(R.id.swipe_refresh);</span>
+<span class="fc" id="L61">        swipeRefresh.setColorSchemeColors(android.graphics.Color.parseColor(&quot;#E53935&quot;));</span>
+<span class="pc" id="L62">        swipeRefresh.setOnRefreshListener(() -&gt; loadFeed());</span>
+
+<span class="fc" id="L64">        feedItems = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L66">        adapter = new FeedAdapter(getContext(), feedItems, new FeedAdapter.OnItemClickListener() {</span>
+            @Override
+            public void onPostClick(DTOmodels.FeedPost post) {
+
+<span class="nc" id="L70">                Intent intent = new Intent(getContext(), PostViewActivity.class);</span>
+<span class="nc" id="L71">                intent.putExtra(&quot;postId&quot;, post.id);</span>
+<span class="nc" id="L72">                intent.putExtra(&quot;reviewId&quot;, post.reviewId);</span>
+<span class="nc" id="L73">                intent.putExtra(&quot;authorId&quot;, post.authorId);</span>
+<span class="nc" id="L74">                intent.putExtra(&quot;authorName&quot;, post.authorName);</span>
+<span class="nc" id="L75">                intent.putExtra(&quot;caption&quot;, post.caption);</span>
+<span class="nc" id="L76">                intent.putExtra(&quot;mediaTitle&quot;, post.mediaTitle);</span>
+<span class="nc" id="L77">                intent.putExtra(&quot;mediaType&quot;, post.mediaType);</span>
+<span class="nc" id="L78">                intent.putExtra(&quot;rating&quot;, post.rating);</span>
+<span class="nc" id="L79">                intent.putExtra(&quot;likeCount&quot;, post.likeCount);</span>
+<span class="nc" id="L80">                intent.putExtra(&quot;commentCount&quot;, post.commentCount);</span>
+<span class="nc" id="L81">                intent.putExtra(&quot;publishedAt&quot;, post.publishedAt);</span>
+<span class="nc" id="L82">                intent.putExtra(&quot;USER_ID&quot;, currentUserId);</span>
+<span class="nc" id="L83">                startActivity(intent);</span>
+
+<span class="nc" id="L85">            }</span>
+
+            public void onMediaClick(DTOmodels.FeedMedia media) {
+<span class="nc" id="L88">                Intent intent = new Intent(getContext(), MediaDetailActivity.class);</span>
+<span class="nc" id="L89">                intent.putExtra(&quot;mediaType&quot;, media.mediaType);</span>
+<span class="nc" id="L90">                intent.putExtra(&quot;mediaId&quot;, media.id);</span>
+<span class="nc" id="L91">                intent.putExtra(&quot;title&quot;, media.title);</span>
+<span class="nc" id="L92">                startActivity(intent);</span>
+<span class="nc" id="L93">            }</span>
+        });
+
+<span class="fc" id="L96">        recyclerView.setAdapter(adapter);</span>
+
+<span class="fc" id="L98">        searchBar.setOnEditorActionListener((v, actionId, event) -&gt; {</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">            if (actionId == EditorInfo.IME_ACTION_SEARCH) {</span>
+<span class="nc" id="L100">                String query = searchBar.getText().toString().trim();</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">                if (!query.isEmpty()) {</span>
+<span class="nc" id="L102">                    searchFeed(query);</span>
+                } else {
+<span class="nc" id="L104">                    applyFilters();</span>
+                }
+<span class="nc" id="L106">                return true;</span>
+            }
+<span class="nc" id="L108">            return false;</span>
+        });
+
+<span class="pc" id="L111">        view.findViewById(R.id.feed_filter_btn).setOnClickListener(v -&gt; showFilterMenu(v));</span>
+
+<span class="fc" id="L113">        return view;</span>
+    }
+
+    @Override
+    public void onResume() {
+<span class="fc" id="L118">        super.onResume();</span>
+<span class="fc" id="L119">        loadFeed();</span>
+<span class="fc" id="L120">    }</span>
+
+    private void loadFeed() {
+<span class="fc" id="L123">        postItems.clear();</span>
+<span class="fc" id="L124">        mediaItems.clear();</span>
+<span class="fc" id="L125">        pendingCalls = 6;</span>
+
+<span class="fc" id="L127">        ApiClient.getArray(getContext(), &quot;/feed&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="fc" id="L131">                    Gson gson = new Gson();</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="fc" id="L133">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="fc" id="L134">                        DTOmodels.FeedPost post = gson.fromJson(obj.toString(), DTOmodels.FeedPost.class);</span>
+<span class="fc" id="L135">                        synchronized (postItems) {</span>
+<span class="fc" id="L136">                            postItems.add(DTOmodels.FeedItem.fromPost(post));</span>
+<span class="fc" id="L137">                        }</span>
+                    }
+<span class="fc" id="L139">                    Log.d(&quot;FeedFragment&quot;, &quot;Loaded &quot; + response.length() + &quot; posts&quot;);</span>
+<span class="nc" id="L140">                } catch (Exception e) {</span>
+<span class="nc" id="L141">                    Log.e(&quot;FeedFragment&quot;, &quot;Error parsing posts: &quot; + e.getMessage());</span>
+<span class="fc" id="L142">                }</span>
+<span class="fc" id="L143">                checkAndMerge();</span>
+<span class="fc" id="L144">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L148">                Log.e(&quot;FeedFragment&quot;, &quot;Posts failed: &quot; + message);</span>
+<span class="nc" id="L149">                checkAndMerge();</span>
+<span class="nc" id="L150">            }</span>
+        });
+
+<span class="fc" id="L153">        ApiClient.getArray(getContext(), &quot;/albums&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="fc" id="L157">                    Gson gson = new Gson();</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="fc" id="L159">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="fc" id="L160">                        DTOmodels.album album = gson.fromJson(obj.toString(), DTOmodels.album.class);</span>
+<span class="fc" id="L161">                        synchronized (mediaItems) {</span>
+<span class="fc" id="L162">                            mediaItems.add(DTOmodels.FeedItem.fromAlbum(album));</span>
+<span class="fc" id="L163">                        }</span>
+                    }
+<span class="fc" id="L165">                    Log.d(&quot;FeedFragment&quot;, &quot;Loaded &quot; + response.length() + &quot; albums&quot;);</span>
+<span class="nc" id="L166">                } catch (Exception e) {</span>
+<span class="nc" id="L167">                    Log.e(&quot;FeedFragment&quot;, &quot;Error parsing albums: &quot; + e.getMessage());</span>
+<span class="fc" id="L168">                }</span>
+<span class="fc" id="L169">                checkAndMerge();</span>
+<span class="fc" id="L170">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L174">                Log.e(&quot;FeedFragment&quot;, &quot;Albums failed: &quot; + message);</span>
+<span class="nc" id="L175">                checkAndMerge();</span>
+<span class="nc" id="L176">            }</span>
+        });
+
+<span class="fc" id="L179">        ApiClient.getArray(getContext(), &quot;/books&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="fc" id="L183">                    Gson gson = new Gson();</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="fc" id="L185">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="fc" id="L186">                        DTOmodels.book book = gson.fromJson(obj.toString(), DTOmodels.book.class);</span>
+<span class="fc" id="L187">                        synchronized (mediaItems) {</span>
+<span class="fc" id="L188">                            mediaItems.add(DTOmodels.FeedItem.fromBook(book));</span>
+<span class="fc" id="L189">                        }</span>
+                    }
+<span class="fc" id="L191">                    Log.d(&quot;FeedFragment&quot;, &quot;Loaded &quot; + response.length() + &quot; books&quot;);</span>
+<span class="nc" id="L192">                } catch (Exception e) {</span>
+<span class="nc" id="L193">                    Log.e(&quot;FeedFragment&quot;, &quot;Error parsing books: &quot; + e.getMessage());</span>
+<span class="fc" id="L194">                }</span>
+<span class="fc" id="L195">                checkAndMerge();</span>
+<span class="fc" id="L196">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L200">                Log.e(&quot;FeedFragment&quot;, &quot;Books failed: &quot; + message);</span>
+<span class="nc" id="L201">                checkAndMerge();</span>
+<span class="nc" id="L202">            }</span>
+        });
+
+<span class="fc" id="L205">        ApiClient.getArray(getContext(), &quot;/games&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="fc" id="L209">                    Gson gson = new Gson();</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="fc" id="L211">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="fc" id="L212">                        DTOmodels.game game = gson.fromJson(obj.toString(), DTOmodels.game.class);</span>
+<span class="fc" id="L213">                        synchronized (mediaItems) {</span>
+<span class="fc" id="L214">                            mediaItems.add(DTOmodels.FeedItem.fromGame(game));</span>
+<span class="fc" id="L215">                        }</span>
+                    }
+<span class="fc" id="L217">                    Log.d(&quot;FeedFragment&quot;, &quot;Loaded &quot; + response.length() + &quot; games&quot;);</span>
+<span class="nc" id="L218">                } catch (Exception e) {</span>
+<span class="nc" id="L219">                    Log.e(&quot;FeedFragment&quot;, &quot;Error parsing games: &quot; + e.getMessage());</span>
+<span class="fc" id="L220">                }</span>
+<span class="fc" id="L221">                checkAndMerge();</span>
+<span class="fc" id="L222">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L226">                Log.e(&quot;FeedFragment&quot;, &quot;Games failed: &quot; + message);</span>
+<span class="nc" id="L227">                checkAndMerge();</span>
+<span class="nc" id="L228">            }</span>
+        });
+
+<span class="fc" id="L231">        ApiClient.getArray(getContext(), &quot;/movies&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="fc" id="L235">                    Gson gson = new Gson();</span>
+<span class="pc bpc" id="L236" title="1 of 2 branches missed.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="nc" id="L237">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L238">                        DTOmodels.movie movie = gson.fromJson(obj.toString(), DTOmodels.movie.class);</span>
+<span class="nc" id="L239">                        synchronized (mediaItems) {</span>
+<span class="nc" id="L240">                            mediaItems.add(DTOmodels.FeedItem.fromMovie(movie));</span>
+<span class="nc" id="L241">                        }</span>
+                    }
+<span class="fc" id="L243">                    Log.d(&quot;FeedFragment&quot;, &quot;Loaded &quot; + response.length() + &quot; movies&quot;);</span>
+<span class="nc" id="L244">                } catch (Exception e) {</span>
+<span class="nc" id="L245">                    Log.e(&quot;FeedFragment&quot;, &quot;Error parsing movies: &quot; + e.getMessage());</span>
+<span class="fc" id="L246">                }</span>
+<span class="fc" id="L247">                checkAndMerge();</span>
+<span class="fc" id="L248">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L252">                Log.e(&quot;FeedFragment&quot;, &quot;Movies failed: &quot; + message);</span>
+<span class="nc" id="L253">                checkAndMerge();</span>
+<span class="nc" id="L254">            }</span>
+        });
+
+<span class="fc" id="L257">        ApiClient.getArray(getContext(), &quot;/artists&quot;, new Api_Array_Interface() {</span>
+            @Override
+            public void onSuccess(JSONArray response) {
+                try {
+<span class="fc" id="L261">                    Gson gson = new Gson();</span>
+<span class="fc bfc" id="L262" title="All 2 branches covered.">                    for (int i = 0; i &lt; response.length(); i++) {</span>
+<span class="fc" id="L263">                        JSONObject obj = response.getJSONObject(i);</span>
+<span class="fc" id="L264">                        DTOmodels.artist artist = gson.fromJson(obj.toString(), DTOmodels.artist.class);</span>
+<span class="fc" id="L265">                        synchronized (mediaItems) {</span>
+<span class="fc" id="L266">                            mediaItems.add(DTOmodels.FeedItem.fromArtist(artist));</span>
+<span class="fc" id="L267">                        }</span>
+                    }
+<span class="fc" id="L269">                    Log.d(&quot;FeedFragment&quot;, &quot;Loaded &quot; + response.length() + &quot; artists&quot;);</span>
+<span class="nc" id="L270">                } catch (Exception e) {</span>
+<span class="nc" id="L271">                    Log.e(&quot;FeedFragment&quot;, &quot;Error parsing artists: &quot; + e.getMessage());</span>
+<span class="fc" id="L272">                }</span>
+<span class="fc" id="L273">                checkAndMerge();</span>
+<span class="fc" id="L274">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L278">                Log.e(&quot;FeedFragment&quot;, &quot;Artists failed: &quot; + message);</span>
+<span class="nc" id="L279">                checkAndMerge();</span>
+<span class="nc" id="L280">            }</span>
+        });
+<span class="fc" id="L282">    }</span>
+
+    private synchronized void checkAndMerge() {
+<span class="fc" id="L285">        pendingCalls--;</span>
+<span class="fc bfc" id="L286" title="All 2 branches covered.">        if (pendingCalls &gt; 0) return;</span>
+
+<span class="fc" id="L288">        Log.d(&quot;FeedFragment&quot;, &quot;All calls done. Posts: &quot; + postItems.size() + &quot; Media: &quot; + mediaItems.size());</span>
+
+<span class="fc" id="L290">        Collections.shuffle(mediaItems);</span>
+
+<span class="fc" id="L292">        List&lt;DTOmodels.FeedItem&gt; merged = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L293">        Random random = new Random();</span>
+<span class="fc" id="L294">        int mediaIndex = 0;</span>
+
+<span class="fc bfc" id="L296" title="All 2 branches covered.">        for (int i = 0; i &lt; postItems.size(); i++) {</span>
+<span class="fc" id="L297">            merged.add(postItems.get(i));</span>
+
+<span class="pc bpc" id="L299" title="1 of 4 branches missed.">            if (mediaIndex &lt; mediaItems.size() &amp;&amp; random.nextInt(3) == 0) {</span>
+<span class="fc" id="L300">                merged.add(mediaItems.get(mediaIndex));</span>
+<span class="fc" id="L301">                mediaIndex++;</span>
+            }
+        }
+
+<span class="fc bfc" id="L305" title="All 2 branches covered.">        while (mediaIndex &lt; mediaItems.size()) {</span>
+<span class="fc" id="L306">            merged.add(mediaItems.get(mediaIndex));</span>
+<span class="fc" id="L307">            mediaIndex++;</span>
+        }
+
+<span class="pc bpc" id="L310" title="1 of 2 branches missed.">        if (getActivity() != null) {</span>
+<span class="fc" id="L311">            getActivity().runOnUiThread(() -&gt; {</span>
+<span class="fc" id="L312">                allItems.clear();</span>
+<span class="fc" id="L313">                allItems.addAll(merged);</span>
+<span class="fc" id="L314">                applyFilters();</span>
+<span class="pc bpc" id="L315" title="1 of 2 branches missed.">                if (swipeRefresh != null) {</span>
+<span class="fc" id="L316">                    swipeRefresh.setRefreshing(false);</span>
+                }
+<span class="fc" id="L318">            });</span>
+        }
+
+<span class="fc" id="L321">        Log.d(&quot;FeedFragment&quot;, &quot;Feed merged: &quot; + allItems.size() + &quot; total items&quot;);</span>
+<span class="fc" id="L322">    }</span>
+
+    private void showFilterMenu(View anchor) {
+<span class="nc" id="L325">        PopupMenu popup = new PopupMenu(getContext(), anchor);</span>
+
+        // View type group
+<span class="nc" id="L328">        popup.getMenu().add(0, 0, 0, &quot;All&quot;).setCheckable(true).setChecked(currentViewType.equals(&quot;ALL&quot;));</span>
+<span class="nc" id="L329">        popup.getMenu().add(0, 1, 1, &quot;Posts only&quot;).setCheckable(true).setChecked(currentViewType.equals(&quot;POSTS&quot;));</span>
+<span class="nc" id="L330">        popup.getMenu().add(0, 2, 2, &quot;Media only&quot;).setCheckable(true).setChecked(currentViewType.equals(&quot;MEDIA&quot;));</span>
+<span class="nc" id="L331">        popup.getMenu().setGroupCheckable(0, true, true);</span>
+
+        // Media type group
+<span class="nc" id="L334">        popup.getMenu().add(1, 3, 3, &quot;All types&quot;).setCheckable(true).setChecked(currentFilter.equals(&quot;ALL&quot;));</span>
+<span class="nc" id="L335">        popup.getMenu().add(1, 4, 4, &quot;Albums&quot;).setCheckable(true).setChecked(currentFilter.equals(&quot;ALBUM&quot;));</span>
+<span class="nc" id="L336">        popup.getMenu().add(1, 5, 5, &quot;Movies / Shows&quot;).setCheckable(true).setChecked(currentFilter.equals(&quot;MOVIE&quot;));</span>
+<span class="nc" id="L337">        popup.getMenu().add(1, 6, 6, &quot;Books&quot;).setCheckable(true).setChecked(currentFilter.equals(&quot;BOOK&quot;));</span>
+<span class="nc" id="L338">        popup.getMenu().add(1, 7, 7, &quot;Games&quot;).setCheckable(true).setChecked(currentFilter.equals(&quot;GAME&quot;));</span>
+<span class="nc" id="L339">        popup.getMenu().add(1, 8, 8, &quot;Artists&quot;).setCheckable(true).setChecked(currentFilter.equals(&quot;ARTIST&quot;));</span>
+<span class="nc" id="L340">        popup.getMenu().setGroupCheckable(1, true, true);</span>
+
+<span class="nc" id="L342">        popup.setOnMenuItemClickListener(item -&gt; {</span>
+<span class="nc bnc" id="L343" title="All 10 branches missed.">            switch (item.getItemId()) {</span>
+                case 0:
+<span class="nc" id="L345">                    currentViewType = &quot;ALL&quot;;</span>
+<span class="nc" id="L346">                    break;</span>
+                case 1:
+<span class="nc" id="L348">                    currentViewType = &quot;POSTS&quot;;</span>
+<span class="nc" id="L349">                    break;</span>
+                case 2:
+<span class="nc" id="L351">                    currentViewType = &quot;MEDIA&quot;;</span>
+<span class="nc" id="L352">                    break;</span>
+                case 3:
+<span class="nc" id="L354">                    currentFilter = &quot;ALL&quot;;</span>
+<span class="nc" id="L355">                    break;</span>
+                case 4:
+<span class="nc" id="L357">                    currentFilter = &quot;ALBUM&quot;;</span>
+<span class="nc" id="L358">                    break;</span>
+                case 5:
+<span class="nc" id="L360">                    currentFilter = &quot;MOVIE&quot;;</span>
+<span class="nc" id="L361">                    break;</span>
+                case 6:
+<span class="nc" id="L363">                    currentFilter = &quot;BOOK&quot;;</span>
+<span class="nc" id="L364">                    break;</span>
+                case 7:
+<span class="nc" id="L366">                    currentFilter = &quot;GAME&quot;;</span>
+<span class="nc" id="L367">                    break;</span>
+                case 8:
+<span class="nc" id="L369">                    currentFilter = &quot;ARTIST&quot;;</span>
+<span class="nc" id="L370">                    break;</span>
+                default:
+<span class="nc" id="L372">                    return false;</span>
+            }
+<span class="nc" id="L374">            Log.d(&quot;FeedFragment&quot;, &quot;Filter: viewType=&quot; + currentViewType + &quot; mediaType=&quot; + currentFilter);</span>
+<span class="nc" id="L375">            applyFilters();</span>
+<span class="nc" id="L376">            return true;</span>
+        });
+<span class="nc" id="L378">        popup.show();</span>
+<span class="nc" id="L379">    }</span>
+
+    private void applyFilters() {
+<span class="fc" id="L382">        List&lt;DTOmodels.FeedItem&gt; filtered = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L384" title="All 2 branches covered.">        for (DTOmodels.FeedItem item : allItems) {</span>
+<span class="pc bpc" id="L385" title="3 of 4 branches missed.">            if (currentViewType.equals(&quot;POSTS&quot;) &amp;&amp; item.type != DTOmodels.FeedItem.TYPE_POST)</span>
+<span class="nc" id="L386">                continue;</span>
+<span class="pc bpc" id="L387" title="3 of 4 branches missed.">            if (currentViewType.equals(&quot;MEDIA&quot;) &amp;&amp; item.type != DTOmodels.FeedItem.TYPE_MEDIA)</span>
+<span class="nc" id="L388">                continue;</span>
+
+<span class="pc bpc" id="L390" title="1 of 2 branches missed.">            if (!currentFilter.equals(&quot;ALL&quot;)) {</span>
+<span class="nc bnc" id="L391" title="All 4 branches missed.">                if (item.type == DTOmodels.FeedItem.TYPE_POST &amp;&amp; item.post != null) {</span>
+<span class="nc bnc" id="L392" title="All 2 branches missed.">                    if (!currentFilter.equals(item.post.mediaType)) continue;</span>
+<span class="nc bnc" id="L393" title="All 4 branches missed.">                } else if (item.type == DTOmodels.FeedItem.TYPE_MEDIA &amp;&amp; item.media != null) {</span>
+<span class="nc bnc" id="L394" title="All 2 branches missed.">                    if (!currentFilter.equals(item.media.mediaType)) continue;</span>
+                }
+            }
+
+<span class="fc" id="L398">            filtered.add(item);</span>
+<span class="fc" id="L399">        }</span>
+
+<span class="fc" id="L401">        feedItems.clear();</span>
+<span class="fc" id="L402">        feedItems.addAll(filtered);</span>
+<span class="fc" id="L403">        adapter.notifyDataSetChanged();</span>
+
+<span class="pc bpc" id="L405" title="3 of 4 branches missed.">        if (filtered.isEmpty() &amp;&amp; getContext() != null) {</span>
+<span class="nc" id="L406">            Toast.makeText(getContext(), &quot;No results for this filter&quot;, Toast.LENGTH_SHORT).show();</span>
+        }
+<span class="fc" id="L408">    }</span>
+
+    private void searchFeed(String query) {
+<span class="nc" id="L411">        List&lt;DTOmodels.FeedItem&gt; filtered = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L412">        String lower = query.toLowerCase();</span>
+
+<span class="nc bnc" id="L414" title="All 2 branches missed.">        for (DTOmodels.FeedItem item : allItems) {</span>
+<span class="nc bnc" id="L415" title="All 4 branches missed.">            if (currentViewType.equals(&quot;POSTS&quot;) &amp;&amp; item.type != DTOmodels.FeedItem.TYPE_POST)</span>
+<span class="nc" id="L416">                continue;</span>
+<span class="nc bnc" id="L417" title="All 4 branches missed.">            if (currentViewType.equals(&quot;MEDIA&quot;) &amp;&amp; item.type != DTOmodels.FeedItem.TYPE_MEDIA)</span>
+<span class="nc" id="L418">                continue;</span>
+
+<span class="nc bnc" id="L420" title="All 2 branches missed.">            if (!currentFilter.equals(&quot;ALL&quot;)) {</span>
+<span class="nc bnc" id="L421" title="All 4 branches missed.">                if (item.type == DTOmodels.FeedItem.TYPE_POST &amp;&amp; item.post != null) {</span>
+<span class="nc bnc" id="L422" title="All 2 branches missed.">                    if (!currentFilter.equals(item.post.mediaType)) continue;</span>
+<span class="nc bnc" id="L423" title="All 4 branches missed.">                } else if (item.type == DTOmodels.FeedItem.TYPE_MEDIA &amp;&amp; item.media != null) {</span>
+<span class="nc bnc" id="L424" title="All 2 branches missed.">                    if (!currentFilter.equals(item.media.mediaType)) continue;</span>
+                }
+            }
+
+<span class="nc bnc" id="L428" title="All 4 branches missed.">            if (item.type == DTOmodels.FeedItem.TYPE_POST &amp;&amp; item.post != null) {</span>
+<span class="nc bnc" id="L429" title="All 4 branches missed.">                if (item.post.mediaTitle != null &amp;&amp; item.post.mediaTitle.toLowerCase().contains(lower)) {</span>
+<span class="nc" id="L430">                    filtered.add(item);</span>
+                }
+<span class="nc bnc" id="L432" title="All 4 branches missed.">            } else if (item.type == DTOmodels.FeedItem.TYPE_MEDIA &amp;&amp; item.media != null) {</span>
+<span class="nc bnc" id="L433" title="All 4 branches missed.">                if (item.media.title != null &amp;&amp; item.media.title.toLowerCase().contains(lower)) {</span>
+<span class="nc" id="L434">                    filtered.add(item);</span>
+                }
+            }
+<span class="nc" id="L437">        }</span>
+
+<span class="nc" id="L439">        feedItems.clear();</span>
+<span class="nc" id="L440">        feedItems.addAll(filtered);</span>
+<span class="nc" id="L441">        adapter.notifyDataSetChanged();</span>
+<span class="nc" id="L442">        searchBar.clearFocus();</span>
+
+<span class="nc bnc" id="L444" title="All 2 branches missed.">        if (filtered.isEmpty()) {</span>
+<span class="nc" id="L445">            Log.d(&quot;FeedFragment&quot;, &quot;No local results for '&quot; + query + &quot;', searching external APIs...&quot;);</span>
+<span class="nc bnc" id="L446" title="All 2 branches missed.">            if (getContext() != null) {</span>
+<span class="nc" id="L447">                Toast.makeText(getContext(), &quot;Searching for '&quot; + query + &quot;'...&quot;, Toast.LENGTH_SHORT).show();</span>
+            }
+<span class="nc" id="L449">            searchExternalApis(query);</span>
+        }
+<span class="nc" id="L451">    }</span>
+
+    private void searchExternalApis(String query) {
+<span class="nc" id="L454">        final List&lt;DTOmodels.FeedItem&gt; results = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L455">        int searchCount = 0;</span>
+
+        // Count how many searches we'll make based on filters
+<span class="nc bnc" id="L458" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;ALBUM&quot;)) searchCount++;</span>
+<span class="nc bnc" id="L459" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;GAME&quot;)) searchCount++;</span>
+<span class="nc bnc" id="L460" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;MOVIE&quot;)) searchCount++;</span>
+<span class="nc bnc" id="L461" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;BOOK&quot;)) searchCount++;</span>
+<span class="nc bnc" id="L462" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;ARTIST&quot;)) searchCount++;</span>
+
+<span class="nc bnc" id="L464" title="All 2 branches missed.">        if (searchCount == 0) {</span>
+<span class="nc" id="L465">            Toast.makeText(getContext(), &quot;No results found&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L466">            return;</span>
+        }
+
+<span class="nc" id="L469">        final int[] pending = {searchCount};</span>
+
+<span class="nc bnc" id="L471" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;ALBUM&quot;)) {</span>
+<span class="nc" id="L472">            ApiClient.get(getContext(), &quot;/search-albums-and-save?album_name=&quot; + query, new Api_Interface() {</span>
+                @Override
+                public void onSuccess(JSONObject response) {
+                    try {
+<span class="nc" id="L476">                        DTOmodels.album album = new Gson().fromJson(response.toString(), DTOmodels.album.class);</span>
+<span class="nc" id="L477">                        synchronized (results) {</span>
+<span class="nc" id="L478">                            results.add(DTOmodels.FeedItem.fromAlbum(album));</span>
+<span class="nc" id="L479">                        }</span>
+<span class="nc" id="L480">                        Log.d(&quot;FeedFragment&quot;, &quot;Found album: &quot; + album.name);</span>
+<span class="nc" id="L481">                    } catch (Exception e) {</span>
+<span class="nc" id="L482">                        Log.e(&quot;FeedFragment&quot;, &quot;Album search parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L483">                    }</span>
+<span class="nc" id="L484">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L485">                }</span>
+
+                @Override
+                public void onError(String message) {
+<span class="nc" id="L489">                    Log.d(&quot;FeedFragment&quot;, &quot;No album found: &quot; + message);</span>
+<span class="nc" id="L490">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L491">                }</span>
+            });
+        }
+
+<span class="nc bnc" id="L495" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;GAME&quot;)) {</span>
+<span class="nc" id="L496">            ApiClient.getArray(getContext(), &quot;/search-games?q=&quot; + query, new Api_Array_Interface() {</span>
+                @Override
+                public void onSuccess(JSONArray response) {
+                    try {
+<span class="nc" id="L500">                        Gson gson = new Gson();</span>
+<span class="nc bnc" id="L501" title="All 2 branches missed.">                        for (int i = 0; i &lt; Math.min(response.length(), 3); i++) {</span>
+<span class="nc" id="L502">                            JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L503">                            DTOmodels.game game = gson.fromJson(obj.toString(), DTOmodels.game.class);</span>
+<span class="nc" id="L504">                            synchronized (results) {</span>
+<span class="nc" id="L505">                                results.add(DTOmodels.FeedItem.fromGame(game));</span>
+<span class="nc" id="L506">                            }</span>
+                        }
+<span class="nc" id="L508">                        Log.d(&quot;FeedFragment&quot;, &quot;Found &quot; + response.length() + &quot; games&quot;);</span>
+<span class="nc" id="L509">                    } catch (Exception e) {</span>
+<span class="nc" id="L510">                        Log.e(&quot;FeedFragment&quot;, &quot;Game search parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L511">                    }</span>
+<span class="nc" id="L512">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L513">                }</span>
+
+                @Override
+                public void onError(String message) {
+<span class="nc" id="L517">                    Log.d(&quot;FeedFragment&quot;, &quot;No games found: &quot; + message);</span>
+<span class="nc" id="L518">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L519">                }</span>
+            });
+        }
+
+<span class="nc bnc" id="L523" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;MOVIE&quot;)) {</span>
+<span class="nc" id="L524">            ApiClient.getArray(getContext(), &quot;/search-movies?q=&quot; + query, new Api_Array_Interface() {</span>
+                @Override
+                public void onSuccess(JSONArray response) {
+                    try {
+<span class="nc" id="L528">                        Gson gson = new Gson();</span>
+<span class="nc bnc" id="L529" title="All 2 branches missed.">                        for (int i = 0; i &lt; Math.min(response.length(), 3); i++) {</span>
+<span class="nc" id="L530">                            JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L531">                            DTOmodels.movie movie = gson.fromJson(obj.toString(), DTOmodels.movie.class);</span>
+<span class="nc" id="L532">                            synchronized (results) {</span>
+<span class="nc" id="L533">                                results.add(DTOmodels.FeedItem.fromMovie(movie));</span>
+<span class="nc" id="L534">                            }</span>
+                        }
+<span class="nc" id="L536">                        Log.d(&quot;FeedFragment&quot;, &quot;Found &quot; + response.length() + &quot; movies&quot;);</span>
+<span class="nc" id="L537">                    } catch (Exception e) {</span>
+<span class="nc" id="L538">                        Log.e(&quot;FeedFragment&quot;, &quot;Movie search parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L539">                    }</span>
+<span class="nc" id="L540">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L541">                }</span>
+
+                @Override
+                public void onError(String message) {
+<span class="nc" id="L545">                    Log.d(&quot;FeedFragment&quot;, &quot;No movies found: &quot; + message);</span>
+<span class="nc" id="L546">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L547">                }</span>
+            });
+        }
+
+<span class="nc bnc" id="L551" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;BOOK&quot;)) {</span>
+<span class="nc" id="L552">            ApiClient.getArray(getContext(), &quot;/search-books?q=&quot; + query, new Api_Array_Interface() {</span>
+                @Override
+                public void onSuccess(JSONArray response) {
+                    try {
+<span class="nc" id="L556">                        Gson gson = new Gson();</span>
+<span class="nc bnc" id="L557" title="All 2 branches missed.">                        for (int i = 0; i &lt; Math.min(response.length(), 3); i++) {</span>
+<span class="nc" id="L558">                            JSONObject obj = response.getJSONObject(i);</span>
+<span class="nc" id="L559">                            DTOmodels.book book = gson.fromJson(obj.toString(), DTOmodels.book.class);</span>
+<span class="nc" id="L560">                            synchronized (results) {</span>
+<span class="nc" id="L561">                                results.add(DTOmodels.FeedItem.fromBook(book));</span>
+<span class="nc" id="L562">                            }</span>
+                        }
+<span class="nc" id="L564">                        Log.d(&quot;FeedFragment&quot;, &quot;Found &quot; + response.length() + &quot; books&quot;);</span>
+<span class="nc" id="L565">                    } catch (Exception e) {</span>
+<span class="nc" id="L566">                        Log.e(&quot;FeedFragment&quot;, &quot;Book search parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L567">                    }</span>
+<span class="nc" id="L568">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L569">                }</span>
+
+                @Override
+                public void onError(String message) {
+<span class="nc" id="L573">                    Log.d(&quot;FeedFragment&quot;, &quot;No books found: &quot; + message);</span>
+<span class="nc" id="L574">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L575">                }</span>
+            });
+        }
+
+<span class="nc bnc" id="L579" title="All 4 branches missed.">        if (currentFilter.equals(&quot;ALL&quot;) || currentFilter.equals(&quot;ARTIST&quot;)) {</span>
+<span class="nc" id="L580">            ApiClient.get(getContext(), &quot;/search-artist-and-save?artist_name=&quot; + query, new Api_Interface() {</span>
+                @Override
+                public void onSuccess(JSONObject response) {
+                    try {
+<span class="nc" id="L584">                        DTOmodels.artist artist = new Gson().fromJson(response.toString(), DTOmodels.artist.class);</span>
+<span class="nc" id="L585">                        synchronized (results) {</span>
+<span class="nc" id="L586">                            results.add(DTOmodels.FeedItem.fromArtist(artist));</span>
+<span class="nc" id="L587">                        }</span>
+<span class="nc" id="L588">                        Log.d(&quot;FeedFragment&quot;, &quot;Found artist: &quot; + artist.name);</span>
+<span class="nc" id="L589">                    } catch (Exception e) {</span>
+<span class="nc" id="L590">                        Log.e(&quot;FeedFragment&quot;, &quot;Artist search parse error: &quot; + e.getMessage());</span>
+<span class="nc" id="L591">                    }</span>
+<span class="nc" id="L592">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L593">                }</span>
+
+                @Override
+                public void onError(String message) {
+<span class="nc" id="L597">                    Log.d(&quot;FeedFragment&quot;, &quot;No artist found: &quot; + message);</span>
+<span class="nc" id="L598">                    checkExternalDone(pending, results);</span>
+<span class="nc" id="L599">                }</span>
+            });
+        }
+<span class="nc" id="L602">    }</span>
+
+    private synchronized void checkExternalDone(int[] pending, List&lt;DTOmodels.FeedItem&gt; results) {
+<span class="nc" id="L605">        pending[0]--;</span>
+<span class="nc bnc" id="L606" title="All 2 branches missed.">        if (pending[0] &gt; 0) return;</span>
+
+<span class="nc bnc" id="L608" title="All 2 branches missed.">        if (getActivity() == null) return;</span>
+
+<span class="nc" id="L610">        getActivity().runOnUiThread(() -&gt; {</span>
+<span class="nc bnc" id="L611" title="All 2 branches missed.">            if (!results.isEmpty()) {</span>
+<span class="nc" id="L612">                allItems.addAll(results);</span>
+<span class="nc" id="L613">                mediaItems.addAll(results);</span>
+
+<span class="nc" id="L615">                feedItems.clear();</span>
+<span class="nc" id="L616">                feedItems.addAll(results);</span>
+<span class="nc" id="L617">                adapter.notifyDataSetChanged();</span>
+<span class="nc" id="L618">                searchBar.clearFocus();</span>
+
+<span class="nc" id="L620">                Toast.makeText(getContext(), &quot;Found &quot; + results.size() + &quot; results! Added to database.&quot;, Toast.LENGTH_SHORT).show();</span>
+            } else {
+<span class="nc" id="L622">                Toast.makeText(getContext(), &quot;No results found&quot;, Toast.LENGTH_SHORT).show();</span>
+            }
+<span class="nc" id="L624">        });</span>
+<span class="nc" id="L625">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>

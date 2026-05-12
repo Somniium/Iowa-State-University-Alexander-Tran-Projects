@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/design_default_color_error"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/AppName_txt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="50dp"
+        android:rotationX="19"
+        android:scaleX="1.5"
+        android:scaleY="1.5"
+        android:textColor="?android:attr/colorPressedHighlight"
+        android:textSize="96sp"
+        android:translationY="180dp"></TextView>
+
+    <TextView
+        android:id="@+id/TitleMessage_txt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="50dp"
+        android:rotationX="13"
+        android:textColor="#000000"
+        android:textSize="50dp"
+        android:translationY="45dp"></TextView>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

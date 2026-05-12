@@ -1,0 +1,230 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > GeminiProvider</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Chat</a>
+</div>
+
+<h1>Coverage Summary for Class: GeminiProvider (onetoone.Chat)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">GeminiProvider</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (1/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    7.7%
+  </span>
+  <span class="absValue">
+    (3/39)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Chat;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+&nbsp;import com.fasterxml.jackson.databind.node.ArrayNode;
+&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+&nbsp;import org.springframework.beans.factory.annotation.Value;
+&nbsp;import org.springframework.http.HttpEntity;
+&nbsp;import org.springframework.http.HttpHeaders;
+&nbsp;import org.springframework.http.MediaType;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;import org.springframework.web.client.RestTemplate;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;/**
+&nbsp; * Calls Google&#39;s Gemini API for chat completions.
+&nbsp; *
+&nbsp; * Docs: https://ai.google.dev/api/generate-content
+&nbsp; *
+&nbsp; * Endpoint: POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}
+&nbsp; *
+&nbsp; * Free tier (as of April 2026): 15 requests/minute on Gemini 2.5 Flash.
+&nbsp; */
+&nbsp;@Component
+<b class="fc">&nbsp;public class GeminiProvider implements AiProvider {</b>
+&nbsp;
+&nbsp;    private static final String BASE_URL = &quot;https://generativelanguage.googleapis.com/v1beta/models/&quot;;
+&nbsp;
+&nbsp;    @Value(&quot;${ai.gemini.api-key:}&quot;)
+&nbsp;    private String apiKey;
+&nbsp;
+&nbsp;    @Value(&quot;${ai.gemini.model:gemini-2.5-flash}&quot;)
+&nbsp;    private String model;
+&nbsp;
+<b class="fc">&nbsp;    private final RestTemplate restTemplate = new RestTemplate();</b>
+<b class="fc">&nbsp;    private final ObjectMapper mapper = new ObjectMapper();</b>
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String complete(String systemPrompt, List&lt;ChatMessage&gt; history, String userMessage) {
+<b class="nc">&nbsp;        if (apiKey == null || apiKey.isBlank()) {</b>
+<b class="nc">&nbsp;            return &quot;[Gemini not configured — set ai.gemini.api-key in application.properties]&quot;;</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        try {
+&nbsp;            // Build request body. Gemini&#39;s format:
+&nbsp;            // {
+&nbsp;            //   &quot;system_instruction&quot;: { &quot;parts&quot;: [{ &quot;text&quot;: &quot;...&quot; }] },
+&nbsp;            //   &quot;contents&quot;: [
+&nbsp;            //     { &quot;role&quot;: &quot;user&quot;,  &quot;parts&quot;: [{ &quot;text&quot;: &quot;...&quot; }] },
+&nbsp;            //     { &quot;role&quot;: &quot;model&quot;, &quot;parts&quot;: [{ &quot;text&quot;: &quot;...&quot; }] }
+&nbsp;            //   ]
+&nbsp;            // }
+<b class="nc">&nbsp;            ObjectNode body = mapper.createObjectNode();</b>
+&nbsp;
+&nbsp;            // System prompt
+<b class="nc">&nbsp;            if (systemPrompt != null &amp;&amp; !systemPrompt.isBlank()) {</b>
+<b class="nc">&nbsp;                ObjectNode systemInstruction = body.putObject(&quot;system_instruction&quot;);</b>
+<b class="nc">&nbsp;                ArrayNode systemParts = systemInstruction.putArray(&quot;parts&quot;);</b>
+<b class="nc">&nbsp;                systemParts.addObject().put(&quot;text&quot;, systemPrompt);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // Conversation history. Gemini uses &quot;user&quot; and &quot;model&quot; (not &quot;assistant&quot;).
+&nbsp;            // The current user message is already the last entry in `history` (we save before calling),
+&nbsp;            // so we send `history` directly and do NOT append `userMessage` again.
+<b class="nc">&nbsp;            ArrayNode contents = body.putArray(&quot;contents&quot;);</b>
+<b class="nc">&nbsp;            for (ChatMessage msg : history) {</b>
+<b class="nc">&nbsp;                if (msg.getRole() == ChatMessage.Role.SYSTEM) continue; // handled above</b>
+<b class="nc">&nbsp;                ObjectNode entry = contents.addObject();</b>
+<b class="nc">&nbsp;                entry.put(&quot;role&quot;, msg.getRole() == ChatMessage.Role.USER ? &quot;user&quot; : &quot;model&quot;);</b>
+<b class="nc">&nbsp;                ArrayNode parts = entry.putArray(&quot;parts&quot;);</b>
+<b class="nc">&nbsp;                parts.addObject().put(&quot;text&quot;, msg.getContent());</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // Optional generation config — sane defaults
+<b class="nc">&nbsp;            ObjectNode genConfig = body.putObject(&quot;generationConfig&quot;);</b>
+<b class="nc">&nbsp;            genConfig.put(&quot;maxOutputTokens&quot;, 1024);</b>
+<b class="nc">&nbsp;            genConfig.put(&quot;temperature&quot;, 0.7);</b>
+&nbsp;
+&nbsp;            // POST to Gemini
+<b class="nc">&nbsp;            String url = BASE_URL + model + &quot;:generateContent?key=&quot; + apiKey;</b>
+&nbsp;
+<b class="nc">&nbsp;            HttpHeaders headers = new HttpHeaders();</b>
+<b class="nc">&nbsp;            headers.setContentType(MediaType.APPLICATION_JSON);</b>
+<b class="nc">&nbsp;            HttpEntity&lt;String&gt; request = new HttpEntity&lt;&gt;(mapper.writeValueAsString(body), headers);</b>
+&nbsp;
+<b class="nc">&nbsp;            String response = restTemplate.postForObject(url, request, String.class);</b>
+<b class="nc">&nbsp;            JsonNode root = mapper.readTree(response);</b>
+&nbsp;
+&nbsp;            // Response shape:
+&nbsp;            // { &quot;candidates&quot;: [ { &quot;content&quot;: { &quot;parts&quot;: [ { &quot;text&quot;: &quot;...&quot; } ] } } ] }
+<b class="nc">&nbsp;            JsonNode candidates = root.get(&quot;candidates&quot;);</b>
+<b class="nc">&nbsp;            if (candidates == null || !candidates.isArray() || candidates.size() == 0) {</b>
+<b class="nc">&nbsp;                return &quot;[Gemini returned no candidates — possibly blocked by safety filters]&quot;;</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            JsonNode parts = candidates.get(0).path(&quot;content&quot;).path(&quot;parts&quot;);</b>
+<b class="nc">&nbsp;            if (!parts.isArray() || parts.size() == 0) {</b>
+<b class="nc">&nbsp;                return &quot;[Gemini response had no text parts]&quot;;</b>
+&nbsp;            }
+&nbsp;
+<b class="nc">&nbsp;            StringBuilder sb = new StringBuilder();</b>
+<b class="nc">&nbsp;            for (JsonNode part : parts) {</b>
+<b class="nc">&nbsp;                String text = part.path(&quot;text&quot;).asText(&quot;&quot;);</b>
+<b class="nc">&nbsp;                if (!text.isEmpty()) sb.append(text);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            String result = sb.toString();</b>
+<b class="nc">&nbsp;            return result.isBlank() ? &quot;[Empty response from Gemini]&quot; : result;</b>
+&nbsp;
+&nbsp;        } catch (Exception e) {
+<b class="nc">&nbsp;            return &quot;[Gemini call failed: &quot; + e.getMessage() + &quot;]&quot;;</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-04-27 14:13</div>
+</div>
+</body>
+</html>

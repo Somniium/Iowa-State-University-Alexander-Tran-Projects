@@ -1,0 +1,12 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+plugins {
+    id 'com.android.application' version '8.8.1' apply false
+}
+
+// Redirect build output to a local path on Windows dev machines to avoid slow network-drive builds.
+// Skipped in CI (GitLab sets CI=true) so the Linux runner uses the default ./build directory.
+if (!System.getenv('CI') && System.getProperty('os.name').toLowerCase().contains('windows')) {
+    allprojects {
+        layout.buildDirectory.set(file("C:/tmp/gradle-build/${rootProject.name}/${project.name}"))
+    }
+}

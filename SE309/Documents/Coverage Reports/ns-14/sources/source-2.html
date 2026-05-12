@@ -1,0 +1,347 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ReviewController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">onetoone.Reviews</a>
+</div>
+
+<h1>Coverage Summary for Class: ReviewController (onetoone.Reviews)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ReviewController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    8.3%
+  </span>
+  <span class="absValue">
+    (1/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    5.1%
+  </span>
+  <span class="absValue">
+    (3/59)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package onetoone.Reviews;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;import io.swagger.v3.oas.annotations.Operation;
+&nbsp;import io.swagger.v3.oas.annotations.Parameter;
+&nbsp;import io.swagger.v3.oas.annotations.media.Content;
+&nbsp;import io.swagger.v3.oas.annotations.media.Schema;
+&nbsp;import io.swagger.v3.oas.annotations.responses.ApiResponse;
+&nbsp;import io.swagger.v3.oas.annotations.tags.Tag;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.web.bind.annotation.DeleteMapping;
+&nbsp;import org.springframework.web.bind.annotation.GetMapping;
+&nbsp;import org.springframework.web.bind.annotation.PathVariable;
+&nbsp;import org.springframework.web.bind.annotation.PostMapping;
+&nbsp;import org.springframework.web.bind.annotation.PutMapping;
+&nbsp;import org.springframework.web.bind.annotation.RequestBody;
+&nbsp;import org.springframework.web.bind.annotation.RestController;
+&nbsp;
+&nbsp;import onetoone.Users.User;
+&nbsp;import onetoone.Users.UserRepository;
+&nbsp;import onetoone.Albums.Album;
+&nbsp;import onetoone.Albums.AlbumRepository;
+&nbsp;import onetoone.Books.Book;
+&nbsp;import onetoone.Books.BookRepository;
+&nbsp;import onetoone.Games.Game;
+&nbsp;import onetoone.Games.GameRepository;
+&nbsp;import onetoone.Movies.Movie;
+&nbsp;import onetoone.Movies.MovieRepository;
+&nbsp;import onetoone.Notifications.NotificationService;
+&nbsp;
+&nbsp;
+&nbsp;/**
+&nbsp; *
+&nbsp; * @author Alexander Tran and Kamil Halupka
+&nbsp; *
+&nbsp; */
+&nbsp;
+&nbsp;@RestController
+&nbsp;@Tag(name = &quot;Reviews&quot;, description = &quot;Manage reviews and the posts/media attached to them&quot;)
+<b class="fc">&nbsp;public class ReviewController {</b>
+&nbsp;
+&nbsp;    @Autowired ReviewRepository reviewRepository;
+&nbsp;    @Autowired UserRepository   userRepository;
+&nbsp;    @Autowired AlbumRepository  albumRepository;
+&nbsp;    @Autowired BookRepository   bookRepository;
+&nbsp;    @Autowired GameRepository   gameRepository;
+&nbsp;    @Autowired MovieRepository  movieRepository;
+&nbsp;    @Autowired NotificationService notificationService;
+&nbsp;
+<b class="fc">&nbsp;    private String success = &quot;{\&quot;message\&quot;:\&quot;success\&quot;}&quot;;</b>
+<b class="fc">&nbsp;    private String failure = &quot;{\&quot;message\&quot;:\&quot;failure\&quot;}&quot;;</b>
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Returns all reviews&quot;, description = &quot;Returns all reviews as JSON objects&quot;)
+&nbsp;    @GetMapping(path = &quot;/reviews&quot;)
+&nbsp;    List&lt;Review&gt; getAllReviews() {
+<b class="nc">&nbsp;        return reviewRepository.findAll();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Returns review by ID&quot;, description = &quot;Returns a review using its DB ID&quot;)
+&nbsp;    @GetMapping(path = &quot;/reviews/{id}&quot;)
+&nbsp;    Review getReviewById(
+&nbsp;            @Parameter(description = &quot;ID of review in DB&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable int id) {
+<b class="nc">&nbsp;        return reviewRepository.findById(id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Returns reviews by media type&quot;, description = &quot;Returns all reviews matching a given media type&quot;)
+&nbsp;    @GetMapping(&quot;/reviews/type/{mediaType}&quot;)
+&nbsp;    List&lt;Review&gt; getReviewsByType(
+&nbsp;            @Parameter(description = &quot;Media type to filter by&quot;, example = &quot;ALBUM&quot;)
+&nbsp;            @PathVariable String mediaType) {
+<b class="nc">&nbsp;        return reviewRepository.findByMediaType(mediaType.toUpperCase());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Creates a review&quot;, description = &quot;Adds a review to the DB using a JSON object&quot;)
+&nbsp;    @PostMapping(path = &quot;/reviews&quot;)
+&nbsp;    String createReview(
+&nbsp;            @Parameter(description = &quot;JSON object of review&quot;)
+&nbsp;            @RequestBody Review review) {
+<b class="nc">&nbsp;        if (review == null) return failure;</b>
+&nbsp;
+<b class="nc">&nbsp;        if (review.getMediaType() != null) {</b>
+<b class="nc">&nbsp;            review.setMediaType(review.getMediaType().trim().toUpperCase());</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        reviewRepository.save(review);</b>
+<b class="nc">&nbsp;        return success;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Updates a review&quot;, description = &quot;Updates an existing review using its ID and a JSON object&quot;)
+&nbsp;    @PutMapping(&quot;/reviews/{id}&quot;)
+&nbsp;    public Review updateReview(
+&nbsp;            @Parameter(description = &quot;ID of review in DB&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable int id,
+&nbsp;            @Parameter(description = &quot;JSON object of review&quot;)
+&nbsp;            @RequestBody Review request) {
+&nbsp;
+<b class="nc">&nbsp;        Review existing = reviewRepository.findById(id);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (existing == null) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Review id does not exist&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        if (request.getId() != id) {</b>
+<b class="nc">&nbsp;            throw new RuntimeException(&quot;Path id does not match request id&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        existing.setMediaType(request.getMediaType());</b>
+<b class="nc">&nbsp;        existing.setTitle(request.getTitle());</b>
+<b class="nc">&nbsp;        existing.setRating(request.getRating());</b>
+<b class="nc">&nbsp;        existing.setBody(request.getBody());</b>
+&nbsp;
+<b class="nc">&nbsp;        reviewRepository.save(existing);</b>
+&nbsp;
+<b class="nc">&nbsp;        return existing;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Assigns review to user&quot;, description = &quot;Links an existing review to a user using their IDs&quot;)
+&nbsp;    @PutMapping(&quot;/reviews/{reviewId}/user/{userId}&quot;)
+&nbsp;    String assignReviewToUser(
+&nbsp;            @Parameter(description = &quot;ID of review&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable int reviewId,
+&nbsp;            @Parameter(description = &quot;ID of user&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable int userId) {
+<b class="nc">&nbsp;        Review review = reviewRepository.findById(reviewId);</b>
+<b class="nc">&nbsp;        User user = userRepository.findByUserId(userId);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (review == null || user == null) return failure;</b>
+&nbsp;
+<b class="nc">&nbsp;        review.setUser(user);</b>
+<b class="nc">&nbsp;        reviewRepository.save(review);</b>
+<b class="nc">&nbsp;        notificationService.notify(user, &quot;REVIEW&quot;,</b>
+<b class="nc">&nbsp;                &quot;Your review of \&quot;&quot; + review.getTitle() + &quot;\&quot; has been posted!&quot;);</b>
+<b class="nc">&nbsp;        return success;</b>
+&nbsp;    }
+&nbsp;    @Operation(summary = &quot;Assigns review to album&quot;, description = &quot;Links an existing review to an album using their IDs&quot;)
+&nbsp;    @PutMapping(&quot;/reviews/{reviewId}/album/{albumId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; assignReviewToAlbum(
+&nbsp;            @Parameter(description = &quot;ID of review&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable Long reviewId,
+&nbsp;            @Parameter(description = &quot;ID of album&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable long albumId) {
+<b class="nc">&nbsp;        Review review = reviewRepository.findById(reviewId).orElse(null);</b>
+<b class="nc">&nbsp;        Album album = albumRepository.findByAlbumId(albumId);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (review == null || album == null) return new ResponseEntity&lt;&gt;(&quot;Error: Album not found.&quot;, HttpStatus.NOT_FOUND);</b>
+&nbsp;
+<b class="nc">&nbsp;        review.setAlbum(album);</b>
+<b class="nc">&nbsp;        reviewRepository.save(review);</b>
+<b class="nc">&nbsp;        return new ResponseEntity&lt;&gt;(&quot;Successfully added review to album!&quot;, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(summary = &quot;Deletes a review&quot;, description = &quot;Deletes a review from the DB using its ID&quot;)
+&nbsp;    @DeleteMapping(path = &quot;/reviews/{id}&quot;)
+&nbsp;    String deleteReview(
+&nbsp;            @Parameter(description = &quot;ID of review in DB&quot;, example = &quot;1&quot;)
+&nbsp;            @PathVariable int id) {
+<b class="nc">&nbsp;        reviewRepository.deleteById(id);</b>
+<b class="nc">&nbsp;        return success;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Assign a review to a book&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;reviewId&quot;, required = true, example = &quot;1&quot;),
+&nbsp;                    @Parameter(name = &quot;bookId&quot;,   required = true, example = &quot;7&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Assigned&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PutMapping(&quot;/reviews/{reviewId}/book/{bookId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; assignReviewToBook(@PathVariable int reviewId, @PathVariable Long bookId) {
+<b class="nc">&nbsp;        Review review = reviewRepository.findById(reviewId);</b>
+<b class="nc">&nbsp;        Book book = bookRepository.findById(bookId).orElse(null);</b>
+<b class="nc">&nbsp;        if (review == null || book == null)</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Error: Book not found.&quot;, HttpStatus.NOT_FOUND);</b>
+<b class="nc">&nbsp;        review.setBook(book);</b>
+<b class="nc">&nbsp;        reviewRepository.save(review);</b>
+<b class="nc">&nbsp;        return new ResponseEntity&lt;&gt;(&quot;Successfully added review to book.&quot;, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Assign a review to a game&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;reviewId&quot;, required = true, example = &quot;1&quot;),
+&nbsp;                    @Parameter(name = &quot;gameId&quot;,   required = true, example = &quot;2&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Assigned&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PutMapping(&quot;/reviews/{reviewId}/game/{gameId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; assignReviewToGame(@PathVariable int reviewId, @PathVariable Long gameId) {
+<b class="nc">&nbsp;        Review review = reviewRepository.findById(reviewId);</b>
+<b class="nc">&nbsp;        Game game = gameRepository.findById(gameId).orElse(null);</b>
+<b class="nc">&nbsp;        if (review == null || game == null)</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Error: Game not found.&quot;, HttpStatus.NOT_FOUND);</b>
+<b class="nc">&nbsp;        review.setGame(game);</b>
+<b class="nc">&nbsp;        reviewRepository.save(review);</b>
+<b class="nc">&nbsp;        return new ResponseEntity&lt;&gt;(&quot;Successfully added review to game.&quot;, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Operation(
+&nbsp;            summary = &quot;Assign a review to a movie or show&quot;,
+&nbsp;            parameters = {
+&nbsp;                    @Parameter(name = &quot;reviewId&quot;, required = true, example = &quot;1&quot;),
+&nbsp;                    @Parameter(name = &quot;movieId&quot;,  required = true, example = &quot;5&quot;)
+&nbsp;            },
+&nbsp;            responses = {
+&nbsp;                    @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Assigned&quot;),
+&nbsp;                    @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Not found&quot;, content = @Content)
+&nbsp;            }
+&nbsp;    )
+&nbsp;    @PutMapping(&quot;/reviews/{reviewId}/movie/{movieId}&quot;)
+&nbsp;    ResponseEntity&lt;?&gt; assignReviewToMovie(@PathVariable int reviewId, @PathVariable Long movieId) {
+<b class="nc">&nbsp;        Review review = reviewRepository.findById(reviewId);</b>
+<b class="nc">&nbsp;        Movie movie = movieRepository.findById(movieId).orElse(null);</b>
+<b class="nc">&nbsp;        if (review == null || movie == null)</b>
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(&quot;Error: Movie/Show not found.&quot;, HttpStatus.NOT_FOUND);</b>
+<b class="nc">&nbsp;        review.setMovie(movie);</b>
+<b class="nc">&nbsp;        reviewRepository.save(review);</b>
+<b class="nc">&nbsp;        return new ResponseEntity&lt;&gt;(&quot;Successfully added review to movie/show.&quot;, HttpStatus.OK);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-04-27 14:13</div>
+</div>
+</body>
+</html>

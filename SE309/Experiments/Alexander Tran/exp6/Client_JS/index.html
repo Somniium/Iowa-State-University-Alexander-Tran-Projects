@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CyVal WebSocket Test</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="wrapper">
+    <h1>CyVal WebSocket Test Client</h1>
+
+    <p>Use this page to test rooms, chat, typing, notifications, and direct messages.</p>
+
+    <div>
+        <label>WebSocket Server</label><br />
+        <input
+                type="text"
+                id="wsserver"
+                style="width: 30rem;"
+                value="ws://localhost:8080/chat/"
+        />
+    </div>
+
+    <br />
+
+    <div>
+        <label>Username</label><br />
+        <input
+                type="text"
+                id="username"
+                style="width: 20rem;"
+                placeholder="Enter username"
+        />
+        <button class="button" type="button" onclick="connectSocket()">Connect</button>
+    </div>
+
+    <br />
+
+    <div>
+        <label>Room ID</label><br />
+        <input
+                type="text"
+                id="roomId"
+                style="width: 20rem;"
+                placeholder="album-15 or review-42"
+        />
+        <button class="button" type="button" onclick="joinRoom()">Join Room</button>
+    </div>
+
+    <br />
+
+    <div>
+        <label>Log</label><br />
+        <textarea readonly rows="18" cols="100" id="log"></textarea>
+        <div id="typingIndicator" style="margin-top: 6px; color: #aaa;"></div>
+    </div>
+
+    <br />
+
+    <div>
+        <label>Message</label><br />
+        <input
+                type="text"
+                size="70"
+                id="msg"
+                placeholder="Type a message"
+                oninput="sendTyping()"
+        />
+        <button class="button" type="button" onclick="sendChat()">Send Chat</button>
+    </div>
+    <br />
+
+    <div>
+        <label>Direct Message Target</label><br />
+        <input
+                type="text"
+                id="dmTarget"
+                style="width: 20rem;"
+                placeholder="username"
+        />
+        <button class="button" type="button" onclick="sendDirectMessage()">Send DM</button>
+    </div>
+
+    <br />
+
+    <div>
+        <label>Notification Text</label><br />
+        <input
+                type="text"
+                id="notificationText"
+                style="width: 30rem;"
+                placeholder="Notification content"
+        />
+        <button class="button" type="button" onclick="sendNotification()">Send Notification</button>
+    </div>
+</div>
+
+<script src="websocket.js"></script>
+</body>
+</html>

@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ViewProfileFragment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debug</a> &gt; <a href="index.source.html" class="el_package">com.example.androidexample</a> &gt; <span class="el_source">ViewProfileFragment.java</span></div><h1>ViewProfileFragment.java</h1><pre class="source lang-java linenums">package com.example.androidexample;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="fc" id="L31">public class ViewProfileFragment extends Fragment {</span>
+
+    private static final String TAG = &quot;ViewProfileFragment&quot;;
+
+    private TextView headerText, nameText, majorText, emailText, bioText;
+    private TextView hobbiesText, gradDateText, linkedInText, emptyText;
+    private EditText editMajor, editBio, editHobbies, editGradDate, editLinkedIn;
+    private CardView hobbiesCard, gradDateCard, linkedInCard;
+    private Button editBtn;
+    private RecyclerView postsRecycler;
+    private TextView postsEmptyText;
+
+    private int userId;
+    private int currentUserId;
+<span class="fc" id="L45">    private int profileId = -1;</span>
+<span class="fc" id="L46">    private boolean isEditing = false;</span>
+
+    // Keep current values so EditTexts are pre-filled correctly
+<span class="fc" id="L49">    private String currentMajor = &quot;&quot;, currentBio = &quot;&quot;, currentHobbies = &quot;&quot;,</span>
+                   currentGradDate = &quot;&quot;, currentLinkedIn = &quot;&quot;;
+
+    public static ViewProfileFragment newInstance(int userId) {
+<span class="fc" id="L53">        ViewProfileFragment fragment = new ViewProfileFragment();</span>
+<span class="fc" id="L54">        Bundle args = new Bundle();</span>
+<span class="fc" id="L55">        args.putInt(&quot;USER_ID&quot;, userId);</span>
+<span class="fc" id="L56">        fragment.setArguments(args);</span>
+<span class="fc" id="L57">        return fragment;</span>
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+<span class="fc" id="L64">        View view = inflater.inflate(R.layout.fragment_view_profile, container, false);</span>
+
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        userId        = getArguments() != null ? getArguments().getInt(&quot;USER_ID&quot;, -1) : -1;</span>
+<span class="fc" id="L67">        currentUserId = requireActivity().getIntent().getIntExtra(&quot;USER_ID&quot;, -1);</span>
+
+<span class="fc" id="L69">        headerText    = view.findViewById(R.id.view_profile_header);</span>
+<span class="fc" id="L70">        nameText      = view.findViewById(R.id.view_profile_name);</span>
+<span class="fc" id="L71">        majorText     = view.findViewById(R.id.view_profile_major);</span>
+<span class="fc" id="L72">        emailText     = view.findViewById(R.id.view_profile_email);</span>
+<span class="fc" id="L73">        bioText       = view.findViewById(R.id.view_profile_bio);</span>
+<span class="fc" id="L74">        hobbiesCard   = view.findViewById(R.id.card_hobbies);</span>
+<span class="fc" id="L75">        hobbiesText   = view.findViewById(R.id.view_profile_hobbies);</span>
+<span class="fc" id="L76">        gradDateCard  = view.findViewById(R.id.card_grad_date);</span>
+<span class="fc" id="L77">        gradDateText  = view.findViewById(R.id.view_profile_grad_date);</span>
+<span class="fc" id="L78">        linkedInCard  = view.findViewById(R.id.card_linkedin);</span>
+<span class="fc" id="L79">        linkedInText  = view.findViewById(R.id.view_profile_linkedin);</span>
+<span class="fc" id="L80">        emptyText     = view.findViewById(R.id.view_profile_empty);</span>
+<span class="fc" id="L81">        editMajor     = view.findViewById(R.id.edit_major);</span>
+<span class="fc" id="L82">        editBio       = view.findViewById(R.id.edit_bio);</span>
+<span class="fc" id="L83">        editHobbies   = view.findViewById(R.id.edit_hobbies);</span>
+<span class="fc" id="L84">        editGradDate  = view.findViewById(R.id.edit_grad_date);</span>
+<span class="fc" id="L85">        editLinkedIn  = view.findViewById(R.id.edit_linkedin);</span>
+<span class="fc" id="L86">        editBtn       = view.findViewById(R.id.btn_edit_profile);</span>
+<span class="fc" id="L87">        postsRecycler = view.findViewById(R.id.profile_posts_recycler);</span>
+<span class="fc" id="L88">        postsEmptyText = view.findViewById(R.id.profile_posts_empty);</span>
+
+<span class="fc" id="L90">        headerText.setText(&quot;Profile&quot;);</span>
+
+<span class="fc" id="L92">        view.findViewById(R.id.btn_back).setOnClickListener(v -&gt;</span>
+<span class="fc" id="L93">                ((MainFeedActivity) requireActivity()).loadFragment(new UserProfileFragment())</span>
+        );
+
+        // Show edit button only when viewing your own profile
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">        if (userId == currentUserId) {</span>
+<span class="fc" id="L98">            editBtn.setVisibility(View.VISIBLE);</span>
+        }
+
+<span class="fc" id="L101">        editBtn.setOnClickListener(v -&gt; {</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">            if (isEditing) {</span>
+<span class="fc" id="L103">                saveProfile();</span>
+            } else {
+<span class="fc" id="L105">                enterEditMode();</span>
+            }
+<span class="fc" id="L107">        });</span>
+
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">        if (userId != -1) {</span>
+<span class="fc" id="L110">            fetchUserInfo();</span>
+<span class="fc" id="L111">            fetchProfileDetails();</span>
+<span class="fc" id="L112">            loadUserPosts();</span>
+        }
+
+<span class="fc" id="L115">        return view;</span>
+    }
+
+    private void enterEditMode() {
+<span class="fc" id="L119">        isEditing = true;</span>
+<span class="fc" id="L120">        editBtn.setText(&quot;Save&quot;);</span>
+
+        // Swap TextViews for EditTexts
+<span class="fc" id="L123">        majorText.setVisibility(View.GONE);</span>
+<span class="fc" id="L124">        editMajor.setText(currentMajor);</span>
+<span class="fc" id="L125">        editMajor.setVisibility(View.VISIBLE);</span>
+
+<span class="fc" id="L127">        bioText.setVisibility(View.GONE);</span>
+<span class="fc" id="L128">        editBio.setText(currentBio);</span>
+<span class="fc" id="L129">        editBio.setVisibility(View.VISIBLE);</span>
+
+        // Always show detail cards in edit mode so empty fields can be filled in
+<span class="fc" id="L132">        hobbiesCard.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L133">        hobbiesText.setVisibility(View.GONE);</span>
+<span class="fc" id="L134">        editHobbies.setText(currentHobbies);</span>
+<span class="fc" id="L135">        editHobbies.setVisibility(View.VISIBLE);</span>
+
+<span class="fc" id="L137">        gradDateCard.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L138">        gradDateText.setVisibility(View.GONE);</span>
+<span class="fc" id="L139">        editGradDate.setText(currentGradDate);</span>
+<span class="fc" id="L140">        editGradDate.setVisibility(View.VISIBLE);</span>
+
+<span class="fc" id="L142">        linkedInCard.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L143">        linkedInText.setVisibility(View.GONE);</span>
+<span class="fc" id="L144">        editLinkedIn.setText(currentLinkedIn);</span>
+<span class="fc" id="L145">        editLinkedIn.setVisibility(View.VISIBLE);</span>
+
+<span class="fc" id="L147">        emptyText.setVisibility(View.GONE);</span>
+<span class="fc" id="L148">    }</span>
+
+    private void exitEditMode() {
+<span class="fc" id="L151">        isEditing = false;</span>
+<span class="fc" id="L152">        editBtn.setText(&quot;Edit Profile&quot;);</span>
+
+<span class="fc" id="L154">        editMajor.setVisibility(View.GONE);</span>
+<span class="fc" id="L155">        editBio.setVisibility(View.GONE);</span>
+<span class="fc" id="L156">        editHobbies.setVisibility(View.GONE);</span>
+<span class="fc" id="L157">        editGradDate.setVisibility(View.GONE);</span>
+<span class="fc" id="L158">        editLinkedIn.setVisibility(View.GONE);</span>
+
+        // Refresh displayed values
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">        if (!currentMajor.isEmpty()) {</span>
+<span class="fc" id="L162">            majorText.setText(currentMajor);</span>
+<span class="fc" id="L163">            majorText.setVisibility(View.VISIBLE);</span>
+        }
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">        if (!currentBio.isEmpty()) {</span>
+<span class="fc" id="L166">            bioText.setText(currentBio);</span>
+<span class="fc" id="L167">            bioText.setVisibility(View.VISIBLE);</span>
+        }
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">        if (!currentHobbies.isEmpty()) {</span>
+<span class="fc" id="L170">            hobbiesText.setText(&quot;Hobbies:  &quot; + currentHobbies);</span>
+<span class="fc" id="L171">            hobbiesText.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L172">            hobbiesCard.setVisibility(View.VISIBLE);</span>
+        } else {
+<span class="nc" id="L174">            hobbiesCard.setVisibility(View.GONE);</span>
+        }
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">        if (!currentGradDate.isEmpty()) {</span>
+<span class="fc" id="L177">            gradDateText.setText(&quot;Graduating:  &quot; + currentGradDate);</span>
+<span class="fc" id="L178">            gradDateText.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L179">            gradDateCard.setVisibility(View.VISIBLE);</span>
+        } else {
+<span class="nc" id="L181">            gradDateCard.setVisibility(View.GONE);</span>
+        }
+<span class="pc bpc" id="L183" title="1 of 2 branches missed.">        if (!currentLinkedIn.isEmpty()) {</span>
+<span class="fc" id="L184">            linkedInText.setText(currentLinkedIn);</span>
+<span class="fc" id="L185">            linkedInText.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L186">            linkedInCard.setVisibility(View.VISIBLE);</span>
+        } else {
+<span class="nc" id="L188">            linkedInCard.setVisibility(View.GONE);</span>
+        }
+<span class="fc" id="L190">    }</span>
+
+    private void saveProfile() {
+<span class="fc" id="L193">        currentBio      = editBio.getText().toString().trim();</span>
+<span class="fc" id="L194">        currentMajor    = editMajor.getText().toString().trim();</span>
+<span class="fc" id="L195">        currentHobbies  = editHobbies.getText().toString().trim();</span>
+<span class="fc" id="L196">        currentGradDate = editGradDate.getText().toString().trim();</span>
+<span class="fc" id="L197">        currentLinkedIn = editLinkedIn.getText().toString().trim();</span>
+
+<span class="fc" id="L199">        DTOmodels.ProfileRequest request = new DTOmodels.ProfileRequest(</span>
+                currentBio, currentMajor, currentHobbies, currentGradDate, currentLinkedIn);
+
+<span class="fc" id="L202">        editBtn.setEnabled(false);</span>
+
+<span class="fc" id="L204">        Api_Interface callback = new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="pc" id="L207">                try { profileId = response.getInt(&quot;profileId&quot;); } catch (JSONException ignored) {}</span>
+<span class="fc" id="L208">                editBtn.setEnabled(true);</span>
+<span class="fc" id="L209">                exitEditMode();</span>
+<span class="fc" id="L210">                Toast.makeText(getContext(), &quot;Profile saved!&quot;, Toast.LENGTH_SHORT).show();</span>
+<span class="fc" id="L211">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc" id="L215">                editBtn.setEnabled(true);</span>
+<span class="nc" id="L216">                Toast.makeText(getContext(), &quot;Error: &quot; + message, Toast.LENGTH_LONG).show();</span>
+<span class="nc" id="L217">            }</span>
+        };
+
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">        if (profileId == -1) {</span>
+<span class="nc" id="L221">            ApiClient.post(getContext(), &quot;/profile/userId/&quot; + userId, request, callback);</span>
+        } else {
+<span class="fc" id="L223">            ApiClient.put(getContext(), &quot;/update-profile/&quot; + profileId, request, callback);</span>
+        }
+<span class="fc" id="L225">    }</span>
+
+    private void fetchUserInfo() {
+<span class="fc" id="L228">        ApiClient.get(getContext(), &quot;/users/id/&quot; + userId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+                try {
+<span class="fc" id="L232">                    String name  = response.getString(&quot;name&quot;);</span>
+<span class="fc" id="L233">                    String email = response.getString(&quot;emailId&quot;);</span>
+<span class="fc" id="L234">                    headerText.setText(name + &quot;'s Profile&quot;);</span>
+<span class="fc" id="L235">                    nameText.setText(name);</span>
+<span class="fc" id="L236">                    emailText.setText(email);</span>
+<span class="nc" id="L237">                } catch (JSONException e) {</span>
+<span class="nc" id="L238">                    e.printStackTrace();</span>
+<span class="fc" id="L239">                }</span>
+<span class="fc" id="L240">            }</span>
+
+            @Override
+            public void onError(String message) {
+<span class="nc bnc" id="L244" title="All 2 branches missed.">                if (getContext() != null)</span>
+<span class="nc" id="L245">                    Toast.makeText(getContext(), &quot;Error: &quot; + message, Toast.LENGTH_SHORT).show();</span>
+<span class="nc" id="L246">            }</span>
+        });
+<span class="fc" id="L248">    }</span>
+
+    private void fetchProfileDetails() {
+<span class="fc" id="L251">        ApiClient.get(getContext(), &quot;/profile/userId/&quot; + userId, new Api_Interface() {</span>
+            @Override
+            public void onSuccess(JSONObject response) {
+<span class="pc" id="L254">                try { profileId = response.getInt(&quot;profileId&quot;); } catch (JSONException ignored) {}</span>
+
+<span class="fc" id="L256">                currentBio      = response.optString(&quot;bio&quot;, &quot;&quot;);</span>
+<span class="fc" id="L257">                currentMajor    = response.optString(&quot;major&quot;, &quot;&quot;);</span>
+<span class="fc" id="L258">                currentHobbies  = response.optString(&quot;hobbies&quot;, &quot;&quot;);</span>
+<span class="fc" id="L259">                currentGradDate = response.optString(&quot;gradDate&quot;, &quot;&quot;);</span>
+<span class="fc" id="L260">                currentLinkedIn = response.optString(&quot;linkedInURL&quot;, &quot;&quot;);</span>
+
+<span class="fc" id="L262">                boolean hasAny = false;</span>
+
+<span class="pc bpc" id="L264" title="1 of 2 branches missed.">                if (!currentMajor.isEmpty()) {</span>
+<span class="fc" id="L265">                    majorText.setText(currentMajor);</span>
+<span class="fc" id="L266">                    majorText.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L267">                    hasAny = true;</span>
+                }
+<span class="pc bpc" id="L269" title="1 of 2 branches missed.">                if (!currentBio.isEmpty()) {</span>
+<span class="fc" id="L270">                    bioText.setText(currentBio);</span>
+<span class="fc" id="L271">                    bioText.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L272">                    hasAny = true;</span>
+                }
+<span class="pc bpc" id="L274" title="1 of 2 branches missed.">                if (!currentHobbies.isEmpty()) {</span>
+<span class="fc" id="L275">                    hobbiesText.setText(&quot;Hobbies:  &quot; + currentHobbies);</span>
+<span class="fc" id="L276">                    hobbiesCard.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L277">                    hasAny = true;</span>
+                }
+<span class="pc bpc" id="L279" title="1 of 2 branches missed.">                if (!currentGradDate.isEmpty()) {</span>
+<span class="fc" id="L280">                    gradDateText.setText(&quot;Graduating:  &quot; + currentGradDate);</span>
+<span class="fc" id="L281">                    gradDateCard.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L282">                    hasAny = true;</span>
+                }
+<span class="pc bpc" id="L284" title="1 of 2 branches missed.">                if (!currentLinkedIn.isEmpty()) {</span>
+<span class="fc" id="L285">                    linkedInText.setText(currentLinkedIn);</span>
+<span class="fc" id="L286">                    linkedInCard.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L287">                    hasAny = true;</span>
+                }
+
+<span class="pc bpc" id="L290" title="1 of 2 branches missed.">                if (!hasAny) emptyText.setVisibility(View.VISIBLE);</span>
+<span class="fc" id="L291">            }</span>
+
+            @Override
+            public void onError(String message) {
+                // No profile yet — empty state, edit mode will POST
+<span class="nc" id="L296">                emptyText.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L297">            }</span>
+        });
+<span class="fc" id="L299">    }</span>
+
+    // =========================================================================
+    // User posts
+    // =========================================================================
+
+    /**
+     * Fetches all published posts by {@link #userId} from {@code GET /users/{id}/posts}
+     * and renders them using {@link FeedAdapter} in the posts RecyclerView.
+     * Tapping a post card opens {@link PostViewActivity} with the full post data.
+     */
+    private void loadUserPosts() {
+<span class="fc" id="L311">        ApiClient.getArray(getContext(), &quot;/users/&quot; + userId + &quot;/posts&quot;,</span>
+<span class="fc" id="L312">                new Api_Array_Interface() {</span>
+                    @Override
+                    public void onSuccess(JSONArray response) {
+<span class="fc" id="L315">                        Gson gson = new Gson();</span>
+<span class="fc" id="L316">                        List&lt;DTOmodels.FeedItem&gt; items = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L317" title="All 2 branches covered.">                        for (int i = 0; i &lt; response.length(); i++) {</span>
+                            try {
+<span class="fc" id="L319">                                DTOmodels.FeedPost post = gson.fromJson(</span>
+<span class="fc" id="L320">                                        response.getJSONObject(i).toString(),</span>
+                                        DTOmodels.FeedPost.class);
+<span class="fc" id="L322">                                items.add(DTOmodels.FeedItem.fromPost(post));</span>
+<span class="nc" id="L323">                            } catch (JSONException e) {</span>
+<span class="nc" id="L324">                                Log.e(TAG, &quot;Parse error in post list: &quot; + e.getMessage());</span>
+<span class="fc" id="L325">                            }</span>
+                        }
+
+<span class="pc bpc" id="L328" title="1 of 2 branches missed.">                        if (items.isEmpty()) {</span>
+<span class="nc" id="L329">                            postsEmptyText.setVisibility(View.VISIBLE);</span>
+                        } else {
+                            // Non-scrolling layout manager: the outer NestedScrollView
+                        // owns the scroll gesture, so RecyclerView expands to
+                        // its full height and every post is rendered.
+<span class="fc" id="L334">                        postsRecycler.setLayoutManager(</span>
+<span class="fc" id="L335">                                new LinearLayoutManager(getContext()) {</span>
+                                    @Override
+<span class="fc" id="L337">                                    public boolean canScrollVertically() { return false; }</span>
+                                });
+<span class="fc" id="L339">                            postsRecycler.setAdapter(new FeedAdapter(getContext(), items,</span>
+<span class="fc" id="L340">                                    new FeedAdapter.OnItemClickListener() {</span>
+                                        @Override
+                                        public void onPostClick(DTOmodels.FeedPost post) {
+<span class="fc" id="L343">                                            Intent intent = new Intent(</span>
+<span class="fc" id="L344">                                                    requireActivity(), PostViewActivity.class);</span>
+<span class="fc" id="L345">                                            intent.putExtra(&quot;postId&quot;,       post.id);</span>
+<span class="fc" id="L346">                                            intent.putExtra(&quot;reviewId&quot;,     post.reviewId);</span>
+<span class="fc" id="L347">                                            intent.putExtra(&quot;authorId&quot;,     post.authorId);</span>
+<span class="fc" id="L348">                                            intent.putExtra(&quot;authorName&quot;,   post.authorName);</span>
+<span class="fc" id="L349">                                            intent.putExtra(&quot;caption&quot;,      post.caption);</span>
+<span class="fc" id="L350">                                            intent.putExtra(&quot;mediaTitle&quot;,   post.mediaTitle);</span>
+<span class="fc" id="L351">                                            intent.putExtra(&quot;mediaType&quot;,    post.mediaType);</span>
+<span class="fc" id="L352">                                            intent.putExtra(&quot;rating&quot;,       post.rating);</span>
+<span class="fc" id="L353">                                            intent.putExtra(&quot;likeCount&quot;,    post.likeCount);</span>
+<span class="fc" id="L354">                                            intent.putExtra(&quot;commentCount&quot;, post.commentCount);</span>
+<span class="fc" id="L355">                                            intent.putExtra(&quot;publishedAt&quot;,  post.publishedAt);</span>
+<span class="fc" id="L356">                                            intent.putExtra(&quot;USER_ID&quot;,      currentUserId);</span>
+<span class="fc" id="L357">                                            startActivity(intent);</span>
+<span class="fc" id="L358">                                        }</span>
+
+                                        @Override
+<span class="nc" id="L361">                                        public void onMediaClick(DTOmodels.FeedMedia media) {}</span>
+                                    }));
+                        }
+<span class="fc" id="L364">                    }</span>
+
+                    @Override
+                    public void onError(String message) {
+<span class="nc" id="L368">                        Log.e(TAG, &quot;Could not load posts: &quot; + message);</span>
+<span class="nc bnc" id="L369" title="All 2 branches missed.">                        if (getContext() != null)</span>
+<span class="nc" id="L370">                            postsEmptyText.setVisibility(View.VISIBLE);</span>
+<span class="nc" id="L371">                    }</span>
+                });
+<span class="fc" id="L373">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span>Generated by the Android Gradle plugin 8.8.1</div></body></html>
