@@ -1,5 +1,0 @@
-Hello.
-
-Our project is a sea floor explorer.
-The goal of our project was to search in a 4 foot radius around where it was dropped.
-We made use of many things that we learned throughout this course. Our group is very proud of the work that was put in and are excited to say that we were successful in implementing the desired functionality. We have a few main areas for the code. The main file which has several of our bump/cliff options, our scan functions, and our manual drive loop. We also have the movement file which is called to make our bot move forward backward and so forth. . We also made use of many typestruct arrays to keep track of movement and objects. Finally we have a very in depth gui using python which allowed for us to map the area and put together all of the other functions.
