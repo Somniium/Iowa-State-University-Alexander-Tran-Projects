@@ -1,0 +1,27 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "This folder contains the server-side code for the project. It provides the API endpoints used by the frontend, handles business logic, and manages data operations. The backend is built with Node.js and Express, and includes configuration files, routes, controllers, and database logic as needed.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node config/server.js",
+    "dev": "nodemon config/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@google/genai": "^1.34.0",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.0.1",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

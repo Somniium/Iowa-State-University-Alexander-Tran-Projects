@@ -1,0 +1,7 @@
+
+# Gradle / Android generated files
+.gradle/
+**/.gradle/
+build/
+**/build/
+
